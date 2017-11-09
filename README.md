@@ -1,37 +1,120 @@
-## Welcome to GitHub Pages
+# Go-mdbm
 
-You can use the [editor on GitHub](https://github.com/torden/go-mdbm/edit/master/README.md) to maintain and preview the content for your website in Markdown files.
+*NOT READY FOR USE*
 
-Whenever you commit to this repository, GitHub Pages will run [Jekyll](https://jekyllrb.com/) to rebuild the pages in your site, from the content in your Markdown files.
 
-### Markdown
+- Go-mdbm is a Go bind to Yahoo! MDBM C API.
+- MDBM is a super-fast memory-mapped key/value store.
 
-Markdown is a lightweight and easy-to-use syntax for styling your writing. It includes conventions for
+[![Build Status](https://travis-ci.org/torden/go-mdbm.svg?branch=develop)](https://travis-ci.org/torden/go-mdbm)
+[![Go Report Card](https://goreportcard.com/badge/github.com/torden/go-mdbm)](https://goreportcard.com/report/github.com/torden/go-mdbm)
+[![GoDoc](https://godoc.org/github.com/torden/go-mdbm?status.svg)](https://godoc.org/github.com/torden/go-mdbm)
+[![Coverage Status](https://coveralls.io/repos/github/torden/go-mdbm/badge.svg?branch=develop)](https://coveralls.io/github/torden/go-mdbm?branch=develop)
+[![Go Walker](http://gowalker.org/api/v1/badge)](https://gowalker.org/github.com/torden/go-mdbm)
+[![GitHub version](https://badge.fury.io/gh/torden%2Fgo-mdbm.svg)](https://badge.fury.io/gh/torden%2Fgo-mdbm)
 
-```markdown
-Syntax highlighted code block
-
-# Header 1
-## Header 2
-### Header 3
-
-- Bulleted
-- List
-
-1. Numbered
-2. List
-
-**Bold** and _Italic_ and `Code` text
-
-[Link](url) and ![Image](src)
+```
+On Now, Almost MDBM APIs supported
 ```
 
-For more details see [GitHub Flavored Markdown](https://guides.github.com/features/mastering-markdown/).
 
-### Jekyll Themes
+## Install
 
-Your Pages site will use the layout and styles from the Jekyll theme you have selected in your [repository settings](https://github.com/torden/go-mdbm/settings). The name of this theme is saved in the Jekyll `_config.yml` configuration file.
+### MDBM
 
-### Support or Contact
+#### Download
 
-Having trouble with Pages? Check out our [documentation](https://help.github.com/categories/github-pages-basics/) or [contact support](https://github.com/contact) and we’ll help you sort it out.
+Use the master branch
+```
+git clone https://github.com/yahoo/mdbm.git
+```
+OR Use the release tarball
+```
+wget https://github.com/yahoo/mdbm/archive/v4.12.3.tar.gz
+tar xvzf v4.12.3.tar.gz
+```
+
+#### Install
+
+Refer to the https://github.com/yahoo/mdbm/blob/master/README.build
+
+if you want to install to another path, (HIGH RECOMMEND)
+```
+cd mdbm
+PREFIX=/usr/local/mdbm make install
+```
+
+
+### go-mdbm
+
+#### Download for the MDBM installed another path
+
+```
+git get github.com/torden/go-mdbm.git
+```
+
+Maybe you know, the mdbm installation default path is /tmp/install, That's why go-mdbm used it.
+if you did install to another path, You must  change the mdbm installed path in *mdbm.go* source code
+
+```shell
+cd $GOPATH/torden/go-mdbm/
+vi mdbm.go
+```
+
+```go
+#cgo CFLAGS: -I/tmp/install/include/
+#cgo LDFLAGS: -L/tmp/install/lib64/ -Wl,-rpath=/tmp/install/lib64/ -lmdbm
+```
+
+#### Download for the MDBM installed default path
+
+```
+git get github.com/yahoo/mdbm.git
+```
+
+
+## Support two compatibility branches:
+
+|*Branch*|*Support*|*test*|
+|---|---|---|
+|master|yes|always automatic testing|
+|release 4.3.x|yes|tested|
+
+
+
+## On Now, Not Support APIs
+
+|*API*|*STATUS*|
+|---|---|
+|mdbm_save|DEPRECATED|
+|mdbm_restore|DEPRECATED|
+|mdbm_sethash|DEPRECATED|
+|mdbm_stat_all_page|as soon|
+|mdbm_stat_header|as soon|
+|mdbm_cdbdump_add_record|as soon|
+|mdbm_cdbdump_import|as soon|
+|mdbm_dbdump_to_file|as soon|
+|mdbm_dbdump_trailer_and_close|as soon|
+|mdbm_dbdump_export_header|as soon|
+|mdbm_set_backingstore|as soon|
+|mdbm_replace_backing_store|as soon|
+|mdbm_pre_split|as soon|
+|mdbm_fcopy|as soon|
+|mdbm_iterate|as soon|
+|mdbm_prune|as soon|
+|mdbm_set_cleanfunc|as soon|
+|mdbm_clean|as soon|
+|mdbm_set_stats_func|as soon|
+|mdbm_chunk_iterate|as soon|
+|mdbm_sparsify_file|as soon|
+
+
+## Todo
+
+* Write UnitTests
+* Binding All APIs
+* Testing on another platform (osx, bsd...)
+* EasyXXX APIs
+
+---
+Please feel free.
