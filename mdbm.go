@@ -458,40 +458,6 @@ func (db *MDBM) convertWindowStatToC(ws WindowStats) C.mdbm_window_stats_t {
 	return rv
 }
 
-// DupHandle returns a pointer of the Duplicate an existing database handle.
-// The advantage of dup'ing a handle over doing a separate Open is that dup's handle share the same virtual
-// page mapping within the process space (saving memory).
-// Threaded applications should use pthread_mutex_lock and unlock around calls to mdbm_dup_handle.
-func (db *MDBM) DupHandle() (*MDBM, error) {
-
-	if !db.isopened {
-		return nil, errors.New("Not an existing database handle")
-	}
-
-	var err error
-
-	db.mutex.Lock()
-	defer db.mutex.Unlock()
-
-	obj := &MDBM{
-		locked:   db.locked,
-		dbmfile:  db.dbmfile,
-		flags:    db.flags,
-		perms:    db.perms,
-		psize:    db.psize,
-		dsize:    db.dsize,
-		isopened: db.isopened,
-	}
-
-	C.get_mdbm_iter(&obj.iter)
-	obj.pmdbm, err = C.mdbm_dup_handle(db.pmdbm, 0)
-	if err != nil {
-		return nil, err
-	}
-
-	return obj, nil
-}
-
 func (db *MDBM) cgoRun(call func() (int, error)) (int, string, error) {
 
 	db.cgomtx.Lock()
@@ -688,6 +654,43 @@ func (db *MDBM) isVersion2() error {
 	return nil
 }
 
+// DupHandle returns a pointer of the Duplicate an existing database handle.
+// The advantage of dup'ing a handle over doing a separate Open is that dup's handle share the same virtual
+// page mapping within the process space (saving memory).
+// Threaded applications should use pthread_mutex_lock and unlock around calls to mdbm_dup_handle.
+func (db *MDBM) DupHandle() (*MDBM, error) {
+
+	if !db.isopened {
+		return nil, errors.New("Not an existing database handle")
+	}
+
+	var err error
+
+	db.mutex.Lock()
+	defer db.mutex.Unlock()
+
+	obj := &MDBM{
+		locked:   db.locked,
+		dbmfile:  db.dbmfile,
+		flags:    db.flags,
+		perms:    db.perms,
+		psize:    db.psize,
+		dsize:    db.dsize,
+		isopened: db.isopened,
+	}
+
+	_, _, err = db.cgoRun(func() (int, error) {
+		C.get_mdbm_iter(&obj.iter)
+		obj.pmdbm, err = C.mdbm_dup_handle(db.pmdbm, 0)
+		if err != nil {
+			return -1, err
+		}
+		return 0, err
+	})
+
+	return obj, err
+}
+
 // GetErrNo returns the value of internally saved errno.
 // Contains the value of errno that is set during some lock failures.
 // Under other circumstances, GetErrNo will not return the actual value of the errno variable.
@@ -731,6 +734,10 @@ func (db *MDBM) EasyOpen(dbmfile string, perms int) error {
 	//db.LogMinLevel(LOG_INFO)
 	_, _, err = db.cgoRun(func() (int, error) {
 		db.pmdbm, err = C.mdbm_open(db.pdbmfile, C.int(db.flags), C.int(db.perms), C.int(db.psize), C.int(db.dsize))
+		if db.pmdbm != nil {
+			return 0, nil
+		}
+
 		return 0, err
 	})
 
@@ -757,40 +764,71 @@ func (db *MDBM) Open(mdbmfn string, flags, perms, psize, dsize int) error {
 }
 
 // Sync syncs all pages to disk asynchronously. it's mapped pages are scheduled to be flushed to disk.
-func (db *MDBM) Sync() {
+func (db *MDBM) Sync() (int, error) {
+
+	var rv int
+	var err error
 
 	if db.isopened {
-		db.mutex.Lock()
-		C.mdbm_sync(db.pmdbm)
-		db.mutex.Unlock()
+		rv, _, err = db.cgoRun(func() (int, error) {
+			rv, err := C.mdbm_sync(db.pmdbm)
+			return int(rv), err
+		})
 	}
+	return rv, err
 }
 
 // Fsync syncs all pages to disk synchronously. it's will pages have been flushed to disk.
 // The database is locked while pages are flushed.
-func (db *MDBM) Fsync() {
+func (db *MDBM) Fsync() (int, error) {
+
+	var rv int
+	var err error
 
 	if db.isopened {
-		db.mutex.Lock()
-		C.mdbm_fsync(db.pmdbm)
-		db.mutex.Unlock()
+		rv, _, err = db.cgoRun(func() (int, error) {
+			rv, err := C.mdbm_fsync(db.pmdbm)
+			return int(rv), err
+		})
 	}
+
+	return rv, err
 }
 
-// Fclose Closes the MDBM's underlying file descriptor.
-func (db *MDBM) Fclose() {
+// CloseFD closes the MDBM's underlying file descriptor.
+func (db *MDBM) CloseFD() error {
+
+	var err error
 
 	if db.isopened {
 
-		db.Fsync()
+		_, _, err = db.cgoRun(func() (int, error) {
+			_, err := C.mdbm_close_fd(db.pmdbm)
+			db.isopened = false
+			return 0, err
+		})
+	}
+
+	return err
+}
+
+// Close Closes the database after Sync
+func (db *MDBM) Close() {
+
+	if db == nil {
+		return
+	}
+
+	if db.isopened {
+
 		db.mutex.Lock()
 		{
-
-			C.mdbm_close_fd(db.pmdbm)
+			C.mdbm_close(db.pmdbm)
 			db.isopened = false
 		}
-		db.mutex.Unlock()
 	}
+
+	//C.free(unsafe.Pointer(db.pdbmfile))
 }
 
 // EasyClose Closes the database after Sync
@@ -820,21 +858,22 @@ func (db *MDBM) EasyClose() {
 // to Unlock are made to release the lock.
 func (db *MDBM) Lock() error {
 
-	db.mutex.Lock()
-	defer db.mutex.Unlock()
+	var err error
 
-	//protect mutiple locking
-	if !db.locked {
+	_, _, err = db.cgoRun(func() (int, error) {
+		rv, err := C.mdbm_lock(db.pmdbm)
 
-		_, err := C.mdbm_lock(db.pmdbm)
-		if err != nil {
-			return err
+		db.mutex.Lock()
+		{
+			if !db.locked && int(rv) == 1 {
+				db.locked = true
+			}
 		}
-		db.locked = true
-		return nil
-	}
+		db.mutex.Unlock()
+		return 0, err
+	})
 
-	return errors.New("Error already locked")
+	return err
 }
 
 // Unlock unlocks the database, releasing exclusive or shared access by the caller.
@@ -842,127 +881,122 @@ func (db *MDBM) Lock() error {
 // in a row, an equal number of unlock calls are required.
 func (db *MDBM) Unlock() error {
 
-	db.mutex.Lock()
-	defer db.mutex.Unlock()
+	var err error
 
-	if db.locked {
-
-		_, err := C.mdbm_unlock(db.pmdbm)
-		if err != nil {
-			return err
+	_, _, err = db.cgoRun(func() (int, error) {
+		rv, err := C.mdbm_unlock(db.pmdbm)
+		db.mutex.Lock()
+		{
+			if db.locked && int(rv) == 1 {
+				db.locked = false
+			}
 		}
+		db.mutex.Unlock()
+		return 0, err
+	})
 
-		db.locked = false
-
-		return nil
-	}
-
-	return errors.New("Error already un-locked or didn't lock")
+	return err
 }
 
 // TryLock attempts to exclusively lock the MDBM.
 func (db *MDBM) TryLock() error {
 
-	if !db.locked {
+	var err error
 
-		_, err := C.mdbm_trylock(db.pmdbm)
-		if err != nil {
-			return err
+	_, _, err = db.cgoRun(func() (int, error) {
+		rv, err := C.mdbm_trylock(db.pmdbm)
+		db.mutex.Lock()
+		{
+			if !db.locked && int(rv) == 1 {
+				db.locked = true
+			}
 		}
+		db.mutex.Unlock()
 
-		db.locked = true
+		return 0, err
+	})
 
-		return nil
-	}
-
-	return errors.New("Error already locked")
+	return err
 }
 
-// Locked returns whether or not MDBM is locked by another process or thread.
-func (db *MDBM) Locked() error {
+// IsLocked returns whether or not MDBM is locked by another process or thread.
+// rv 0 Database is not locked
+// rv 1 Database is locked
+func (db *MDBM) IsLocked() (int, error) {
 
-	_, _, err := db.cgoRun(func() (int, error) {
+	rv, _, err := db.cgoRun(func() (int, error) {
 		rv, err := C.mdbm_islocked(db.pmdbm)
 		return int(rv), err
 	})
 
-	return err
+	return rv, err
 }
 
 // LockShared Locks the database for shared access by readers, excluding access to writers.
 // This is multiple-readers, one writer (MROW) locking.dwi
 // The database must be opened with the mdbm.RwLocks (=C.MDBM_RW_LOCKS) flag to enable shared locks.
 // Use Unlock() to release a shared lock.
-func (db *MDBM) LockShared() error {
+func (db *MDBM) LockShared() (int, error) {
 
-	//protect mutiple locking
-	if !db.locked {
+	rv, _, err := db.cgoRun(func() (int, error) {
+		rv, err := C.mdbm_lock_shared(db.pmdbm)
+		return int(rv), err
+	})
 
-		_, err := C.mdbm_lock_shared(db.pmdbm)
-		if err != nil {
-			return err
-		}
-		db.locked = true
-
-		return nil
-	}
-
-	return errors.New("Error already share locked")
+	return rv, err
 }
 
 // TryLockShared locks the database for shared access by readers, excluding access to writers.
 // This is the non-blocking version of LockShared()
 // This is MROW locking. The database must be opened with the mdbm.RwLocks (=C.MDBM_RW_LOCKS) flag to enable shared locks.
-func (db *MDBM) TryLockShared() error {
+func (db *MDBM) TryLockShared() (int, error) {
 
-	//protect mutiple locking
-	if !db.locked {
+	rv, _, err := db.cgoRun(func() (int, error) {
+		rv, err := C.mdbm_trylock_shared(db.pmdbm)
+		return int(rv), err
+	})
 
-		_, err := C.mdbm_trylock_shared(db.pmdbm)
-		if err != nil {
-			return err
-		}
-		db.locked = true
+	return rv, err
 
-		return nil
-	}
-
-	return errors.New("Error already share locked")
 }
 
 // LockReset resets the global lock ownership state of a database.
 // USE THIS FUNCTION WITH EXTREME CAUTION!
-func (db *MDBM) LockReset() error {
+func (db *MDBM) LockReset() (int, error) {
 
 	//flags(2nd arg) Reserved for future use, and must be 0.
-	_, err := C.mdbm_lock_reset(db.pdbmfile, 0)
-	if err != nil {
-		return err
-	}
-	db.mutex.Lock()
-	{
-		db.locked = false
-	}
-	db.mutex.Unlock()
-	return nil
+	rv, _, err := db.cgoRun(func() (int, error) {
+		rv, err := C.mdbm_lock_reset(db.pdbmfile, 0)
+		if rv == 0 {
+			db.mutex.Lock()
+			{
+				db.locked = false
+			}
+			db.mutex.Unlock()
+		}
+		return int(rv), err
+	})
+
+	return rv, err
 }
 
 // DeleteLockFiles removes all lockfiles associated with the MDBM file.
 // USE THIS FUNCTION WITH EXTREME CAUTION!
-func (db *MDBM) DeleteLockFiles() error {
+func (db *MDBM) DeleteLockFiles() (int, error) {
 
-	_, err := C.mdbm_delete_lockfiles(db.pdbmfile)
-	if err != nil {
-		return err
-	}
+	rv, _, err := db.cgoRun(func() (int, error) {
+		rv, err := C.mdbm_delete_lockfiles(db.pdbmfile)
+		if rv == 0 {
+			db.mutex.Lock()
+			{
+				db.locked = false
+			}
+			db.mutex.Unlock()
+		}
+		return int(rv), err
+	})
 
-	db.mutex.Lock()
-	{
-		db.locked = false
-	}
-	db.mutex.Unlock()
-
-	return nil
+	return rv, err
 }
 
 // ReplaceDB replaces the database currently in oldfile db with the new database in newfile.
@@ -994,7 +1028,7 @@ func (db *MDBM) ReplaceFile(oldfile, newfile string) error {
 		return int(rv), err
 	})
 
-	return errors.Wrapf(err, "old file : %s, new file %s", oldfile, newfile)
+	return err
 }
 
 // GetHash returns the MDBM's hash function identifier.
@@ -1016,6 +1050,7 @@ func (db *MDBM) SetHash(hashid int) error {
 	}
 
 	_, _, err := db.cgoRun(func() (int, error) {
+		fmt.Println(C.int(hashid))
 		rv, err := C.mdbm_set_hash(db.pmdbm, C.int(hashid))
 		return int(rv), err
 	})
@@ -1026,6 +1061,7 @@ func (db *MDBM) SetHash(hashid int) error {
 // SetSpillSize sets the size of item data value which will be put on the large-object heap rather than inline.
 // The spill size can be changed at any point after the db has been created.
 // However, it's a recommended practice to set the spill size at creation time.
+// NOTE: The database has to be opened with the MDBM_LARGE_OBJECTS flag for spillsize to take effect.
 func (db *MDBM) SetSpillSize(size int) error {
 
 	rv, _, err := db.cgoRun(func() (int, error) {
@@ -1041,6 +1077,11 @@ func (db *MDBM) SetSpillSize(size int) error {
 }
 
 // GetAlignment gets the MDBM's record byte-alignment.
+// Alignment mask.
+// rv 0 - 8-bit alignment
+// rv 1 - 16-bit alignment
+// rv 3 - 32-bit alignment
+// rv 7 - 64-bit alignment
 func (db *MDBM) GetAlignment() (int, error) {
 
 	rv, _, err := db.cgoRun(func() (int, error) {
@@ -1055,18 +1096,18 @@ func (db *MDBM) GetAlignment() (int, error) {
 // This feature is useful for hardware/memory architectures that incur a performance penalty for unaligned accesses.
 // Later (2006+) i386 and x86 architectures do not need special byte alignment,
 // and should use the default of 8-bit alignment.
-func (db *MDBM) SetAlignment(align int) error {
+func (db *MDBM) SetAlignment(align int) (int, error) {
 
 	if align < Align8Bits || align > Align64Bits {
-		return fmt.Errorf("not support align=%d", align)
+		return -1, fmt.Errorf("not support align=%d", align)
 	}
 
-	_, _, err := db.cgoRun(func() (int, error) {
+	rv, _, err := db.cgoRun(func() (int, error) {
 		rv, err := C.mdbm_set_alignment(db.pmdbm, C.int(align))
 		return int(rv), err
 	})
 
-	return err
+	return rv, err
 }
 
 //GetLimitSize gets the MDBM's size limit. returns the limit set for the size of the db
