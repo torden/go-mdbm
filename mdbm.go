@@ -8,43 +8,234 @@ package mdbm
 #include <stdio.h>
 #include <sys/syslog.h>
 #include <unistd.h>
+#include <string.h>
 #include <time.h>
 #include <mdbm.h>
 #include <mdbm_log.h>
 
-void get_mdbm_iter(MDBM_ITER* iter) {
-  MDBM_ITER_INIT(iter);
+static void get_mdbm_iter(MDBM_ITER *iter) {
+	MDBM_ITER_INIT(iter);
+}
+
+static mdbm_ubig_t get_pageno_of_mdbm_iter(MDBM_ITER *iter) {
+	return (*iter).m_pageno;
+}
+
+static int get_next_of_mdbm_iter(MDBM_ITER *iter) {
+	return (*iter).m_next;
 }
 
 //debug
-void echo_str(const char *str) {
+static void echo_str(const char *str) {
 	fprintf(stderr,"----- echo_str -----\n");
-	fprintf(stderr,"%s\n", str);
+	fprintf(stderr,"[%s]\n", str);
 	fprintf(stderr,"--------------------\n");
 }
 
-//prepared to the raise the locking exception at times.
-int set_mdbm_store_with_lock(MDBM *db, datum key, datum val, int flags) {
+// protection to raise the locking exception at times
+static int set_mdbm_store_with_lock(MDBM *db, datum key, datum val, int flags) {
 	int rv;
-	mdbm_lock(db);
+	rv = mdbm_lock(db);
+	if(rv != 1) {
+		return rv;
+	}
+
 	rv = mdbm_store(db,key,val,flags);
 	mdbm_unlock(db);
 	return rv;
 }
 
-int set_mdbm_store_r_with_lock(MDBM *db, datum* key, datum* val, int flags, MDBM_ITER* iter) {
+static int set_mdbm_store_r_with_lock(MDBM *db, datum *key, datum *val, int flags, MDBM_ITER *iter) {
 	int rv;
-	mdbm_lock(db);
+	rv = mdbm_lock(db);
+	if(rv != 1) {
+		return rv;
+	}
+
 	rv = mdbm_store_r(db,key,val,flags, iter);
 	mdbm_unlock(db);
 	return rv;
 }
 
-int set_mdbm_store_str_with_lock(MDBM *db, const char *key, const char *val, int flags) {
+static int set_mdbm_store_str_with_lock(MDBM *db, const char *key, const char *val, int flags) {
+
 	int rv;
-	mdbm_lock(db);
-	rv = mdbm_store_str(db,key,val,flags);
+	rv = mdbm_lock(db);
+	if(rv != 1) {
+		return rv;
+	}
+
+	rv = mdbm_store_str(db, key, val, flags);
 	mdbm_unlock(db);
+	return rv;
+}
+
+static int set_mdbm_store_with_lock_smart(MDBM *db, datum key, datum val, int flags, int lockflags) {
+
+	int rv;
+	rv = mdbm_lock_smart(db, &key, lockflags);
+	if(rv != 1) {
+		return rv;
+	}
+
+	rv = mdbm_store(db, key, val, flags);
+	mdbm_unlock_smart(db, &key, lockflags);
+	return rv;
+}
+
+static int set_mdbm_store_r_with_lock_smart(MDBM *db, datum *key, datum *val, int flags, int lockflags, MDBM_ITER *iter) {
+
+	int rv;
+	rv = mdbm_lock_smart(db, key, lockflags);
+	if(rv != 1) {
+		return rv;
+	}
+
+	rv = mdbm_store_r(db, key, val, flags, iter);
+	mdbm_unlock_smart(db, key, lockflags);
+	return rv;
+}
+
+static int set_mdbm_store_with_plock(MDBM *db, datum key, datum val, int flags, int lockflags) {
+
+	int rv;
+	rv = mdbm_plock(db, &key, lockflags);
+	if(rv != 1) {
+		return rv;
+	}
+
+	rv = mdbm_store(db, key, val, flags);
+	mdbm_punlock(db, &key, lockflags);
+	return rv;
+}
+
+static int set_mdbm_store_r_with_plock(MDBM *db, datum *key, datum *val, int flags, int lockflags, MDBM_ITER *iter) {
+
+	int rv;
+	rv = mdbm_plock(db, key, lockflags);
+	if(rv != 1) {
+		return rv;
+	}
+
+	rv = mdbm_store_r(db, key, val, flags, iter);
+	mdbm_punlock(db, key, lockflags);
+	return rv;
+}
+
+static char *get_mdbm_fetch_with_lock(MDBM *db, datum key) {
+
+	int rv;
+	datum val;
+	char *buf = NULL;
+
+	rv = mdbm_lock(db);
+	if(rv != 1) {
+		return NULL;
+	}
+
+	val = mdbm_fetch(db, key);
+	if (val.dptr != NULL) {
+		buf = (char *)calloc(val.dsize+1, sizeof(char));
+		if (buf == NULL) {
+			perror("failed allocation:");
+		} else {
+			strncpy(buf, val.dptr, val.dsize);
+		}
+	}
+
+	mdbm_unlock(db);
+	return buf;
+}
+
+static char *get_mdbm_fetch_with_lock_smart(MDBM *db, datum key, int lockflags) {
+
+	int rv;
+	datum val;
+	char *buf = NULL;
+
+	rv = mdbm_lock_smart(db, &key, lockflags);
+	if(rv != 1) {
+		return NULL;
+	}
+
+	val = mdbm_fetch(db, key);
+	if (val.dptr != NULL) {
+		buf = (char *)calloc(val.dsize+1, sizeof(char));
+		if (buf == NULL) {
+			perror("failed allocation:");
+		} else {
+			strncpy(buf, val.dptr, val.dsize);
+		}
+	}
+
+	mdbm_unlock_smart(db, &key, lockflags);
+	return buf;
+}
+
+static char *get_mdbm_fetch_with_plock(MDBM *db, datum key, int lockflags) {
+
+	int rv;
+	datum val;
+	char *buf = NULL;
+
+	rv = mdbm_plock(db, &key, lockflags);
+	if(rv != 1) {
+		return NULL;
+	}
+
+	val = mdbm_fetch(db, key);
+	if (val.dptr != NULL) {
+		buf = (char *)calloc(val.dsize+1, sizeof(char));
+		if (buf == NULL) {
+			perror("failed allocation:");
+		} else {
+			strncpy(buf, val.dptr, val.dsize);
+		}
+	}
+
+	mdbm_punlock(db, &key, lockflags);
+	return buf;
+}
+
+static int get_mdbm_fetch_r_with_lock(MDBM *db, datum *key, datum *val, MDBM_ITER *iter) {
+
+	int rv;
+
+	rv = mdbm_lock(db);
+	if(rv != 1) {
+		return rv;
+	}
+
+	rv = mdbm_fetch_r(db, key, val, iter);
+	mdbm_unlock(db);
+	return rv;
+}
+
+static int get_mdbm_fetch_r_with_lock_smart(MDBM *db, datum *key, datum *val, int lockflags, MDBM_ITER *iter) {
+
+	int rv;
+
+	rv = mdbm_lock_smart(db, key, lockflags);
+	if(rv != 1) {
+		return rv;
+	}
+
+	rv = mdbm_fetch_r(db, key, val, iter);
+	mdbm_unlock_smart(db, key, lockflags);
+	return rv;
+}
+
+static int get_mdbm_fetch_r_with_plock(MDBM *db, datum *key, datum *val, int lockflags, MDBM_ITER *iter) {
+
+	int rv;
+
+	rv = mdbm_plock(db, key, lockflags);
+	if(rv != 1) {
+		return rv;
+	}
+
+	rv = mdbm_fetch_r(db, key, val, iter);
+	mdbm_punlock(db, key, lockflags);
 	return rv;
 }
 */
@@ -62,7 +253,6 @@ import (
 	"sync"
 	"unsafe"
 
-	"github.com/davecgh/go-spew/spew"
 	"github.com/pkg/errors"
 )
 
@@ -197,7 +387,7 @@ func NewMDBM() *MDBM {
 		locked:   false,
 		dbmfile:  "",
 		flags:    Create | Rdrw,
-		perms:    0777,
+		perms:    0666,
 		psize:    0,
 		dsize:    0,
 		isopened: false,
@@ -205,17 +395,15 @@ func NewMDBM() *MDBM {
 
 	obj.scpagesize = uint(C.sysconf(C._SC_PAGESIZE))
 	obj.minpagesize = obj.scpagesize * 2
-
-	C.get_mdbm_iter(&obj.iter)
-
+	obj.iter = obj.GetNewIter()
 	return obj
 }
 
 // convertIter returns a data of the MDBM_ITER convert to Iter
-func (db *MDBM) convertIter(iter C.MDBM_ITER) Iter {
+func (db *MDBM) convertIter(iter *C.MDBM_ITER) Iter {
 	return Iter{
-		PageNo: uint32(iter.m_pageno),
-		Next:   int(iter.m_next),
+		PageNo: uint32(C.get_pageno_of_mdbm_iter(iter)),
+		Next:   int(C.get_next_of_mdbm_iter(iter)),
 	}
 }
 
@@ -654,6 +842,13 @@ func (db *MDBM) isVersion2() error {
 	return nil
 }
 
+// GetNewIter returns a pointer of the C.MDBM_ITer struct
+func (db *MDBM) GetNewIter() C.MDBM_ITER {
+	var iter C.MDBM_ITER
+	C.get_mdbm_iter(&iter)
+	return iter
+}
+
 // DupHandle returns a pointer of the Duplicate an existing database handle.
 // The advantage of dup'ing a handle over doing a separate Open is that dup's handle share the same virtual
 // page mapping within the process space (saving memory).
@@ -680,7 +875,7 @@ func (db *MDBM) DupHandle() (*MDBM, error) {
 	}
 
 	_, _, err = db.cgoRun(func() (int, error) {
-		C.get_mdbm_iter(&obj.iter)
+		obj.iter = db.GetNewIter()
 		obj.pmdbm, err = C.mdbm_dup_handle(db.pmdbm, 0)
 		if err != nil {
 			return -1, err
@@ -826,9 +1021,10 @@ func (db *MDBM) Close() {
 			C.mdbm_close(db.pmdbm)
 			db.isopened = false
 		}
+		db.mutex.Unlock()
 	}
 
-	//C.free(unsafe.Pointer(db.pdbmfile))
+	C.free(unsafe.Pointer(db.pdbmfile))
 }
 
 // EasyClose Closes the database after Sync
@@ -840,7 +1036,11 @@ func (db *MDBM) EasyClose() {
 
 	if db.isopened {
 
-		db.Sync()
+		rv, err := db.Sync()
+		if err != nil {
+			log.Println("failed db.Sync(), rv=%d, err=%v", rv, err)
+		}
+
 		db.mutex.Lock()
 		{
 			C.mdbm_close(db.pmdbm)
@@ -848,8 +1048,6 @@ func (db *MDBM) EasyClose() {
 		}
 		db.mutex.Unlock()
 	}
-
-	//C.free(unsafe.Pointer(db.pdbmfile))
 }
 
 // Lock locks the database for exclusive access by the caller.
@@ -982,10 +1180,14 @@ func (db *MDBM) LockReset() (int, error) {
 
 // DeleteLockFiles removes all lockfiles associated with the MDBM file.
 // USE THIS FUNCTION WITH EXTREME CAUTION!
-func (db *MDBM) DeleteLockFiles() (int, error) {
+// HINT: /tmp/.mlock-named/[PATH]
+func (db *MDBM) DeleteLockFiles(dbmpath string) (int, error) {
+
+	path := C.CString(dbmpath)
+	defer C.free(unsafe.Pointer(path))
 
 	rv, _, err := db.cgoRun(func() (int, error) {
-		rv, err := C.mdbm_delete_lockfiles(db.pdbmfile)
+		rv, err := C.mdbm_delete_lockfiles(path)
 		if rv == 0 {
 			db.mutex.Lock()
 			{
@@ -1129,7 +1331,6 @@ func (db *MDBM) LimitDirSize(pages int) error {
 
 	if pages < 1 {
 		return fmt.Errorf("the internal page directory size must be at least 1, pages=%d", pages)
-
 	}
 
 	_, _, err := db.cgoRun(func() (int, error) {
@@ -1328,12 +1529,11 @@ func (db *MDBM) Protect(protect int) (int, error) {
 		return -1, fmt.Errorf("not support protect=%d", protect)
 	}
 
-	rv, out, err := db.cgoRun(func() (int, error) {
+	rv, _, err := db.cgoRun(func() (int, error) {
 		rv, err := C.mdbm_protect(db.pmdbm, C.int(protect))
 		return int(rv), err
 	})
 
-	log.Print(rv, out, err)
 	return rv, err
 }
 
@@ -1370,15 +1570,51 @@ func (db *MDBM) StoreWithLock(key interface{}, val interface{}, flags int) (int,
 	k.dptr = (*C.char)(unsafe.Pointer(&bkey[0]))
 	k.dsize = C.int(len(bkey))
 
-	defer C.free(unsafe.Pointer(k.dptr))
+	v.dptr = (*C.char)(unsafe.Pointer(&bval[0]))
+	v.dsize = C.int(len(bval))
+
+	rv, out, err := db.cgoRun(func() (int, error) {
+		rv := C.set_mdbm_store_with_lock(db.pmdbm, k, v, C.int(flags))
+		return int(rv), nil
+	})
+
+	switch rv {
+	case -1:
+		return rv, errors.New(out)
+	case 1:
+		return rv, errors.New("Flag const:mdbm.Insert was specified, and the key already exists")
+	}
+
+	return rv, err
+}
+
+// StoreWithLockSmart adds key and value into the current MDBM with locking
+// NOTE : Update if key exists; insert if does not exist
+func (db *MDBM) StoreWithLockSmart(key interface{}, val interface{}, flags int, lockflags int) (int, error) {
+
+	db.mutex.Lock()
+	defer db.mutex.Unlock()
+
+	rv := -1
+
+	bkey, err := db.convertToArByte(key)
+	if err != nil {
+		return rv, errors.Wrapf(err, "failured")
+	}
+	bval, err := db.convertToArByte(val)
+	if err != nil {
+		return rv, errors.Wrapf(err, "failured")
+	}
+
+	var k, v C.datum
+	k.dptr = (*C.char)(unsafe.Pointer(&bkey[0]))
+	k.dsize = C.int(len(bkey))
 
 	v.dptr = (*C.char)(unsafe.Pointer(&bval[0]))
 	v.dsize = C.int(len(bval))
 
-	defer C.free(unsafe.Pointer(v.dptr))
-
 	rv, out, err := db.cgoRun(func() (int, error) {
-		rv := C.set_mdbm_store_with_lock(db.pmdbm, k, v, C.int(flags))
+		rv := C.set_mdbm_store_with_lock_smart(db.pmdbm, k, v, C.int(flags), C.int(lockflags))
 		return int(rv), nil
 	})
 
@@ -1425,14 +1661,12 @@ func (db *MDBM) Store(key interface{}, val interface{}, flags int) (int, error) 
 }
 
 // StoreRWithLock the record specified by the key and val parameters with locking.
-func (db *MDBM) StoreRWithLock(key interface{}, val interface{}, flags int) (int, Iter, error) {
+func (db *MDBM) StoreRWithLock(key interface{}, val interface{}, flags int, iter *C.MDBM_ITER) (int, Iter, error) {
 
 	db.mutex.Lock()
 	defer db.mutex.Unlock()
 
 	rv := -1
-	var iter C.MDBM_ITER
-	C.get_mdbm_iter(&iter)
 
 	skey, err := db.convertToString(key)
 	if err != nil {
@@ -1453,7 +1687,41 @@ func (db *MDBM) StoreRWithLock(key interface{}, val interface{}, flags int) (int
 	defer C.free(unsafe.Pointer(v.dptr))
 
 	rv, _, err = db.cgoRun(func() (int, error) {
-		rv, err := C.set_mdbm_store_r_with_lock(db.pmdbm, &k, &v, C.int(flags), &iter)
+		rv, err := C.set_mdbm_store_r_with_lock(db.pmdbm, &k, &v, C.int(flags), iter)
+		return int(rv), err
+	})
+
+	return rv, db.convertIter(iter), err
+}
+
+// StoreRWithLockSmart the record specified by the key and val parameters with locking.
+func (db *MDBM) StoreRWithLockSmart(key interface{}, val interface{}, flags int, lockflags int, iter *C.MDBM_ITER) (int, Iter, error) {
+
+	db.mutex.Lock()
+	defer db.mutex.Unlock()
+
+	rv := -1
+
+	skey, err := db.convertToString(key)
+	if err != nil {
+		return rv, db.convertIter(iter), errors.Wrapf(err, "failured")
+	}
+	sval, err := db.convertToString(val)
+	if err != nil {
+		return rv, db.convertIter(iter), errors.Wrapf(err, "failured")
+	}
+
+	var k, v C.datum
+	k.dptr = C.CString(skey)
+	k.dsize = C.int(len(skey))
+	defer C.free(unsafe.Pointer(k.dptr))
+
+	v.dptr = C.CString(sval)
+	v.dsize = C.int(len(sval))
+	defer C.free(unsafe.Pointer(v.dptr))
+
+	rv, _, err = db.cgoRun(func() (int, error) {
+		rv, err := C.set_mdbm_store_r_with_lock_smart(db.pmdbm, &k, &v, C.int(flags), C.int(lockflags), iter)
 		return int(rv), err
 	})
 
@@ -1461,15 +1729,12 @@ func (db *MDBM) StoreRWithLock(key interface{}, val interface{}, flags int) (int
 }
 
 // StoreR stores the record specified by the key and val parameters.
-func (db *MDBM) StoreR(key interface{}, val interface{}, flags int) (int, Iter, error) {
+func (db *MDBM) StoreR(key interface{}, val interface{}, flags int, iter *C.MDBM_ITER) (int, Iter, error) {
 
 	db.mutex.Lock()
 	defer db.mutex.Unlock()
 
 	rv := -1
-
-	var iter C.MDBM_ITER
-	C.get_mdbm_iter(&iter)
 
 	skey, err := db.convertToString(key)
 	if err != nil {
@@ -1490,15 +1755,16 @@ func (db *MDBM) StoreR(key interface{}, val interface{}, flags int) (int, Iter, 
 	defer C.free(unsafe.Pointer(v.dptr))
 
 	rv, _, err = db.cgoRun(func() (int, error) {
-		rv, err := C.mdbm_store_r(db.pmdbm, &k, &v, C.int(flags), &iter)
+		rv, err := C.mdbm_store_r(db.pmdbm, &k, &v, C.int(flags), iter)
 		return int(rv), err
 	})
 
 	return rv, db.convertIter(iter), err
 }
 
-// EasyStoreStrWitchLock stores the record specified by the key and val parameters with locking
-func (db *MDBM) EasyStoreStrWitchLock(key interface{}, val interface{}, flags int) (int, error) {
+// StoreStrWitchLock stores the record specified by the key and val parameters with locking
+// BUG: tail \00
+func (db *MDBM) StoreStrWitchLock(key interface{}, val interface{}, flags int) (int, error) {
 
 	db.mutex.Lock()
 	defer db.mutex.Unlock()
@@ -1529,6 +1795,7 @@ func (db *MDBM) EasyStoreStrWitchLock(key interface{}, val interface{}, flags in
 }
 
 // StoreStr stores a string into the MDBM.
+// BUG: tail \00
 func (db *MDBM) StoreStr(key interface{}, val interface{}, flags int) (int, error) {
 
 	db.mutex.Lock()
@@ -1547,7 +1814,6 @@ func (db *MDBM) StoreStr(key interface{}, val interface{}, flags int) (int, erro
 
 	k := C.CString(skey)
 	v := C.CString(sval)
-
 	defer C.free(unsafe.Pointer(k))
 	defer C.free(unsafe.Pointer(v))
 
@@ -1559,14 +1825,96 @@ func (db *MDBM) StoreStr(key interface{}, val interface{}, flags int) (int, erro
 	return rv, err
 }
 
-// Fetch returns fetche the record specified by the key argument and returns a value
-func (db *MDBM) Fetch(key interface{}) (string, error) {
+// FetchWithLock returns fetche the record specified by the key argument and returns a value with lock
+func (db *MDBM) FetchWithLock(key interface{}) (int, string, error) {
 
 	var retval string
+	rv := -1
 
 	bkey, err := db.convertToArByte(key)
 	if err != nil {
-		return retval, errors.Wrapf(err, "failured")
+		return rv, retval, errors.Wrapf(err, "failured")
+	}
+
+	var k C.datum
+
+	k.dptr = (*C.char)(unsafe.Pointer(&bkey[0]))
+	k.dsize = C.int(len(bkey))
+
+	rv, _, err = db.cgoRun(func() (int, error) {
+		v, err := C.get_mdbm_fetch_with_lock(db.pmdbm, k)
+
+		retval = C.GoString(v)
+		C.free(unsafe.Pointer(v))
+		return 0, err
+	})
+
+	return rv, retval, err
+}
+
+// FetchWithLockSmart returns fetche the record specified by the key argument and returns a value with lockSmart
+func (db *MDBM) FetchWithLockSmart(key interface{}, lockflags int) (int, string, error) {
+
+	var retval string
+	rv := -1
+
+	bkey, err := db.convertToArByte(key)
+	if err != nil {
+		return rv, retval, errors.Wrapf(err, "failured")
+	}
+
+	var k C.datum
+
+	k.dptr = (*C.char)(unsafe.Pointer(&bkey[0]))
+	k.dsize = C.int(len(bkey))
+
+	rv, _, err = db.cgoRun(func() (int, error) {
+		v, err := C.get_mdbm_fetch_with_lock_smart(db.pmdbm, k, C.int(lockflags))
+
+		retval = C.GoString(v)
+		C.free(unsafe.Pointer(v))
+		return 0, err
+	})
+
+	return rv, retval, err
+}
+
+// FetchWithPlock returns fetche the record specified by the key argument and returns a value with plock
+func (db *MDBM) FetchWithPlock(key interface{}, lockflags int) (int, string, error) {
+
+	var retval string
+	rv := -1
+
+	bkey, err := db.convertToArByte(key)
+	if err != nil {
+		return rv, retval, errors.Wrapf(err, "failured")
+	}
+
+	var k C.datum
+
+	k.dptr = (*C.char)(unsafe.Pointer(&bkey[0]))
+	k.dsize = C.int(len(bkey))
+
+	rv, _, err = db.cgoRun(func() (int, error) {
+		v, err := C.get_mdbm_fetch_with_plock(db.pmdbm, k, C.int(lockflags)) //flags Ignored.
+
+		retval = C.GoString(v)
+		C.free(unsafe.Pointer(v))
+		return 0, err
+	})
+
+	return rv, retval, err
+}
+
+// Fetch returns fetche the record specified by the key argument and returns a value
+func (db *MDBM) Fetch(key interface{}) (int, string, error) {
+
+	var retval string
+	rv := -1
+
+	bkey, err := db.convertToArByte(key)
+	if err != nil {
+		return rv, retval, errors.Wrapf(err, "failured")
 	}
 
 	var k, v C.datum
@@ -1574,28 +1922,24 @@ func (db *MDBM) Fetch(key interface{}) (string, error) {
 	k.dptr = (*C.char)(unsafe.Pointer(&bkey[0]))
 	k.dsize = C.int(len(bkey))
 
-	defer C.free(unsafe.Pointer(k.dptr))
-
-	_, _, err = db.cgoRun(func() (int, error) {
+	rv, _, err = db.cgoRun(func() (int, error) {
 		v, err = C.mdbm_fetch(db.pmdbm, k)
 		return 0, err
 	})
 
 	retval = C.GoStringN(v.dptr, v.dsize)
 
-	return retval, err
+	return rv, retval, err
 }
 
 // FetchR returns fetche the record specified by the key argument and returns a value
-func (db *MDBM) FetchR(key interface{}) (int, string, Iter, error) {
+func (db *MDBM) FetchR(key interface{}, iter *C.MDBM_ITER) (int, string, Iter, error) {
 
 	db.mutex.Lock()
 	defer db.mutex.Unlock()
 
 	rv := -1
 	var retval string
-	var iter C.MDBM_ITER
-	C.get_mdbm_iter(&iter)
 
 	skey, err := db.convertToString(key)
 	if err != nil {
@@ -1607,10 +1951,101 @@ func (db *MDBM) FetchR(key interface{}) (int, string, Iter, error) {
 	k.dptr = C.CString(skey)
 	k.dsize = C.int(len(skey))
 
-	defer C.free(unsafe.Pointer(k.dptr))
+	rv, _, err = db.cgoRun(func() (int, error) {
+		rv, err := C.mdbm_fetch_r(db.pmdbm, &k, &v, iter)
+		return int(rv), err
+	})
+
+	retval = C.GoStringN(v.dptr, v.dsize)
+
+	goiter := db.convertIter(iter)
+
+	return rv, retval, goiter, err
+}
+
+// FetchRWithLock returns fetche the record specified by the key argument and returns a value with lock
+func (db *MDBM) FetchRWithLock(key interface{}, iter *C.MDBM_ITER) (int, string, Iter, error) {
+
+	db.mutex.Lock()
+	defer db.mutex.Unlock()
+
+	rv := -1
+	var retval string
+
+	skey, err := db.convertToString(key)
+	if err != nil {
+		return rv, retval, db.convertIter(iter), errors.Wrapf(err, "failured")
+	}
+
+	var k, v C.datum
+
+	k.dptr = C.CString(skey)
+	k.dsize = C.int(len(skey))
 
 	rv, _, err = db.cgoRun(func() (int, error) {
-		rv, err := C.mdbm_fetch_r(db.pmdbm, &k, &v, &iter)
+		rv, err := C.get_mdbm_fetch_r_with_lock(db.pmdbm, &k, &v, iter)
+		return int(rv), err
+	})
+
+	retval = C.GoStringN(v.dptr, v.dsize)
+
+	goiter := db.convertIter(iter)
+
+	return rv, retval, goiter, err
+}
+
+// FetchRWithLockSmart returns fetche the record specified by the key argument and returns a value with lock smart
+func (db *MDBM) FetchRWithLockSmart(key interface{}, lockflags int, iter *C.MDBM_ITER) (int, string, Iter, error) {
+
+	db.mutex.Lock()
+	defer db.mutex.Unlock()
+
+	rv := -1
+	var retval string
+
+	skey, err := db.convertToString(key)
+	if err != nil {
+		return rv, retval, db.convertIter(iter), errors.Wrapf(err, "failured")
+	}
+
+	var k, v C.datum
+
+	k.dptr = C.CString(skey)
+	k.dsize = C.int(len(skey))
+
+	rv, _, err = db.cgoRun(func() (int, error) {
+		rv, err := C.get_mdbm_fetch_r_with_lock_smart(db.pmdbm, &k, &v, C.int(lockflags), iter)
+		return int(rv), err
+	})
+
+	retval = C.GoStringN(v.dptr, v.dsize)
+
+	goiter := db.convertIter(iter)
+
+	return rv, retval, goiter, err
+}
+
+// FetchRWithPlock returns fetche the record specified by the key argument and returns a value with plock
+func (db *MDBM) FetchRWithPlock(key interface{}, lockflags int, iter *C.MDBM_ITER) (int, string, Iter, error) {
+
+	db.mutex.Lock()
+	defer db.mutex.Unlock()
+
+	rv := -1
+	var retval string
+
+	skey, err := db.convertToString(key)
+	if err != nil {
+		return rv, retval, db.convertIter(iter), errors.Wrapf(err, "failured")
+	}
+
+	var k, v C.datum
+
+	k.dptr = C.CString(skey)
+	k.dsize = C.int(len(skey))
+
+	rv, _, err = db.cgoRun(func() (int, error) {
+		rv, err := C.get_mdbm_fetch_r_with_plock(db.pmdbm, &k, &v, C.int(lockflags), iter)
 		return int(rv), err
 	})
 
@@ -1647,8 +2082,6 @@ func (db *MDBM) FetchBuf(key interface{}, sbuf *string) (int, string, error) {
 		return int(rv), err
 	})
 
-	spew.Dump(v, buf)
-
 	retval = C.GoStringN(v.dptr, v.dsize)
 	*sbuf = C.GoStringN(buf.dptr, buf.dsize)
 
@@ -1656,15 +2089,13 @@ func (db *MDBM) FetchBuf(key interface{}, sbuf *string) (int, string, error) {
 }
 
 // FetchDupR fetches the next value for a key inserted via mdbm_store_r with the mdbm.InsertDup (=C.MDBM_INSERT_DUP) flag set.
-func (db *MDBM) FetchDupR(key interface{}) (int, string, Iter, error) {
+func (db *MDBM) FetchDupR(key interface{}, iter *C.MDBM_ITER) (int, string, Iter, error) {
 
 	db.mutex.Lock()
 	defer db.mutex.Unlock()
 
 	rv := -1
 	var retval string
-	var iter C.MDBM_ITER
-	C.get_mdbm_iter(&iter)
 
 	skey, err := db.convertToString(key)
 	if err != nil {
@@ -1679,7 +2110,7 @@ func (db *MDBM) FetchDupR(key interface{}) (int, string, Iter, error) {
 	defer C.free(unsafe.Pointer(k.dptr))
 
 	rv, _, err = db.cgoRun(func() (int, error) {
-		rv, err := C.mdbm_fetch_dup_r(db.pmdbm, &k, &v, &iter)
+		rv, err := C.mdbm_fetch_dup_r(db.pmdbm, &k, &v, iter)
 		return int(rv), err
 	})
 
@@ -1692,15 +2123,13 @@ func (db *MDBM) FetchStr(key interface{}) (string, error) {
 
 	var retval string
 
-	bkey, err := db.convertToArByte(key)
+	skey, err := db.convertToString(key)
 	if err != nil {
 		return retval, errors.Wrapf(err, "failured")
 	}
 
-	k := (*C.char)(unsafe.Pointer(&bkey[0]))
+	k := C.CString(skey)
 	defer C.free(unsafe.Pointer(k))
-
-	C.echo_str(k)
 
 	_, _, err = db.cgoRun(func() (int, error) {
 
@@ -1713,15 +2142,13 @@ func (db *MDBM) FetchStr(key interface{}) (string, error) {
 }
 
 // FetchInfo ...
-func (db *MDBM) FetchInfo(key interface{}, sbuf *string) (int, string, FetchInfo, Iter, error) {
+func (db *MDBM) FetchInfo(key interface{}, sbuf *string, iter *C.MDBM_ITER) (int, string, FetchInfo, Iter, error) {
 
 	db.mutex.Lock()
 	defer db.mutex.Unlock()
 
 	rv := -1
 	var retval string
-	var iter C.MDBM_ITER
-	C.get_mdbm_iter(&iter)
 	var info C.struct_mdbm_fetch_info
 
 	err := db.isVersion3Above()
@@ -1742,7 +2169,7 @@ func (db *MDBM) FetchInfo(key interface{}, sbuf *string) (int, string, FetchInfo
 	defer C.free(unsafe.Pointer(k.dptr))
 
 	rv, _, err = db.cgoRun(func() (int, error) {
-		rv, err := C.mdbm_fetch_info(db.pmdbm, &k, &v, &buf, &info, &iter)
+		rv, err := C.mdbm_fetch_info(db.pmdbm, &k, &v, &buf, &info, iter)
 		return int(rv), err
 	})
 
@@ -1771,7 +2198,6 @@ func (db *MDBM) Delete(key interface{}) (int, error) {
 	k.dptr = (*C.char)(unsafe.Pointer(&bkey[0]))
 	k.dsize = C.int(len(bkey))
 
-	defer C.free(unsafe.Pointer(k.dptr))
 	rv, _, err = db.cgoRun(func() (int, error) {
 		rv, err := C.mdbm_delete(db.pmdbm, k)
 		return int(rv), err
@@ -1795,7 +2221,7 @@ func (db *MDBM) DeleteR(iter Iter) (int, Iter, error) {
 		return int(rv), err
 	})
 
-	return rv, db.convertIter(citer), err
+	return rv, db.convertIter(&citer), err
 }
 
 // DeleteStr deletes a string from the MDBM.
@@ -1879,13 +2305,13 @@ func (db *MDBM) FirstR(iter *Iter) (string, string, Iter, error) {
 	})
 
 	if int(kv.key.dsize) == 0 {
-		return "", "", db.convertIter(citer), errors.Wrapf(err, "database is empty")
+		return "", "", db.convertIter(&citer), errors.Wrapf(err, "database is empty")
 	}
 
 	key := C.GoStringN(kv.key.dptr, kv.key.dsize)
 	val := C.GoStringN(kv.val.dptr, kv.val.dsize)
 
-	*iter = db.convertIter(citer)
+	*iter = db.convertIter(&citer)
 
 	return key, val, *iter, nil
 }
@@ -1904,13 +2330,13 @@ func (db *MDBM) NextR(iter *Iter) (string, string, Iter, error) {
 	})
 
 	if int(kv.key.dsize) == 0 {
-		return "", "", db.convertIter(citer), errors.Wrapf(err, "database is empty")
+		return "", "", db.convertIter(&citer), errors.Wrapf(err, "database is empty")
 	}
 
 	key := C.GoStringN(kv.key.dptr, kv.key.dsize)
 	val := C.GoStringN(kv.val.dptr, kv.val.dsize)
 
-	*iter = db.convertIter(citer)
+	*iter = db.convertIter(&citer)
 
 	return key, val, *iter, nil
 }
@@ -1972,11 +2398,11 @@ func (db *MDBM) FirstKeyR(iter *Iter) (string, Iter, error) {
 	})
 
 	if int(k.dsize) == 0 {
-		return "", db.convertIter(citer), errors.Wrapf(err, "database is empty")
+		return "", db.convertIter(&citer), errors.Wrapf(err, "database is empty")
 	}
 
 	key := C.GoStringN(k.dptr, k.dsize)
-	*iter = db.convertIter(citer)
+	*iter = db.convertIter(&citer)
 
 	return key, *iter, nil
 }
@@ -1996,11 +2422,11 @@ func (db *MDBM) NextKeyR(iter *Iter) (string, Iter, error) {
 	})
 
 	if int(k.dsize) == 0 {
-		return "", db.convertIter(citer), errors.Wrapf(err, "database is empty")
+		return "", db.convertIter(&citer), errors.Wrapf(err, "database is empty")
 	}
 
 	key := C.GoStringN(k.dptr, k.dsize)
-	*iter = db.convertIter(citer)
+	*iter = db.convertIter(&citer)
 
 	return key, *iter, nil
 }
@@ -2253,7 +2679,7 @@ func (db *MDBM) GetStatCounter(stype int) (int, uint64, error) {
 // GetStatName gets the name of a stat.
 func (db *MDBM) GetStatName(stype int) (string, error) {
 
-	//stype between 1 (MDBM_STAT_TAG_FETCH) and 16 (MDBM_STAT_TAG_DELETE_FAILED) on mdbm 4.x
+	//stype between 0 (MDBM_STAT_TAG_FETCH) and 16 (MDBM_STAT_TAG_DELETE_FAILED) on mdbm 4.x
 	var retval string
 	_, _, err := db.cgoRun(func() (int, error) {
 		rv, err := C.mdbm_get_stat_name(C.int(stype))
@@ -2274,13 +2700,11 @@ func (db *MDBM) GetStatTime(stype int) (int, uint64, error) {
 
 	var value C.time_t
 
-	rv, out, err := db.cgoRun(func() (int, error) {
+	rv, _, err := db.cgoRun(func() (int, error) {
 		rv, err := C.mdbm_get_stat_time(db.pmdbm, C.mdbm_stat_type(stype), &value)
 
 		return int(rv), err
 	})
-
-	spew.Dump(out)
 
 	return rv, uint64(value), err
 }
@@ -2431,6 +2855,7 @@ func (db *MDBM) Plock(key interface{}) (int, error) {
 		return int(rv), err
 	})
 
+	//rv 1 Success, partition lock was acquired
 	return rv, err
 }
 
@@ -2455,6 +2880,7 @@ func (db *MDBM) Punlock(key interface{}) (int, error) {
 		return int(rv), err
 	})
 
+	// rv 1 Success, partition lock was released
 	return rv, err
 }
 
@@ -2484,7 +2910,7 @@ func (db *MDBM) TryPlock(key interface{}) (int, error) {
 }
 
 // LockSmart performs either partition, shared or exclusive locking based on the locking-related flags supplied to Open()
-func (db *MDBM) LockSmart(key interface{}) (int, error) {
+func (db *MDBM) LockSmart(key interface{}, flags int) (int, error) {
 
 	skey, err := db.convertToString(key)
 	if err != nil {
@@ -2498,7 +2924,7 @@ func (db *MDBM) LockSmart(key interface{}) (int, error) {
 	defer C.free(unsafe.Pointer(k.dptr))
 
 	rv, _, err := db.cgoRun(func() (int, error) {
-		rv, err := C.mdbm_lock_smart(db.pmdbm, &k, C.int(0)) //flags ignored
+		rv, err := C.mdbm_lock_smart(db.pmdbm, &k, C.int(flags))
 		return int(rv), err
 	})
 
@@ -2506,7 +2932,7 @@ func (db *MDBM) LockSmart(key interface{}) (int, error) {
 }
 
 // UnLockSmart unlocks an MDBM based on the locking flags supplied to Open()
-func (db *MDBM) UnLockSmart(key interface{}) (int, error) {
+func (db *MDBM) UnLockSmart(key interface{}, flags int) (int, error) {
 
 	skey, err := db.convertToString(key)
 	if err != nil {
@@ -2520,7 +2946,7 @@ func (db *MDBM) UnLockSmart(key interface{}) (int, error) {
 	defer C.free(unsafe.Pointer(k.dptr))
 
 	rv, _, err := db.cgoRun(func() (int, error) {
-		rv, err := C.mdbm_unlock_smart(db.pmdbm, &k, C.int(0)) //flags ignored
+		rv, err := C.mdbm_unlock_smart(db.pmdbm, &k, C.int(flags))
 		return int(rv), err
 	})
 

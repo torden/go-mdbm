@@ -13,19 +13,19 @@ const (
 	// Wronly is Write-only access (deprecated in V3)
 	Wronly = C.MDBM_O_WRONLY
 
-	// Rdrw  is Read and write access
+	// Rdrw is Read and write access
 	Rdrw = C.MDBM_O_RDWR
 
 	// Create is Create file if it does not exist
 	Create = C.MDBM_O_CREAT
 
-	// Trunc  is Truncate file
+	// Trunc is Truncate file
 	Trunc = C.MDBM_O_TRUNC
 
-	// Fsync  is Sync file on close
+	// Fsync is Sync file on close
 	Fsync = C.MDBM_O_FSYNC
 
-	// Async  is Perform asynchronous writes
+	// Async is Perform asynchronous writes
 	Async = C.MDBM_O_ASYNC
 
 	// Direct is Perform direction I/O
@@ -34,10 +34,10 @@ const (
 	// NoDirty is Do not not track clean/dirty status
 	NoDirty = C.MDBM_NO_DIRTY
 
-	// SingleArch  is User *promises* not to mix 32/64-bit access
+	// SingleArch is User *promises* not to mix 32/64-bit access
 	SingleArch = C.MDBM_SINGLE_ARCH
 
-	// OpenWindowed  is Use windowing to access db
+	// OpenWindowed is Use windowing to access db
 	OpenWindowed = C.MDBM_OPEN_WINDOWED
 
 	// Protect is Protect database except when locked
@@ -49,7 +49,7 @@ const (
 	// StatOperations is collect stats for fetch, store, delete
 	StatOperations = C.MDBM_STAT_OPERATIONS
 
-	// LargeObjects  is Support large objects - obsolete
+	// LargeObjects is Support large objects - obsolete
 	LargeObjects = C.MDBM_LARGE_OBJECTS
 
 	// PartitionedLocks is Partitioned locks
@@ -61,7 +61,7 @@ const (
 	// AnyLocks is Open, even if existing locks don't match flags
 	AnyLocks = C.MDBM_ANY_LOCKS
 
-	// OpenNolock  is Don't lock during open
+	// OpenNolock is Don't lock during open
 	OpenNolock = C.MDBM_OPEN_NOLOCK
 
 	// LogEmerg is system is unusable
@@ -76,7 +76,7 @@ const (
 	// LogErr is error conditions
 	LogErr = C.LOG_ERR
 
-	// LogWarning  is warning conditions
+	// LogWarning is warning conditions
 	LogWarning = C.LOG_WARNING
 
 	// LogNotice is normal but significant condition
@@ -115,7 +115,7 @@ const (
 	// HashSHA1 is SHA_1
 	HashSHA1 = C.MDBM_HASH_SHA_1
 
-	// HashJENKINS  is JENKINS
+	// HashJENKINS is JENKINS
 	HashJENKINS = C.MDBM_HASH_JENKINS
 
 	// HashHSIEH is HSIEH SuperFastHash
@@ -124,22 +124,22 @@ const (
 	// MaxHash is bump up if adding more
 	MaxHash = C.MDBM_MAX_HASH
 
-	// DefaultHash  is MDBM_HASH_FNV is best
+	// DefaultHash is MDBM_HASH_FNV is best
 	DefaultHash = C.MDBM_DEFAULT_HASH
 
-	// Align8Bits  is 1-Byte data alignment
+	// Align8Bits is 1-Byte data alignment
 	Align8Bits = C.MDBM_ALIGN_8_BITS
 
-	// Align16Bits  is 2-Byte data alignment
+	// Align16Bits is 2-Byte data alignment
 	Align16Bits = C.MDBM_ALIGN_16_BITS
 
-	// Align32Bits  is 4-Byte data alignment
+	// Align32Bits is 4-Byte data alignment
 	Align32Bits = C.MDBM_ALIGN_32_BITS
 
-	// Align64Bits  is 8-Byte data alignment
+	// Align64Bits is 8-Byte data alignment
 	Align64Bits = C.MDBM_ALIGN_64_BITS
 
-	// Magic  is V2 file identifier
+	// Magic is V2 file identifier
 	Magic = C._MDBM_MAGIC
 
 	// MagicNew is V2 file identifier with large objects
@@ -157,10 +157,10 @@ const (
 	// ProtWrite is Page write access
 	ProtWrite = C.MDBM_PROT_WRITE
 
-	// ProtNoaccess  is Page no access
+	// ProtNoaccess is Page no access
 	ProtNoaccess = C.MDBM_PROT_NOACCESS
 
-	// ProtAccess  is Page protection mask
+	// ProtAccess is Page protection mask
 	ProtAccess = C.MDBM_PROT_ACCESS
 
 	// Insert is Insert if key does not exist; fail if exists
@@ -178,58 +178,58 @@ const (
 	// StoreMask is Mask for all store options
 	StoreMask = C.MDBM_STORE_MASK
 
-	// CacheModeNone  is No caching behavior
+	// CacheModeNone is No caching behavior
 	CacheModeNone = C.MDBM_CACHEMODE_NONE
 
-	// CacheModeLfu  is Entry with smallest number of accesses is evicted
+	// CacheModeLfu is Entry with smallest number of accesses is evicted
 	CacheModeLfu = C.MDBM_CACHEMODE_LFU
 
-	// CacheModeLru  is Entry with oldest access time is evicted
+	// CacheModeLru is Entry with oldest access time is evicted
 	CacheModeLru = C.MDBM_CACHEMODE_LRU
 
-	// CacheModeGdsf  is Greedy dual-size frequency (size and frequency) eviction
+	// CacheModeGdsf is Greedy dual-size frequency (size and frequency) eviction
 	CacheModeGdsf = C.MDBM_CACHEMODE_GDSF
 
-	// CacheModeMax  is Maximum cache mode value
+	// CacheModeMax is Maximum cache mode value
 	CacheModeMax = C.MDBM_CACHEMODE_MAX
 
-	// StatsBasic  is enables gathering only the stats counters.
+	// StatsBasic is enables gathering only the stats counters.
 	StatsBasic = C.MDBM_STATS_BASIC
 
-	// StatsTimed  is enables gathering only the stats timestamps.
+	// StatsTimed is enables gathering only the stats timestamps.
 	StatsTimed = C.MDBM_STATS_TIMED
 
-	// StatTypeFetch  is fetch* operations
+	// StatTypeFetch is fetch* operations
 	StatTypeFetch = C.MDBM_STAT_TYPE_FETCH
 
-	// StatTypeStore  is store* operations
+	// StatTypeStore is store* operations
 	StatTypeStore = C.MDBM_STAT_TYPE_STORE
 
 	// StatTypeDelete is delete* operations
 	StatTypeDelete = C.MDBM_STAT_TYPE_DELETE
 
-	// StatTypeMax  is C.MDBM_STAT_TYPE_DELETE
+	// StatTypeMax is C.MDBM_STAT_TYPE_DELETE
 	StatTypeMax = C.MDBM_STAT_TYPE_MAX
 
 	// ClockTsc is Enables use of TSC
 	ClockTsc = C.MDBM_CLOCK_TSC
 
-	// ClockStandard  is Disables use of TSC
+	// ClockStandard is Disables use of TSC
 	ClockStandard = C.MDBM_CLOCK_STANDARD
 
-	// StatTagFetch  is Successful fetch stats-callback counter
+	// StatTagFetch is Successful fetch stats-callback counter
 	StatTagFetch = C.MDBM_STAT_TAG_FETCH
 
-	// StatTagStore  is Successful store stats-callback counter
+	// StatTagStore is Successful store stats-callback counter
 	StatTagStore = C.MDBM_STAT_TAG_STORE
 
-	// StatTagDelete  is Successful delete stats-callback counter
+	// StatTagDelete is Successful delete stats-callback counter
 	StatTagDelete = C.MDBM_STAT_TAG_DELETE
 
-	// StatTagLock  is lock stats-callback counter (not implemented)
+	// StatTagLock is lock stats-callback counter (not implemented)
 	StatTagLock = C.MDBM_STAT_TAG_LOCK
 
-	// StatTagFetchUncached  is Cache-miss with cache+backingstore
+	// StatTagFetchUncached is Cache-miss with cache+backingstore
 	StatTagFetchUncached = C.MDBM_STAT_TAG_FETCH_UNCACHED
 
 	// StatTagGetpage is Generic access counter in windowed mode
@@ -250,10 +250,10 @@ const (
 	// StatTagPageDelete is Successful page-level delete indicator
 	StatTagPageDelete = C.MDBM_STAT_TAG_PAGE_DELETE
 
-	// StatTagSync  is Counter of mdbm_syncs and fsyncs
+	// StatTagSync is Counter of mdbm_syncs and fsyncs
 	StatTagSync = C.MDBM_STAT_TAG_SYNC
 
-	// StatTagFetchNotFound  is Fetch cannot find a key in MDBM
+	// StatTagFetchNotFound is Fetch cannot find a key in MDBM
 	StatTagFetchNotFound = C.MDBM_STAT_TAG_FETCH_NOT_FOUND
 
 	// StatTagFetchError is Error occurred during fetch
@@ -262,16 +262,16 @@ const (
 	// StatTagStoreError is Error occurred during store (e.g. MODIFY failed)
 	StatTagStoreError = C.MDBM_STAT_TAG_STORE_ERROR
 
-	// StatTagDeleteFailed  is Delete failed: cannot find a key in MDBM
+	// StatTagDeleteFailed is Delete failed: cannot find a key in MDBM
 	StatTagDeleteFailed = C.MDBM_STAT_TAG_DELETE_FAILED
 
-	// StatTagFetchLatency  is Fetch latency (expensive to collect)
+	// StatTagFetchLatency is Fetch latency (expensive to collect)
 	StatTagFetchLatency = C.MDBM_STAT_TAG_FETCH_LATENCY
 
-	// StatTagStoreLatency  is Store latency (expensive to collect)
+	// StatTagStoreLatency is Store latency (expensive to collect)
 	StatTagStoreLatency = C.MDBM_STAT_TAG_STORE_LATENCY
 
-	// StatTagDeleteLatency  is Delete latency (expensive to collect)
+	// StatTagDeleteLatency is Delete latency (expensive to collect)
 	StatTagDeleteLatency = C.MDBM_STAT_TAG_DELETE_LATENCY
 
 	// StatTagFetchTime is timestamp of last fetch (not yet implemented)
@@ -286,7 +286,7 @@ const (
 	// StatTagFetchUncachedLatency is Cache miss latency for cache+Backingstore only (expensive to collect)
 	StatTagFetchUncachedLatency = C.MDBM_STAT_TAG_FETCH_UNCACHED_LATENCY
 
-	// StatTagGetpageLatency  is access latency in windowed mode (expensive to collect)
+	// StatTagGetpageLatency is access latency in windowed mode (expensive to collect)
 	StatTagGetpageLatency = C.MDBM_STAT_TAG_GETPAGE_LATENCY
 
 	// StatTagGetpageUncachedLatency is windowed-mode miss latency (expensive to collect)
@@ -298,21 +298,21 @@ const (
 	// StatTagCacheStoreLatency is Cache store latency in Cache+backingstore mode only (expensive to collect)
 	StatTagCacheStoreLatency = C.MDBM_STAT_TAG_CACHE_STORE_LATENCY
 
-	// StatTagPageStoreValue  is Indicates a delete occurred on a particular page.
+	// StatTagPageStoreValue is Indicates a delete occurred on a particular page.
 	StatTagPageStoreValue = C.MDBM_STAT_TAG_PAGE_STORE_VALUE
 
 	// StatTagPageDeleteValue is Indicates a delete occurred on a particular page.
 	StatTagPageDeleteValue = C.MDBM_STAT_TAG_PAGE_DELETE_VALUE
 
-	// StatTagSyncLatency  is mdbm_sync/fsync latency (expensive to collect)
+	// StatTagSyncLatency is mdbm_sync/fsync latency (expensive to collect)
 	StatTagSyncLatency = C.MDBM_STAT_TAG_SYNC_LATENCY
 
 	// IterateEntries is Iterate over page entries
 	IterateEntries = C.MDBM_ITERATE_ENTRIES
 
-	// IterateNolock  is Iterate without locking
+	// IterateNolock is Iterate without locking
 	IterateNolock = C.MDBM_ITERATE_NOLOCK
 
-	// StatNolock  is Do not lock for stat operation
+	// StatNolock is Do not lock for stat operation
 	StatNolock = C.MDBM_STAT_NOLOCK
 )

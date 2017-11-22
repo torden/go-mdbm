@@ -114,9 +114,8 @@ git get github.com/yahoo/mdbm.git
 ## Todo
 
 * Write UnitTests
-* Binding All APIs
+* Binding All APIs without deprecated apis
 * Testing on another platform (osx, bsd...)
-* EasyXXX APIs
 
 ---
 Please feel free.
