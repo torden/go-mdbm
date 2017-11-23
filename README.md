@@ -2,7 +2,7 @@
 
 ---
 
-*NOT READY FOR USE*
+*Not ready for use on production servers, go-mdbm tests completed soon..*
 
 
 - Go-mdbm is a Go bind to Yahoo! MDBM C API.
