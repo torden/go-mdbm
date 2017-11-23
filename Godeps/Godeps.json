@@ -1,0 +1,17 @@
+{
+	"ImportPath": "github.com/torden/go-mdbm",
+	"GoVersion": "go1.8",
+	"GodepVersion": "v79",
+	"Deps": [
+		{
+			"ImportPath": "github.com/pkg/errors",
+			"Comment": "v0.8.0-5-gc605e28",
+			"Rev": "c605e284fe17294bda444b34710735b29d1a9d90"
+		},
+		{
+			"ImportPath": "github.com/torden/go-strutil",
+			"Comment": "v0.0.1-14-g6d1073e",
+			"Rev": "6d1073e17dd491c552c29cf2e94b3cf66948aba0"
+		}
+	]
+}

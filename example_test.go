@@ -9,17 +9,9 @@ import (
 	"github.com/torden/go-mdbm"
 )
 
-const pathTestDBM1 = "/tmp/test1.mdbm"
-const pathTestDBM2 = "/tmp/test2.mdbm"
-const pathTestDBM3 = "/tmp/test3.mdbm"
-const pathTestDBMHash = "/tmp/test_hash.mdbm"
-const pathTestDBMDup = "/tmp/test_dup.mdbm"
-const pathTestDBMCache = "/tmp/test_cache.mdbm"
-const pathTestDBMV2 = "/tmp/test_v2.mdbm"
+var pathList = [...]string{pathTestDBM1, pathTestDBM2, pathTestDBM3, pathTestDBMHash, pathTestDBMDup, pathTestDBMCache, pathTestDBMV2}
 
 func init() {
-
-	pathList := [...]string{pathTestDBM1, pathTestDBM2, pathTestDBM3, pathTestDBMHash, pathTestDBMDup, pathTestDBMCache, pathTestDBMV2}
 
 	dbm := mdbm.NewMDBM()
 
@@ -37,8 +29,8 @@ func init() {
 		}
 
 		_, err := dbm.DeleteLockFiles(path)
-		if err != nil {
-			log.Printf("failed delete lock files of %s", path)
+		if err == nil {
+			log.Printf("delete lock files of %s", path)
 		}
 	}
 	// Output:
@@ -48,23 +40,70 @@ func Example_mdbm_EasyOpen_EasyClose() {
 
 	dbm := mdbm.NewMDBM()
 
-	err := dbm.EasyOpen(pathTestDBM1, 0666)
-	if err != nil {
-		log.Fatalf("failed mdbm.EasyOpen(), err=%v", err)
-	}
-	defer dbm.EasyClose()
-	fmt.Println(err)
+	for _, path := range pathList {
 
-	// Output: <nil>
+		err := dbm.EasyOpen(path, 0666)
+		if err != nil {
+			log.Fatalf("failed mdbm.EasyOpen(%s), err=%v", path, err)
+		}
+		fmt.Println(err)
+
+		rv, err := dbm.EnableStatOperations(mdbm.StatsTimed)
+		if err != nil {
+			log.Fatalf("failed dbm.EnableStatOperations(mdbm.StatsTimed), rv=%d, err=%v", rv, err)
+		}
+
+		fmt.Println(err)
+		rv, err = dbm.SetStatTimeFunc(mdbm.ClockTsc)
+		if err != nil {
+			log.Fatalf("failed dbm.SetStatTimeFunc(mdbm.ClockTsc), rv=%d, err=%v", rv, err)
+		}
+
+		fmt.Println(err)
+
+		dbm.EasyClose()
+	}
+
+	// Output:
+	// <nil>
+	// <nil>
+	// <nil>
+	// <nil>
+	// <nil>
+	// <nil>
+	// <nil>
+	// <nil>
+	// <nil>
+	// <nil>
+	// <nil>
+	// <nil>
+	// <nil>
+	// <nil>
+	// <nil>
+	// <nil>
+	// <nil>
+	// <nil>
+	// <nil>
+	// <nil>
+	// <nil>
 }
 
 func Example_mdbm_Open_Close() {
 
 	dbm := mdbm.NewMDBM()
 	err := dbm.Open(pathTestDBM2, mdbm.Create|mdbm.Rdrw, 0666, 0, 0)
-	dbm.Close()
 	fmt.Println(err)
-	// Output: <nil>
+
+	_, err = dbm.EnableStatOperations(mdbm.StatsTimed)
+	fmt.Println(err)
+	_, err = dbm.SetStatTimeFunc(mdbm.ClockTsc)
+	fmt.Println(err)
+
+	dbm.Close()
+	// Output:
+	// <nil>
+	// <nil>
+	// <nil>
 }
 
 func Example_mdbm_DupHandle() {
@@ -776,7 +815,7 @@ func Example_mdbm_StoreWithLock() {
 	}
 	defer dbm.EasyClose()
 
-	for i := 0; i < 65535; i++ {
+	for i := 0; i <= loopLimit; i++ {
 		rv, err := dbm.StoreWithLock(i, i, mdbm.Replace)
 		if err != nil {
 			fmt.Printf("return value=%d, err=%v\n", rv, err)
@@ -795,7 +834,7 @@ func Example_mdbm_Store() {
 	}
 	defer dbm.EasyClose()
 
-	for i := 0; i < 65535; i++ {
+	for i := 0; i <= loopLimit; i++ {
 		rv, err := dbm.Store(i, i, mdbm.Replace)
 		if err != nil {
 			fmt.Printf("return value=%d, err=%v\n", rv, err)
@@ -816,7 +855,7 @@ func Example_mdbm_StoreRWithLock() {
 
 	iter := dbm.GetNewIter()
 
-	for i := 0; i < 65535; i++ {
+	for i := 0; i <= loopLimit; i++ {
 		rv, _, err := dbm.StoreRWithLock(i, i, mdbm.Replace, &iter)
 		if err != nil {
 			fmt.Printf("return value=%d, err=%v\n", rv, err)
@@ -837,7 +876,7 @@ func Example_mdbm_StoreR() {
 
 	iter := dbm.GetNewIter()
 
-	for i := 0; i < 65535; i++ {
+	for i := 0; i <= loopLimit; i++ {
 		rv, _, err := dbm.StoreR(i, i, mdbm.Replace, &iter)
 		if err != nil {
 			fmt.Printf("return value=%d, err=%v\n", rv, err)
@@ -857,7 +896,7 @@ func Example_mdbm_StoreStrWitchLock() {
 	}
 	defer dbm.EasyClose()
 
-	for i := 0; i < 65535; i++ {
+	for i := 0; i <= loopLimit; i++ {
 		rv, err := dbm.StoreStrWitchLock(i, i, mdbm.Replace)
 		if err != nil {
 			fmt.Printf("return value=%d, err=%v\n", rv, err)
@@ -877,7 +916,7 @@ func Example_mdbm_StoreStr() {
 	}
 	defer dbm.EasyClose()
 
-	for i := 0; i < 65535; i++ {
+	for i := 0; i <= loopLimit; i++ {
 		rv, err := dbm.StoreStr(i, i, mdbm.Replace)
 		if err != nil {
 			fmt.Printf("return value=%d, err=%v\n", rv, err)
@@ -896,7 +935,7 @@ func Example_mdbm_Fetch() {
 	}
 	defer dbm.EasyClose()
 
-	for i := 0; i < 65535; i++ {
+	for i := 0; i <= loopLimit; i++ {
 		rv, retval, err := dbm.Fetch(i)
 		if err != nil {
 			log.Fatalf("rv=%d, retval=%s, err=%v\n", rv, retval, err)
@@ -922,7 +961,7 @@ func Example_mdbm_FetchR() {
 
 	iter := dbm.GetNewIter()
 
-	for i := 0; i < 65535; i++ {
+	for i := 0; i <= loopLimit; i++ {
 		rv, retval, _, err := dbm.FetchR(i, &iter)
 		if err != nil {
 			log.Fatalf("rv=%d, retval=%s, err=%v\n", rv, retval, err)
@@ -946,7 +985,7 @@ func Example_mdbm_FetchBuf() {
 	}
 	defer dbm.EasyClose()
 
-	for i := 0; i < 65535; i++ {
+	for i := 0; i <= loopLimit; i++ {
 
 		var retval string
 		rv, copiedval, err := dbm.FetchBuf(i, &retval)
@@ -1806,10 +1845,10 @@ func Example_mdbm_GetStats() {
 
 	// Output:
 	// 0 <nil>
-	// stat.Size = 2297856
+	// stat.Size = 5193728
 	// stat.PageSize = 4096
-	// stat.PageCount = 561
-	// stat.PagesUsed = 284
+	// stat.PageCount = 1268
+	// stat.PagesUsed = 510
 	// stat.BytesUsed = 633718
 	// stat.NumEntries = 65634
 	// stat.MinLevel = 1
@@ -1845,7 +1884,7 @@ func Example_mdbm_GetDBInfo() {
 	// Output:
 	// 0 <nil>
 	// DBInfo.PageSize = 4096
-	// DBInfo.NumPages = 561
+	// DBInfo.NumPages = 1268
 	// DBInfo.MaxPages = 0
 	// DBInfo.NumDirPages = 1
 	// DBInfo.DirWidth = 2
@@ -2062,7 +2101,7 @@ func Example_mdbm_LockSamrt_Store_UnLockSmart() {
 	}
 	defer dbm.EasyClose()
 
-	for i := 0; i < 65535; i++ {
+	for i := 0; i <= loopLimit; i++ {
 
 		dbm.LockSmart(i, mdbm.Rdrw)
 
@@ -2092,7 +2131,7 @@ func Example_mdbm_StoreWithLockSamrt() {
 		log.Fatalf("failed mdbm.LockReset(), err=%v", err)
 	}
 
-	for i := 0; i < 65535; i++ {
+	for i := 0; i <= loopLimit; i++ {
 
 		rv, err := dbm.StoreWithLockSmart(i, i, mdbm.Replace, mdbm.Rdrw)
 		if err != nil {
@@ -2119,7 +2158,7 @@ func Example_mdbm_StoreRWithLockSamrt() {
 		log.Fatalf("failed mdbm.LockReset(), err=%v", err)
 	}
 
-	for i := 0; i < 65535; i++ {
+	for i := 0; i <= loopLimit; i++ {
 
 		rv, _, err := dbm.StoreRWithLockSmart(i, i, mdbm.Replace, mdbm.Rdrw, &iter)
 		if err != nil {
@@ -2144,5 +2183,5 @@ func Example_mdbm_CheckResidency() {
 	fmt.Println(rv, pgsin, pgsout, err)
 
 	// Output:
-	// 0 561 0 <nil>
+	// 0 1268 0 <nil>
 }
