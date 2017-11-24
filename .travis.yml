@@ -18,7 +18,6 @@ before_install:
 before_script:
     - cd /tmp/mdbm/
     - make -j2 
-    - make test-fast
     - make install
 script:
     - make test
