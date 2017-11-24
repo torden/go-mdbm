@@ -1038,7 +1038,7 @@ func (db *MDBM) EasyClose() {
 
 		rv, err := db.Sync()
 		if err != nil {
-			log.Println("failed db.Sync(), rv=%d, err=%v", rv, err)
+			log.Printf("failed db.Sync(), rv=%d, err=%v", rv, err)
 		}
 
 		db.mutex.Lock()
@@ -1160,11 +1160,14 @@ func (db *MDBM) TryLockShared() (int, error) {
 
 // LockReset resets the global lock ownership state of a database.
 // USE THIS FUNCTION WITH EXTREME CAUTION!
-func (db *MDBM) LockReset() (int, error) {
+func (db *MDBM) LockReset(dbmpath string) (int, error) {
+
+	pdbmfile := C.CString(dbmpath)
+	defer C.free(unsafe.Pointer(pdbmfile))
 
 	//flags(2nd arg) Reserved for future use, and must be 0.
 	rv, _, err := db.cgoRun(func() (int, error) {
-		rv, err := C.mdbm_lock_reset(db.pdbmfile, 0)
+		rv, err := C.mdbm_lock_reset(pdbmfile, 0)
 		if rv == 0 {
 			db.mutex.Lock()
 			{
@@ -1176,6 +1179,13 @@ func (db *MDBM) LockReset() (int, error) {
 	})
 
 	return rv, err
+}
+
+// MyLockReset resets the global lock ownership state of a database.
+// USE THIS FUNCTION WITH EXTREME CAUTION!
+func (db *MDBM) MyLockReset() (int, error) {
+
+	return db.LockReset(db.dbmfile)
 }
 
 // DeleteLockFiles removes all lockfiles associated with the MDBM file.

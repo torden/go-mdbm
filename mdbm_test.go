@@ -72,7 +72,7 @@ func Test_mdbm_OrdinaryInsertData_Store1(t *testing.T) {
 	assert.AssertNil(t, err, "failured, can't open the mdbm, path=%s, err=%v", pathTestDBM1, err)
 
 	for i := 0; i <= loopLimit; i++ {
-		rv, err = dbm.Store(i, time.Now().UnixNano(), mdbm.Insert)
+		rv, err = dbm.Store(i, time.Now().UnixNano(), mdbm.Replace)
 		assert.AssertNil(t, err, "return value=%d, err=%v\n", rv, err)
 	}
 
@@ -89,7 +89,7 @@ func Test_mdbm_OrdinaryInsertData_Store2(t *testing.T) {
 	assert.AssertNil(t, err, "failured, can't open the mdbm, path=%s, err=%v", pathTestDBM2, err)
 
 	for i := 0; i <= loopLimit; i++ {
-		rv, err := dbm.Store(i, time.Now().UnixNano(), mdbm.Insert)
+		rv, err := dbm.Store(i, time.Now().UnixNano(), mdbm.Replace)
 		assert.AssertNil(t, err, "return value=%d, err=%v\n", rv, err)
 	}
 }
@@ -103,7 +103,7 @@ func Test_mdbm_OrdinaryInsertData_StoreWithLock(t *testing.T) {
 	assert.AssertNil(t, err, "failured, can't open the mdbm, path=%s, err=%v", pathTestDBM3, err)
 
 	for i := 0; i <= loopLimit; i++ {
-		rv, err := dbm.StoreWithLock(i, time.Now().UnixNano(), mdbm.Insert)
+		rv, err := dbm.StoreWithLock(i, time.Now().UnixNano(), mdbm.Replace)
 		assert.AssertNil(t, err, "return value=%d, err=%v\n", rv, err)
 	}
 }

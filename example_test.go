@@ -221,12 +221,18 @@ func Example_mdbm_Lock_Unlock() {
 	if err != nil {
 		log.Fatalf("failed mdbm.EasyOpen(), err=%v", err)
 	}
+
 	fmt.Println("EasyOpen : ", err)
+
+	rv, err := dbm.MyLockReset()
+	if rv != 0 {
+		log.Fatalf("failed mdbm.MyLockReset(), err=%v", err)
+	}
 
 	err = dbm.Lock()
 	fmt.Println("Lock : ", err)
 
-	rv, err := dbm.Store("iamKey", "iamValue", mdbm.Replace)
+	rv, err = dbm.Store("iamKey", "iamValue", mdbm.Replace)
 	fmt.Println("Store : rv =", rv, ", err =", err)
 
 	err = dbm.Unlock()
@@ -331,6 +337,21 @@ func Example_mdbm_TryLockShared() {
 
 func Example_mdbm_LockReset() {
 
+	dbm := mdbm.NewMDBM()
+
+	for _, path := range pathList {
+		rv, err := dbm.LockReset(path)
+		if rv != 0 {
+			fmt.Printf("failed rv=%d, err=%v", rv, err)
+		}
+	}
+
+	// Output:
+
+}
+
+func Example_mdbm_MyLockReset() {
+
 	var rv int
 	dbm := mdbm.NewMDBM()
 	err := dbm.EasyOpen(pathTestDBM3, 0644)
@@ -342,8 +363,8 @@ func Example_mdbm_LockReset() {
 	err = dbm.Lock()
 	fmt.Println("Lock : ", err)
 
-	rv, err = dbm.LockReset()
-	fmt.Println("LockReset : rv =", rv, ", err =", err)
+	rv, err = dbm.MyLockReset()
+	fmt.Println("MyLockReset : rv =", rv, ", err =", err)
 
 	rv, err = dbm.Store("iamKey", "iamValue", mdbm.Replace)
 	fmt.Println("Store : rv =", rv, ", err =", err)
@@ -356,7 +377,7 @@ func Example_mdbm_LockReset() {
 	// Output:
 	// EasyOpen :  <nil>
 	// Lock :  <nil>
-	// LockReset : rv = 0 , err = <nil>
+	// MyLockReset : rv = 0 , err = <nil>
 	// Store : rv = 0 , err = <nil>
 	// Unlock :  operation not permitted
 }
@@ -2001,6 +2022,8 @@ func Example_mdbm_Plock_Punlock() {
 	}
 	defer dbm.EasyClose()
 
+	dbm.MyLockReset()
+
 	rv, err := dbm.Plock(1)
 	if err != nil {
 		log.Fatalf("Plock(1) : rv=%d, err=%v", rv, err)
@@ -2126,7 +2149,7 @@ func Example_mdbm_StoreWithLockSamrt() {
 	}
 	defer dbm.EasyClose()
 
-	_, err = dbm.LockReset()
+	_, err = dbm.MyLockReset()
 	if err != nil {
 		log.Fatalf("failed mdbm.LockReset(), err=%v", err)
 	}
@@ -2153,9 +2176,9 @@ func Example_mdbm_StoreRWithLockSamrt() {
 
 	iter := dbm.GetNewIter()
 
-	_, err = dbm.LockReset()
+	_, err = dbm.MyLockReset()
 	if err != nil {
-		log.Fatalf("failed mdbm.LockReset(), err=%v", err)
+		log.Fatalf("failed mdbm.MyLockReset(), err=%v", err)
 	}
 
 	for i := 0; i <= loopLimit; i++ {
