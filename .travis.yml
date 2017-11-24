@@ -10,14 +10,16 @@ go:
     - 1.4.x
     - tip
 before_install:
-    - go get github.com/mattn/goveralls
-    - go get golang.org/x/tools/cmd/cover
-    - go get github.com/mattn/goveralls
-    - go get github.com/modocache/gover
-    - go get github.com/torden/go-strutil
-
+    - go get github.com/tools/godep
+    - godep restore
+    - sudo apt-get update -qq
+    - sudo apt-get install -y openssl libcppunit-dev libreadline6 libreadline6-dev valgrind realpath libmodule-install-perl
+    - git clone https://github.com/yahoo/mdbm.git /tmp/mdbm/
 before_script:
-    - go fmt ./...
+    - cd /tmp/mdbm/
+    - make -j2 
+    - make test-fast
+    - make install
 script:
     - make test
     - make coveralls
