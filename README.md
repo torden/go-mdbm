@@ -1,6 +1,6 @@
 # Go-mdbm
 
-*NOT READY FOR USE*
+*Not ready for use on production servers, go-mdbm tests completed soon..*
 
 
 - Go-mdbm is a Go bind to Yahoo! MDBM C API.
@@ -112,9 +112,9 @@ git get github.com/yahoo/mdbm.git
 ## Todo
 
 * Write UnitTests
-* Binding All APIs
+* Binding All APIs without deprecated apis
 * Testing on another platform (osx, bsd...)
-* EasyXXX APIs
+* Pre-compiled mdbm lib by OS
 
 ---
 Please feel free.

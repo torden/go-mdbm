@@ -1,0 +1,27 @@
+sudo: false
+language: go
+dist: trusty
+go:
+    - 1.x
+    - 1.8.x
+    - 1.7.x
+    - 1.6.x
+    - 1.5.x
+    - 1.4.x
+    - tip
+before_install:
+    - go get github.com/mattn/goveralls
+    - go get golang.org/x/tools/cmd/cover
+    - go get github.com/mattn/goveralls
+    - go get github.com/modocache/gover
+    - go get github.com/torden/go-strutil
+
+before_script:
+    - go fmt ./...
+script:
+    - make test
+    - make coveralls
+matrix:
+    allow_failures:
+        - go: tip
+          fast_finish: true
