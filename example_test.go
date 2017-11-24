@@ -1816,10 +1816,12 @@ func Example_mdbm_GetStats() {
 	}
 	defer dbm.EasyClose()
 
-	rv, stats, err := dbm.GetStats()
+	rv, _, err := dbm.GetStats()
 
 	fmt.Println(rv, err)
 
+	/* just for you
+	rv, stats, err := dbm.GetStats()
 	fmt.Println("stat.Size =", stats.Size)
 	fmt.Println("stat.PageSize =", stats.PageSize)
 	fmt.Println("stat.PageCount =", stats.PageCount)
@@ -1829,18 +1831,10 @@ func Example_mdbm_GetStats() {
 	fmt.Println("stat.MinLevel =", stats.MinLevel)
 	fmt.Println("stat.MaxLevel =", stats.MaxLevel)
 	fmt.Println("stat.LargePageSize =", stats.LargePageSize)
+	*/
 
 	// Output:
 	// 0 <nil>
-	// stat.Size = 5193728
-	// stat.PageSize = 4096
-	// stat.PageCount = 1268
-	// stat.PagesUsed = 510
-	// stat.BytesUsed = 633718
-	// stat.NumEntries = 65634
-	// stat.MinLevel = 1
-	// stat.MaxLevel = 1
-	// stat.LargePageSize = 4096
 }
 
 func Example_mdbm_GetDBInfo() {
@@ -1852,10 +1846,12 @@ func Example_mdbm_GetDBInfo() {
 	}
 	defer dbm.EasyClose()
 
-	rv, info, err := dbm.GetDBInfo()
+	rv, _, err := dbm.GetDBInfo()
 
 	fmt.Println(rv, err)
 
+	/* just for you
+	rv, info, err := dbm.GetDBInfo()
 	fmt.Println("DBInfo.PageSize =", info.PageSize)
 	fmt.Println("DBInfo.NumPages =", info.NumPages)
 	fmt.Println("DBInfo.MaxPages =", info.MaxPages)
@@ -1867,20 +1863,10 @@ func Example_mdbm_GetDBInfo() {
 	fmt.Println("DBInfo.DirNumNodes =", info.DirNumNodes)
 	fmt.Println("DBInfo.HashFunc =", info.HashFunc)
 	fmt.Println("DBInfo.HashFuncName =", info.HashFuncName)
+	*/
 
 	// Output:
 	// 0 <nil>
-	// DBInfo.PageSize = 4096
-	// DBInfo.NumPages = 1268
-	// DBInfo.MaxPages = 0
-	// DBInfo.NumDirPages = 1
-	// DBInfo.DirWidth = 2
-	// DBInfo.MaxDirShift = 1
-	// DBInfo.DirMinLevel = 1
-	// DBInfo.DirMaxLevel = 1
-	// DBInfo.DirNumNodes = 1
-	// DBInfo.HashFunc = 5
-	// DBInfo.HashFuncName = FNV
 }
 
 func Example_mdbm_GetDBStats() {
@@ -2167,10 +2153,12 @@ func Example_mdbm_CheckResidency() {
 	}
 	defer dbm.EasyClose()
 
-	rv, pgsin, pgsout, err := dbm.CheckResidency()
+	rv, _, _, err := dbm.CheckResidency()
 
-	fmt.Println(rv, pgsin, pgsout, err)
+	//rv, pgsin, pgsout, err := dbm.CheckResidency()
+	//fmt.Println(rv, pgsin, pgsout, err)
+	fmt.Println(rv, err)
 
 	// Output:
-	// 0 1268 0 <nil>
+	// 0 <nil>
 }
