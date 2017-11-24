@@ -3,38 +3,12 @@ package mdbm_test
 import (
 	"fmt"
 	"log"
-	"os"
 	"strconv"
 
 	"github.com/torden/go-mdbm"
 )
 
 var pathList = [...]string{pathTestDBM1, pathTestDBM2, pathTestDBM3, pathTestDBMHash, pathTestDBMDup, pathTestDBMCache, pathTestDBMV2}
-
-func init() {
-
-	dbm := mdbm.NewMDBM()
-
-	for _, path := range pathList {
-
-		if _, err := os.Stat(path); err != nil {
-
-			if os.IsExist(err) {
-
-				err = os.Remove(path)
-				if err != nil {
-					log.Printf("failed remove the `%s` file", path)
-				}
-			}
-		}
-
-		_, err := dbm.DeleteLockFiles(path)
-		if err == nil {
-			log.Printf("delete lock files of %s", path)
-		}
-	}
-	// Output:
-}
 
 func Example_mdbm_EasyOpen_EasyClose() {
 
@@ -1518,24 +1492,22 @@ func Example_mdbm_LockDump() {
 	// OK
 }
 
+// When running MDBM as root
 func Example_mdbm_LockPages() {
 
 	dbm := mdbm.NewMDBM()
-	err := dbm.EasyOpen(pathTestDBM1, 0754)
+	err := dbm.EasyOpen(pathTestDBM1, 0666)
 	if err != nil {
 		log.Fatalf("failed mdbm.EasyOpen(), err=%v", err)
 	}
 	defer dbm.EasyClose()
 
 	rv, err := dbm.LockPages()
-	if err != nil {
-		log.Fatalf("err=%v", err)
+	if err != nil && rv != -9 {
+		log.Fatalf("rv=%d, err=%v", rv, err)
 	}
 
-	fmt.Println(rv, err)
-
 	// Output:
-	// 0 <nil>
 }
 
 func Example_mdbm_UnLockPages() {
@@ -1548,24 +1520,18 @@ func Example_mdbm_UnLockPages() {
 	defer dbm.EasyClose()
 
 	rv, err := dbm.LockPages()
-	if err != nil {
+	if err != nil && rv != -9 {
 		log.Fatalf("err=%v", err)
 	}
-
-	fmt.Println(rv, err)
 
 	//something..
 
 	rv, err = dbm.UnLockPages()
-	if err != nil {
-		log.Fatalf("err=%v", err)
+	if err != nil && rv != -9 {
+		log.Fatalf("rv=%d, err=%v", rv, err)
 	}
 
-	fmt.Println(rv, err)
-
 	// Output:
-	// 0 <nil>
-	// 0 <nil>
 }
 
 func Example_mdbm_ChkPage() {

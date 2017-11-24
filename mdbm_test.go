@@ -22,20 +22,14 @@ func TestMain(t *testing.T) {
 
 	for _, path := range pathList {
 
-		if _, err := os.Stat(path); err != nil {
-
-			if os.IsExist(err) {
-
-				err = os.Remove(path)
-				if err != nil {
-					log.Printf("failed remove the `%s` file", path)
-				} else {
-					log.Printf("remove the `%s` file", path)
-				}
-			}
+		err := os.Remove(path)
+		if err != nil {
+			log.Printf("not exists the `%s` file", path)
+		} else {
+			log.Printf("remove the `%s` file", path)
 		}
 
-		_, err := dbm.DeleteLockFiles(path)
+		_, err = dbm.DeleteLockFiles(path)
 		if err == nil {
 			log.Printf("delete lock files of %s", path)
 		}
@@ -66,7 +60,7 @@ func Test_mdbm_OrdinaryInsertData_Store1(t *testing.T) {
 	var err error
 
 	dbm := mdbm.NewMDBM()
-	err = dbm.Open(pathTestDBM1, mdbm.Create|mdbm.Rdrw, 754, 0, 0)
+	err = dbm.Open(pathTestDBM1, mdbm.Create|mdbm.Rdrw, 0754, 0, 0)
 	defer dbm.Close()
 
 	assert.AssertNil(t, err, "failured, can't open the mdbm, path=%s, err=%v", pathTestDBM1, err)
@@ -83,7 +77,7 @@ func Test_mdbm_OrdinaryInsertData_Store1(t *testing.T) {
 func Test_mdbm_OrdinaryInsertData_Store2(t *testing.T) {
 
 	dbm := mdbm.NewMDBM()
-	err := dbm.EasyOpen(pathTestDBM2, 754)
+	err := dbm.EasyOpen(pathTestDBM2, 0754)
 	defer dbm.EasyClose()
 
 	assert.AssertNil(t, err, "failured, can't open the mdbm, path=%s, err=%v", pathTestDBM2, err)
@@ -97,7 +91,7 @@ func Test_mdbm_OrdinaryInsertData_Store2(t *testing.T) {
 func Test_mdbm_OrdinaryInsertData_StoreWithLock(t *testing.T) {
 
 	dbm := mdbm.NewMDBM()
-	err := dbm.EasyOpen(pathTestDBM3, 754)
+	err := dbm.EasyOpen(pathTestDBM3, 0754)
 	defer dbm.EasyClose()
 
 	assert.AssertNil(t, err, "failured, can't open the mdbm, path=%s, err=%v", pathTestDBM3, err)
@@ -111,7 +105,7 @@ func Test_mdbm_OrdinaryInsertData_StoreWithLock(t *testing.T) {
 func Test_mdbm_OrdinaryReaplceData_StoreWithLockSmart(t *testing.T) {
 
 	dbm := mdbm.NewMDBM()
-	err := dbm.EasyOpen(pathTestDBM1, 754)
+	err := dbm.EasyOpen(pathTestDBM1, 0754)
 	defer dbm.EasyClose()
 
 	assert.AssertNil(t, err, "failured, can't open the mdbm, path=%s, err=%v", pathTestDBM1, err)
@@ -125,7 +119,7 @@ func Test_mdbm_OrdinaryReaplceData_StoreWithLockSmart(t *testing.T) {
 func Test_mdbm_OrdinaryFetchData_Fetch(t *testing.T) {
 
 	dbm := mdbm.NewMDBM()
-	err := dbm.EasyOpen(pathTestDBM1, 754)
+	err := dbm.EasyOpen(pathTestDBM1, 0754)
 	defer dbm.EasyClose()
 
 	assert.AssertNil(t, err, "failured, can't open the mdbm, path=%s, err=%v", pathTestDBM1, err)
@@ -140,7 +134,7 @@ func Test_mdbm_OrdinaryFetchData_Fetch(t *testing.T) {
 func Test_mdbm_OrdinaryFetchData_FetchWithLock(t *testing.T) {
 
 	dbm := mdbm.NewMDBM()
-	err := dbm.EasyOpen(pathTestDBM1, 754)
+	err := dbm.EasyOpen(pathTestDBM1, 0754)
 	defer dbm.EasyClose()
 
 	assert.AssertNil(t, err, "failured, can't open the mdbm, path=%s, err=%v", pathTestDBM1, err)
@@ -155,7 +149,7 @@ func Test_mdbm_OrdinaryFetchData_FetchWithLock(t *testing.T) {
 func Test_mdbm_OrdinaryFetchData_FetchWithLockSmart(t *testing.T) {
 
 	dbm := mdbm.NewMDBM()
-	err := dbm.EasyOpen(pathTestDBM1, 754)
+	err := dbm.EasyOpen(pathTestDBM1, 0754)
 	defer dbm.EasyClose()
 
 	assert.AssertNil(t, err, "failured, can't open the mdbm, path=%s, err=%v", pathTestDBM1, err)
@@ -170,7 +164,7 @@ func Test_mdbm_OrdinaryFetchData_FetchWithLockSmart(t *testing.T) {
 func Test_mdbm_OrdinaryFetchData_Random_NonePreLoad_Fetch(t *testing.T) {
 
 	dbm := mdbm.NewMDBM()
-	err := dbm.EasyOpen(pathTestDBM1, 754)
+	err := dbm.EasyOpen(pathTestDBM1, 0754)
 	defer dbm.EasyClose()
 
 	assert.AssertNil(t, err, "failured, can't open the mdbm, path=%s, err=%v", pathTestDBM1, err)
@@ -188,7 +182,7 @@ func Test_mdbm_OrdinaryFetchData_Random_NonePreLoad_Fetch(t *testing.T) {
 func Test_mdbm_OrdinaryFetchData_Random_PreLoad_Fetch(t *testing.T) {
 
 	dbm := mdbm.NewMDBM()
-	err := dbm.EasyOpen(pathTestDBM1, 754)
+	err := dbm.EasyOpen(pathTestDBM1, 0754)
 	defer dbm.EasyClose()
 	assert.AssertNil(t, err, "failured, can't open the mdbm, path=%s, err=%v", pathTestDBM1, err)
 
@@ -208,7 +202,7 @@ func Test_mdbm_OrdinaryFetchData_Random_PreLoad_Fetch(t *testing.T) {
 func Test_mdbm_OrdinaryFetchData_Random_NonePreLoad_FetchWithLock(t *testing.T) {
 
 	dbm := mdbm.NewMDBM()
-	err := dbm.EasyOpen(pathTestDBM1, 754)
+	err := dbm.EasyOpen(pathTestDBM1, 0754)
 	defer dbm.EasyClose()
 
 	assert.AssertNil(t, err, "failured, can't open the mdbm, path=%s, err=%v", pathTestDBM1, err)
@@ -226,7 +220,7 @@ func Test_mdbm_OrdinaryFetchData_Random_NonePreLoad_FetchWithLock(t *testing.T) 
 func Test_mdbm_OrdinaryFetchData_Random_PreLoad_FetchWithLock(t *testing.T) {
 
 	dbm := mdbm.NewMDBM()
-	err := dbm.EasyOpen(pathTestDBM1, 754)
+	err := dbm.EasyOpen(pathTestDBM1, 0754)
 	defer dbm.EasyClose()
 	assert.AssertNil(t, err, "failured, can't open the mdbm, path=%s, err=%v", pathTestDBM1, err)
 
@@ -246,7 +240,7 @@ func Test_mdbm_OrdinaryFetchData_Random_PreLoad_FetchWithLock(t *testing.T) {
 func Test_mdbm_OrdinaryFetchData_Random_NonePreLoad_FetchWithLockSmart(t *testing.T) {
 
 	dbm := mdbm.NewMDBM()
-	err := dbm.EasyOpen(pathTestDBM1, 754)
+	err := dbm.EasyOpen(pathTestDBM1, 0754)
 	defer dbm.EasyClose()
 
 	assert.AssertNil(t, err, "failured, can't open the mdbm, path=%s, err=%v", pathTestDBM1, err)
@@ -264,7 +258,7 @@ func Test_mdbm_OrdinaryFetchData_Random_NonePreLoad_FetchWithLockSmart(t *testin
 func Test_mdbm_OrdinaryFetchData_Random_PreLoad_FetchWithLockSmart(t *testing.T) {
 
 	dbm := mdbm.NewMDBM()
-	err := dbm.EasyOpen(pathTestDBM1, 754)
+	err := dbm.EasyOpen(pathTestDBM1, 0754)
 	defer dbm.EasyClose()
 	assert.AssertNil(t, err, "failured, can't open the mdbm, path=%s, err=%v", pathTestDBM1, err)
 

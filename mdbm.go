@@ -247,6 +247,7 @@ import (
 	"io"
 	"log"
 	"os"
+	"os/user"
 	"reflect"
 	"runtime"
 	"strconv"
@@ -2584,23 +2585,58 @@ func (db *MDBM) LockDump() (string, error) {
 }
 
 // LockPages locks MDBM data pages into memory.
+// When running MDBM as root, LockPages() will expand the amount of RAM
+// that can be locked to infinity using setrlimit(RLIMIT_MEMLOCK).
+// When not running as root, mdbm_lock_pages will expand the amount of RAM
+// that can be locked up to the maximum allowed (retrieved using getrlimit(MEMLOCK),
+// and normally a very small amount), and if the MDBM is larger than the amount of RAM that can be
+// locked, a warning will be logged but LockPages() will return 0 for success.
 func (db *MDBM) LockPages() (int, error) {
 
-	rv, _, err := db.cgoRun(func() (int, error) {
-		rv, err := C.mdbm_lock_pages(db.pmdbm)
-		return int(rv), err
-	})
+	var rv int
+	var err error
+
+	user, err := user.Current()
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	if user.Username == "root" {
+
+		rv, _, err = db.cgoRun(func() (int, error) {
+			rv, err := C.mdbm_lock_pages(db.pmdbm)
+			return int(rv), err
+		})
+
+	} else {
+		rv, err = -9, fmt.Errorf("When running MDBM as root, current.Username=%s", user.Username)
+	}
 
 	return rv, err
 }
 
 // UnLockPages releases MDBM data pages from always staying in memory
+// When running MDBM as root
 func (db *MDBM) UnLockPages() (int, error) {
 
-	rv, _, err := db.cgoRun(func() (int, error) {
-		rv, err := C.mdbm_unlock_pages(db.pmdbm)
-		return int(rv), err
-	})
+	var rv int
+	var err error
+
+	user, err := user.Current()
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	if user.Username == "root" {
+
+		rv, _, err = db.cgoRun(func() (int, error) {
+			rv, err := C.mdbm_unlock_pages(db.pmdbm)
+			return int(rv), err
+		})
+
+	} else {
+		rv, err = -9, fmt.Errorf("When running MDBM as root, current.Username=%s", user.Username)
+	}
 
 	return rv, err
 }
