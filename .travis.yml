@@ -17,8 +17,8 @@ before_install:
 before_script:
     - perl -pi -e 's/\/tmp\/install\//\.\/.prebuild-mdbm\/ubuntu\//g' mdbm.go
 script:
-    - sudo make test
-    - sudo make coveralls
+    - make test
+    - make coveralls
 matrix:
     allow_failures:
         - go: tip
