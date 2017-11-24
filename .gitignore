@@ -17,3 +17,4 @@ cmd/
 tmp/
 !.gitignore
 !.travis.yml
+!.coveralls.yml
