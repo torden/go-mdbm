@@ -1,7 +1,5 @@
 # Go-mdbm
 
----
-
 *Not ready for use on production servers, go-mdbm tests completed soon..*
 
 
@@ -116,6 +114,7 @@ git get github.com/yahoo/mdbm.git
 * Write UnitTests
 * Binding All APIs without deprecated apis
 * Testing on another platform (osx, bsd...)
+* Pre-compiled mdbm lib by OS
 
 ---
 Please feel free.
