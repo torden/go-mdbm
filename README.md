@@ -113,6 +113,8 @@ vi mdbm.go
 ## Todo
 
 * coverage up to 95% (min.)
+* parallel testing..
+* data race detecting testing..
 * Binding All APIs without deprecated apis
 * Testing on another platform (osx, bsd...)
 * Pre-compiled mdbm library by OS
