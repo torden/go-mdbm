@@ -1,22 +1,20 @@
 # Go-mdbm
 
-*Not ready for use on production servers, go-mdbm tests completed soon..*
-
+*Not ready for use on production servers, go-mdbm tests complete as soon...*
 
 - Go-mdbm is a Go bind to Yahoo! MDBM C API.
 - MDBM is a super-fast memory-mapped key/value store.
 
-[![Build Status](https://travis-ci.org/torden/go-mdbm.svg?branch=develop)](https://travis-ci.org/torden/go-mdbm)
+[![Build Status](https://travis-ci.org/torden/go-mdbm.svg?branch=master)](https://travis-ci.org/torden/go-mdbm)
 [![Go Report Card](https://goreportcard.com/badge/github.com/torden/go-mdbm)](https://goreportcard.com/report/github.com/torden/go-mdbm)
 [![GoDoc](https://godoc.org/github.com/torden/go-mdbm?status.svg)](https://godoc.org/github.com/torden/go-mdbm)
-[![Coverage Status](https://coveralls.io/repos/github/torden/go-mdbm/badge.svg?branch=develop)](https://coveralls.io/github/torden/go-mdbm?branch=develop)
+[![Coverage Status](https://coveralls.io/repos/github/torden/go-mdbm/badge.svg?branch=master)](https://coveralls.io/github/torden/go-mdbm?branch=master)
 [![Go Walker](http://gowalker.org/api/v1/badge)](https://gowalker.org/github.com/torden/go-mdbm)
 [![GitHub version](https://badge.fury.io/gh/torden%2Fgo-mdbm.svg)](https://badge.fury.io/gh/torden%2Fgo-mdbm)
 
 ```
 On Now, Almost MDBM APIs supported
 ```
-
 
 ## Install
 
@@ -37,9 +35,9 @@ tar xvzf v4.12.3.tar.gz
 #### Install
 
 Refer to the https://github.com/yahoo/mdbm/blob/master/README.build
-
 if you want to install to another path, (HIGH RECOMMEND)
-```
+
+```shell
 cd mdbm
 PREFIX=/usr/local/mdbm make install
 ```
@@ -47,40 +45,43 @@ PREFIX=/usr/local/mdbm make install
 
 ### go-mdbm
 
-#### Download for the MDBM installed another path
+#### Download 
 
 ```
 git get github.com/torden/go-mdbm.git
 ```
 
-Maybe you know, the mdbm installation default path is /tmp/install, That's why go-mdbm used it.
-if you did install to another path, You must  change the mdbm installed path in *mdbm.go* source code
+As you know, The mdbm installation default path is /tmp/install, That's why go-mdbm used it.
+if you did mdbm install to another path or saw the following message, You must change the mdbm installed path in *mdbm.go* source code
 
 ```shell
-cd $GOPATH/torden/go-mdbm/
+$ go get github.com/torden/go-mdbm
+# github.com/torden/go-mdbm
+go-mdbm/mdbm.go:13:10: fatal error: mdbm.h: No such file or directory
+ #include <mdbm.h>
+          ^~~~~~~~
+compilation terminated.
+```
+
+#### Change the mdbm installed path
+
+```shell
+cd $GOPATH/src/github.com/torden/go-mdbm/
 vi mdbm.go
 ```
 
 ```go
-#cgo CFLAGS: -I/tmp/install/include/
-#cgo LDFLAGS: -L/tmp/install/lib64/ -Wl,-rpath=/tmp/install/lib64/ -lmdbm
-```
-
-#### Download for the MDBM installed default path
-
-```
-git get github.com/yahoo/mdbm.git
+#cgo CFLAGS: -I/[MDBM_INSTALLED_PATH]/include/
+#cgo LDFLAGS: -L/[MDBM_INSTALLED_PATH]/lib64/ -Wl,-rpath=/[MDBM_INSTALLED_PATH]/lib64/ -lmdbm
 ```
 
 
-## Support two compatibility branches:
+## Support two compatibility branches
 
 |*Branch*|*Support*|*test*|
 |---|---|---|
 |master|yes|always automatic testing|
 |release 4.3.x|yes|tested|
-
-
 
 ## On Now, Not Support APIs
 
@@ -111,10 +112,11 @@ git get github.com/yahoo/mdbm.git
 
 ## Todo
 
-* Write UnitTests
+* coverage up to 95% (min.)
 * Binding All APIs without deprecated apis
 * Testing on another platform (osx, bsd...)
-* Pre-compiled mdbm lib by OS
+* Pre-compiled mdbm library by OS
+* Stabilization
 
 ---
 Please feel free.
