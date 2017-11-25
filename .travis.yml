@@ -2,11 +2,9 @@ sudo: false
 language: go
 dist: trusty
 go:
-    - 1.x
     - 1.8.x
     - 1.7.x
     - 1.6.x
-    - tip
 before_install:
     - go get github.com/tools/godep
     - go get github.com/davecgh/go-spew/spew
@@ -27,7 +25,3 @@ before_script:
 script:
     - make test
     - make coveralls
-matrix:
-    allow_failures:
-        - go: tip
-          fast_finish: true
