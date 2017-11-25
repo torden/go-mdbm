@@ -27,7 +27,6 @@ before_script:
     - make install
     - cd ..
 script:
-    - make setup
     - make test
     - make coveralls
 matrix:
