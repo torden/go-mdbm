@@ -3,241 +3,7 @@ package mdbm
 /*
 #cgo CFLAGS: -I/tmp/install/include/
 #cgo LDFLAGS: -L/tmp/install/lib64/ -Wl,-rpath=/tmp/install/lib64/ -lmdbm
-
-#include <stdlib.h>
-#include <stdio.h>
-#include <sys/syslog.h>
-#include <unistd.h>
-#include <string.h>
-#include <time.h>
-#include <mdbm.h>
-#include <mdbm_log.h>
-
-static void get_mdbm_iter(MDBM_ITER *iter) {
-	MDBM_ITER_INIT(iter);
-}
-
-static mdbm_ubig_t get_pageno_of_mdbm_iter(MDBM_ITER *iter) {
-	return (*iter).m_pageno;
-}
-
-static int get_next_of_mdbm_iter(MDBM_ITER *iter) {
-	return (*iter).m_next;
-}
-
-//debug
-static void echo_str(const char *str) {
-	fprintf(stderr,"----- echo_str -----\n");
-	fprintf(stderr,"[%s]\n", str);
-	fprintf(stderr,"--------------------\n");
-}
-
-// protection to raise the locking exception at times
-static int set_mdbm_store_with_lock(MDBM *db, datum key, datum val, int flags) {
-	int rv;
-	rv = mdbm_lock(db);
-	if(rv != 1) {
-		return rv;
-	}
-
-	rv = mdbm_store(db,key,val,flags);
-	mdbm_unlock(db);
-	return rv;
-}
-
-static int set_mdbm_store_r_with_lock(MDBM *db, datum *key, datum *val, int flags, MDBM_ITER *iter) {
-	int rv;
-	rv = mdbm_lock(db);
-	if(rv != 1) {
-		return rv;
-	}
-
-	rv = mdbm_store_r(db,key,val,flags, iter);
-	mdbm_unlock(db);
-	return rv;
-}
-
-static int set_mdbm_store_str_with_lock(MDBM *db, const char *key, const char *val, int flags) {
-
-	int rv;
-	rv = mdbm_lock(db);
-	if(rv != 1) {
-		return rv;
-	}
-
-	rv = mdbm_store_str(db, key, val, flags);
-	mdbm_unlock(db);
-	return rv;
-}
-
-static int set_mdbm_store_with_lock_smart(MDBM *db, datum key, datum val, int flags, int lockflags) {
-
-	int rv;
-	rv = mdbm_lock_smart(db, &key, lockflags);
-	if(rv != 1) {
-		return rv;
-	}
-
-	rv = mdbm_store(db, key, val, flags);
-	mdbm_unlock_smart(db, &key, lockflags);
-	return rv;
-}
-
-static int set_mdbm_store_r_with_lock_smart(MDBM *db, datum *key, datum *val, int flags, int lockflags, MDBM_ITER *iter) {
-
-	int rv;
-	rv = mdbm_lock_smart(db, key, lockflags);
-	if(rv != 1) {
-		return rv;
-	}
-
-	rv = mdbm_store_r(db, key, val, flags, iter);
-	mdbm_unlock_smart(db, key, lockflags);
-	return rv;
-}
-
-static int set_mdbm_store_with_plock(MDBM *db, datum key, datum val, int flags, int lockflags) {
-
-	int rv;
-	rv = mdbm_plock(db, &key, lockflags);
-	if(rv != 1) {
-		return rv;
-	}
-
-	rv = mdbm_store(db, key, val, flags);
-	mdbm_punlock(db, &key, lockflags);
-	return rv;
-}
-
-static int set_mdbm_store_r_with_plock(MDBM *db, datum *key, datum *val, int flags, int lockflags, MDBM_ITER *iter) {
-
-	int rv;
-	rv = mdbm_plock(db, key, lockflags);
-	if(rv != 1) {
-		return rv;
-	}
-
-	rv = mdbm_store_r(db, key, val, flags, iter);
-	mdbm_punlock(db, key, lockflags);
-	return rv;
-}
-
-static char *get_mdbm_fetch_with_lock(MDBM *db, datum key) {
-
-	int rv;
-	datum val;
-	char *buf = NULL;
-
-	rv = mdbm_lock(db);
-	if(rv != 1) {
-		return NULL;
-	}
-
-	val = mdbm_fetch(db, key);
-	if (val.dptr != NULL) {
-		buf = (char *)calloc(val.dsize+1, sizeof(char));
-		if (buf == NULL) {
-			perror("failed allocation:");
-		} else {
-			strncpy(buf, val.dptr, val.dsize);
-		}
-	}
-
-	mdbm_unlock(db);
-	return buf;
-}
-
-static char *get_mdbm_fetch_with_lock_smart(MDBM *db, datum key, int lockflags) {
-
-	int rv;
-	datum val;
-	char *buf = NULL;
-
-	rv = mdbm_lock_smart(db, &key, lockflags);
-	if(rv != 1) {
-		return NULL;
-	}
-
-	val = mdbm_fetch(db, key);
-	if (val.dptr != NULL) {
-		buf = (char *)calloc(val.dsize+1, sizeof(char));
-		if (buf == NULL) {
-			perror("failed allocation:");
-		} else {
-			strncpy(buf, val.dptr, val.dsize);
-		}
-	}
-
-	mdbm_unlock_smart(db, &key, lockflags);
-	return buf;
-}
-
-static char *get_mdbm_fetch_with_plock(MDBM *db, datum key, int lockflags) {
-
-	int rv;
-	datum val;
-	char *buf = NULL;
-
-	rv = mdbm_plock(db, &key, lockflags);
-	if(rv != 1) {
-		return NULL;
-	}
-
-	val = mdbm_fetch(db, key);
-	if (val.dptr != NULL) {
-		buf = (char *)calloc(val.dsize+1, sizeof(char));
-		if (buf == NULL) {
-			perror("failed allocation:");
-		} else {
-			strncpy(buf, val.dptr, val.dsize);
-		}
-	}
-
-	mdbm_punlock(db, &key, lockflags);
-	return buf;
-}
-
-static int get_mdbm_fetch_r_with_lock(MDBM *db, datum *key, datum *val, MDBM_ITER *iter) {
-
-	int rv;
-
-	rv = mdbm_lock(db);
-	if(rv != 1) {
-		return rv;
-	}
-
-	rv = mdbm_fetch_r(db, key, val, iter);
-	mdbm_unlock(db);
-	return rv;
-}
-
-static int get_mdbm_fetch_r_with_lock_smart(MDBM *db, datum *key, datum *val, int lockflags, MDBM_ITER *iter) {
-
-	int rv;
-
-	rv = mdbm_lock_smart(db, key, lockflags);
-	if(rv != 1) {
-		return rv;
-	}
-
-	rv = mdbm_fetch_r(db, key, val, iter);
-	mdbm_unlock_smart(db, key, lockflags);
-	return rv;
-}
-
-static int get_mdbm_fetch_r_with_plock(MDBM *db, datum *key, datum *val, int lockflags, MDBM_ITER *iter) {
-
-	int rv;
-
-	rv = mdbm_plock(db, key, lockflags);
-	if(rv != 1) {
-		return rv;
-	}
-
-	rv = mdbm_fetch_r(db, key, val, iter);
-	mdbm_punlock(db, key, lockflags);
-	return rv;
-}
+#include <mdbm-binding.h>
 */
 import "C"
 
@@ -698,6 +464,7 @@ func (db *MDBM) cgoRun(call func() (int, error)) (int, string, error) {
 
 	//run
 	rv, err := call()
+	runtime.Gosched()
 
 	C.fflush(f)
 	cerr := w.Close()
@@ -852,7 +619,7 @@ func (db *MDBM) GetNewIter() C.MDBM_ITER {
 
 // DupHandle returns a pointer of the Duplicate an existing database handle.
 // The advantage of dup'ing a handle over doing a separate Open is that dup's handle share the same virtual
-// page mapping within the process space (saving memory).
+// page mapping Within the process space (saving memory).
 // Threaded applications should use pthread_mutex_lock and unlock around calls to mdbm_dup_handle.
 func (db *MDBM) DupHandle() (*MDBM, error) {
 
@@ -1083,6 +850,7 @@ func (db *MDBM) Unlock() error {
 	var err error
 
 	_, _, err = db.cgoRun(func() (int, error) {
+
 		rv, err := C.mdbm_unlock(db.pmdbm)
 		db.mutex.Lock()
 		{
@@ -1133,7 +901,7 @@ func (db *MDBM) IsLocked() (int, error) {
 
 // LockShared Locks the database for shared access by readers, excluding access to writers.
 // This is multiple-readers, one writer (MROW) locking.dwi
-// The database must be opened with the mdbm.RwLocks (=C.MDBM_RW_LOCKS) flag to enable shared locks.
+// The database must be opened With the mdbm.RwLocks (=C.MDBM_RW_LOCKS) flag to enable shared locks.
 // Use Unlock() to release a shared lock.
 func (db *MDBM) LockShared() (int, error) {
 
@@ -1147,7 +915,7 @@ func (db *MDBM) LockShared() (int, error) {
 
 // TryLockShared locks the database for shared access by readers, excluding access to writers.
 // This is the non-blocking version of LockShared()
-// This is MROW locking. The database must be opened with the mdbm.RwLocks (=C.MDBM_RW_LOCKS) flag to enable shared locks.
+// This is MROW locking. The database must be opened With the mdbm.RwLocks (=C.MDBM_RW_LOCKS) flag to enable shared locks.
 func (db *MDBM) TryLockShared() (int, error) {
 
 	rv, _, err := db.cgoRun(func() (int, error) {
@@ -1189,7 +957,7 @@ func (db *MDBM) MyLockReset() (int, error) {
 	return db.LockReset(db.dbmfile)
 }
 
-// DeleteLockFiles removes all lockfiles associated with the MDBM file.
+// DeleteLockFiles removes all lockfiles associated With the MDBM file.
 // USE THIS FUNCTION WITH EXTREME CAUTION!
 // HINT: /tmp/.mlock-named/[PATH]
 func (db *MDBM) DeleteLockFiles(dbmpath string) (int, error) {
@@ -1212,7 +980,7 @@ func (db *MDBM) DeleteLockFiles(dbmpath string) (int, error) {
 	return rv, err
 }
 
-// ReplaceDB replaces the database currently in oldfile db with the new database in newfile.
+// ReplaceDB replaces the database currently in oldfile db With the new database in newfile.
 func (db *MDBM) ReplaceDB(newfile string) error {
 
 	newmdbmfn := C.CString(newfile)
@@ -1226,7 +994,7 @@ func (db *MDBM) ReplaceDB(newfile string) error {
 	return errors.Wrapf(err, newfile)
 }
 
-// ReplaceFile replaces an old database in oldfile with new database in newfile.
+// ReplaceFile replaces an old database in oldfile With new database in newfile.
 // oldfile is deleted, and a newfile is renamed to a oldfile.
 func (db *MDBM) ReplaceFile(oldfile, newfile string) error {
 
@@ -1274,7 +1042,7 @@ func (db *MDBM) SetHash(hashid int) error {
 // SetSpillSize sets the size of item data value which will be put on the large-object heap rather than inline.
 // The spill size can be changed at any point after the db has been created.
 // However, it's a recommended practice to set the spill size at creation time.
-// NOTE: The database has to be opened with the MDBM_LARGE_OBJECTS flag for spillsize to take effect.
+// NOTE: The database has to be opened With the MDBM_LARGE_OBJECTS flag for spillsize to take effect.
 func (db *MDBM) SetSpillSize(size int) error {
 
 	rv, _, err := db.cgoRun(func() (int, error) {
@@ -1305,7 +1073,7 @@ func (db *MDBM) GetAlignment() (int, error) {
 	return rv, err
 }
 
-// SetAlignment sets a database's byte-size alignment for keys and values within a page.
+// SetAlignment sets a database's byte-size alignment for keys and values Within a page.
 // This feature is useful for hardware/memory architectures that incur a performance penalty for unaligned accesses.
 // Later (2006+) i386 and x86 architectures do not need special byte alignment,
 // and should use the default of 8-bit alignment.
@@ -1559,9 +1327,7 @@ func (db *MDBM) DumpAllPage() (string, error) {
 	return out, err
 }
 
-// StoreWithLock adds key and value into the current MDBM with locking
-// NOTE : Update if key exists; insert if does not exist
-func (db *MDBM) StoreWithLock(key interface{}, val interface{}, flags int) (int, error) {
+func (db *MDBM) storeWithAnyLock(key interface{}, val interface{}, flags int, lockType C.int, lockFlags C.int) (int, error) {
 
 	db.mutex.Lock()
 	defer db.mutex.Unlock()
@@ -1585,7 +1351,7 @@ func (db *MDBM) StoreWithLock(key interface{}, val interface{}, flags int) (int,
 	v.dsize = C.int(len(bval))
 
 	rv, out, err := db.cgoRun(func() (int, error) {
-		rv := C.set_mdbm_store_with_lock(db.pmdbm, k, v, C.int(flags))
+		rv := C.set_mdbm_store_with_lock(db.pmdbm, k, v, C.int(flags), lockType, lockFlags)
 		return int(rv), nil
 	})
 
@@ -1599,183 +1365,131 @@ func (db *MDBM) StoreWithLock(key interface{}, val interface{}, flags int) (int,
 	return rv, err
 }
 
-// StoreWithLockSmart adds key and value into the current MDBM with locking
-// NOTE : Update if key exists; insert if does not exist
+// StoreWithLock adds key and value into the current MDBM With Lock()
+func (db *MDBM) StoreWithLock(key interface{}, val interface{}, flags int) (int, error) {
+	return db.storeWithAnyLock(key, val, flags, lockTypeLock, lockFlagsSkip)
+}
+
+// StoreWithLockSmart adds key and value into the current MDBM With LocckSmart()
 func (db *MDBM) StoreWithLockSmart(key interface{}, val interface{}, flags int, lockflags int) (int, error) {
+	return db.storeWithAnyLock(key, val, flags, lockTypeSmart, C.int(lockflags))
+}
 
-	db.mutex.Lock()
-	defer db.mutex.Unlock()
+// StoreWithLockShared adds key and value into the current MDBM With LockShared()
+func (db *MDBM) StoreWithLockShared(key interface{}, val interface{}, flags int) (int, error) {
+	return db.storeWithAnyLock(key, val, flags, lockTypeShared, lockFlagsSkip)
+}
 
-	rv := -1
+// StoreWithPlock adds key and value into the current MDBM With Plock()
+func (db *MDBM) StoreWithPlock(key interface{}, val interface{}, flags int, lockflags int) (int, error) {
+	return db.storeWithAnyLock(key, val, flags, lockTypePlock, C.int(lockflags))
+}
 
-	bkey, err := db.convertToArByte(key)
-	if err != nil {
-		return rv, errors.Wrapf(err, "failured")
-	}
-	bval, err := db.convertToArByte(val)
-	if err != nil {
-		return rv, errors.Wrapf(err, "failured")
-	}
+// StoreWithTryLock adds key and value into the current MDBM With TryLock()
+func (db *MDBM) StoreWithTryLock(key interface{}, val interface{}, flags int) (int, error) {
+	return db.storeWithAnyLock(key, val, flags, lockTypeTryLock, lockFlagsSkip)
+}
 
-	var k, v C.datum
-	k.dptr = (*C.char)(unsafe.Pointer(&bkey[0]))
-	k.dsize = C.int(len(bkey))
+// StoreWithTryLockSamrt adds key and value into the current MDBM With TryLockSmart()
+func (db *MDBM) StoreWithTryLockSamrt(key interface{}, val interface{}, flags int, lockflags int) (int, error) {
+	return db.storeWithAnyLock(key, val, flags, lockTypeTrySmart, C.int(lockflags))
+}
 
-	v.dptr = (*C.char)(unsafe.Pointer(&bval[0]))
-	v.dsize = C.int(len(bval))
+// StoreWithTryLockShared adds key and value into the current MDBM wtih TryShared()
+func (db *MDBM) StoreWithTryLockShared(key interface{}, val interface{}, flags int) (int, error) {
+	return db.storeWithAnyLock(key, val, flags, lockTypeTryShared, lockFlagsSkip)
+}
 
-	rv, out, err := db.cgoRun(func() (int, error) {
-		rv := C.set_mdbm_store_with_lock_smart(db.pmdbm, k, v, C.int(flags), C.int(lockflags))
-		return int(rv), nil
-	})
-
-	switch rv {
-	case -1:
-		return rv, errors.New(out)
-	case 1:
-		return rv, errors.New("Flag const:mdbm.Insert was specified, and the key already exists")
-	}
-
-	return rv, err
+// StoreWithTryPlock adds key and value into the current MDBM With TryPlock()
+func (db *MDBM) StoreWithTryPlock(key interface{}, val interface{}, flags int, lockflags int) (int, error) {
+	return db.storeWithAnyLock(key, val, flags, lockTypeTryPlock, C.int(lockflags))
 }
 
 // Store stores the record specified by the key and val parameters.
 func (db *MDBM) Store(key interface{}, val interface{}, flags int) (int, error) {
+	return db.storeWithAnyLock(key, val, flags, lockTypeNone, lockFlagsSkip)
+}
+
+func (db *MDBM) storeRWithAnyLock(key interface{}, val interface{}, flags int, iter *C.MDBM_ITER, lockType C.int, lockFlags C.int) (int, Iter, error) {
 
 	db.mutex.Lock()
 	defer db.mutex.Unlock()
 
 	rv := -1
 
-	bkey, err := db.convertToArByte(key)
+	skey, err := db.convertToString(key)
 	if err != nil {
-		return rv, errors.Wrapf(err, "failured")
+		return rv, db.convertIter(iter), errors.Wrapf(err, "failured")
 	}
-	bval, err := db.convertToArByte(val)
+	sval, err := db.convertToString(val)
 	if err != nil {
-		return rv, errors.Wrapf(err, "failured")
+		return rv, db.convertIter(iter), errors.Wrapf(err, "failured")
 	}
 
 	var k, v C.datum
-	k.dptr = (*C.char)(unsafe.Pointer(&bkey[0]))
-	k.dsize = C.int(len(bkey))
+	k.dptr = C.CString(skey)
+	k.dsize = C.int(len(skey))
+	defer C.free(unsafe.Pointer(k.dptr))
 
-	v.dptr = (*C.char)(unsafe.Pointer(&bval[0]))
-	v.dsize = C.int(len(bval))
+	v.dptr = C.CString(sval)
+	v.dsize = C.int(len(sval))
+	defer C.free(unsafe.Pointer(v.dptr))
 
 	rv, _, err = db.cgoRun(func() (int, error) {
-		rv, err := C.mdbm_store(db.pmdbm, k, v, C.int(flags))
+		rv, err := C.set_mdbm_store_r_with_lock(db.pmdbm, &k, &v, C.int(flags), iter, lockType, lockFlags)
 		return int(rv), err
 	})
 
-	return rv, err
+	return rv, db.convertIter(iter), err
 }
 
-// StoreRWithLock the record specified by the key and val parameters with locking.
+// StoreRWithLock the record specified by the key and val parameters With Lock()
 func (db *MDBM) StoreRWithLock(key interface{}, val interface{}, flags int, iter *C.MDBM_ITER) (int, Iter, error) {
-
-	db.mutex.Lock()
-	defer db.mutex.Unlock()
-
-	rv := -1
-
-	skey, err := db.convertToString(key)
-	if err != nil {
-		return rv, db.convertIter(iter), errors.Wrapf(err, "failured")
-	}
-	sval, err := db.convertToString(val)
-	if err != nil {
-		return rv, db.convertIter(iter), errors.Wrapf(err, "failured")
-	}
-
-	var k, v C.datum
-	k.dptr = C.CString(skey)
-	k.dsize = C.int(len(skey))
-	defer C.free(unsafe.Pointer(k.dptr))
-
-	v.dptr = C.CString(sval)
-	v.dsize = C.int(len(sval))
-	defer C.free(unsafe.Pointer(v.dptr))
-
-	rv, _, err = db.cgoRun(func() (int, error) {
-		rv, err := C.set_mdbm_store_r_with_lock(db.pmdbm, &k, &v, C.int(flags), iter)
-		return int(rv), err
-	})
-
-	return rv, db.convertIter(iter), err
+	return db.storeRWithAnyLock(key, val, flags, iter, lockTypeLock, lockFlagsSkip)
 }
 
-// StoreRWithLockSmart the record specified by the key and val parameters with locking.
+// StoreRWithLockSmart the record specified by the key and val parameters With LockSmart()
 func (db *MDBM) StoreRWithLockSmart(key interface{}, val interface{}, flags int, lockflags int, iter *C.MDBM_ITER) (int, Iter, error) {
+	return db.storeRWithAnyLock(key, val, flags, iter, lockTypeSmart, C.int(lockflags))
+}
 
-	db.mutex.Lock()
-	defer db.mutex.Unlock()
+// StoreRWithLockShared the record specified by the key and val parameters With LockShared()
+func (db *MDBM) StoreRWithLockShared(key interface{}, val interface{}, flags int, iter *C.MDBM_ITER) (int, Iter, error) {
+	return db.storeRWithAnyLock(key, val, flags, iter, lockTypeShared, lockFlagsSkip)
+}
 
-	rv := -1
+// StoreRWithPlock the record specified by the key and val parameters With Plock()
+func (db *MDBM) StoreRWithPlock(key interface{}, val interface{}, flags int, lockflags int, iter *C.MDBM_ITER) (int, Iter, error) {
+	return db.storeRWithAnyLock(key, val, flags, iter, lockTypePlock, C.int(lockflags))
+}
 
-	skey, err := db.convertToString(key)
-	if err != nil {
-		return rv, db.convertIter(iter), errors.Wrapf(err, "failured")
-	}
-	sval, err := db.convertToString(val)
-	if err != nil {
-		return rv, db.convertIter(iter), errors.Wrapf(err, "failured")
-	}
+// StoreRWithTryLock the record specified by the key and val parameters With TryLock()
+func (db *MDBM) StoreRWithTryLock(key interface{}, val interface{}, flags int, iter *C.MDBM_ITER) (int, Iter, error) {
+	return db.storeRWithAnyLock(key, val, flags, iter, lockTypeTryLock, lockFlagsSkip)
+}
 
-	var k, v C.datum
-	k.dptr = C.CString(skey)
-	k.dsize = C.int(len(skey))
-	defer C.free(unsafe.Pointer(k.dptr))
+// StoreRWithTryLockSmart the record specified by the key and val parameters With TryLockSmart()
+func (db *MDBM) StoreRWithTryLockSmart(key interface{}, val interface{}, flags int, lockflags int, iter *C.MDBM_ITER) (int, Iter, error) {
+	return db.storeRWithAnyLock(key, val, flags, iter, lockTypeTrySmart, C.int(lockflags))
+}
 
-	v.dptr = C.CString(sval)
-	v.dsize = C.int(len(sval))
-	defer C.free(unsafe.Pointer(v.dptr))
+// StoreRWithTryLockShared the record specified by the key and val parameters With TryLockShare()
+func (db *MDBM) StoreRWithTryLockShared(key interface{}, val interface{}, flags int, iter *C.MDBM_ITER) (int, Iter, error) {
+	return db.storeRWithAnyLock(key, val, flags, iter, lockTypeTryShared, lockFlagsSkip)
+}
 
-	rv, _, err = db.cgoRun(func() (int, error) {
-		rv, err := C.set_mdbm_store_r_with_lock_smart(db.pmdbm, &k, &v, C.int(flags), C.int(lockflags), iter)
-		return int(rv), err
-	})
-
-	return rv, db.convertIter(iter), err
+// StoreRWithTryPlock the record specified by the key and val parameters With TryPlock()
+func (db *MDBM) StoreRWithTryPlock(key interface{}, val interface{}, flags int, lockflags int, iter *C.MDBM_ITER) (int, Iter, error) {
+	return db.storeRWithAnyLock(key, val, flags, iter, lockTypeTryPlock, C.int(lockflags))
 }
 
 // StoreR stores the record specified by the key and val parameters.
 func (db *MDBM) StoreR(key interface{}, val interface{}, flags int, iter *C.MDBM_ITER) (int, Iter, error) {
-
-	db.mutex.Lock()
-	defer db.mutex.Unlock()
-
-	rv := -1
-
-	skey, err := db.convertToString(key)
-	if err != nil {
-		return rv, db.convertIter(iter), errors.Wrapf(err, "failured")
-	}
-	sval, err := db.convertToString(val)
-	if err != nil {
-		return rv, db.convertIter(iter), errors.Wrapf(err, "failured")
-	}
-
-	var k, v C.datum
-	k.dptr = C.CString(skey)
-	k.dsize = C.int(len(skey))
-	defer C.free(unsafe.Pointer(k.dptr))
-
-	v.dptr = C.CString(sval)
-	v.dsize = C.int(len(sval))
-	defer C.free(unsafe.Pointer(v.dptr))
-
-	rv, _, err = db.cgoRun(func() (int, error) {
-		rv, err := C.mdbm_store_r(db.pmdbm, &k, &v, C.int(flags), iter)
-		return int(rv), err
-	})
-
-	return rv, db.convertIter(iter), err
+	return db.storeRWithAnyLock(key, val, flags, iter, lockTypeNone, lockFlagsSkip)
 }
 
-// StoreStrWitchLock stores the record specified by the key and val parameters with locking
 // BUG: tail \00
-func (db *MDBM) StoreStrWitchLock(key interface{}, val interface{}, flags int) (int, error) {
+func (db *MDBM) storeStrWithAnyLock(key interface{}, val interface{}, flags int, lockType C.int, lockFlags C.int) (int, error) {
 
 	db.mutex.Lock()
 	defer db.mutex.Unlock()
@@ -1798,153 +1512,130 @@ func (db *MDBM) StoreStrWitchLock(key interface{}, val interface{}, flags int) (
 	defer C.free(unsafe.Pointer(v))
 
 	rv, _, err = db.cgoRun(func() (int, error) {
-		rv, err := C.set_mdbm_store_str_with_lock(db.pmdbm, k, v, C.int(flags))
+		rv, err := C.set_mdbm_store_str_with_lock(db.pmdbm, k, v, C.int(flags), lockType, lockFlags)
 		return int(rv), err
 	})
 
 	return rv, err
 }
 
-// StoreStr stores a string into the MDBM.
-// BUG: tail \00
+// StoreStrWithLock stores the record specified by the key and val parameters With Lock()
+func (db *MDBM) StoreStrWithLock(key interface{}, val interface{}, flags int) (int, error) {
+	return db.storeStrWithAnyLock(key, val, flags, lockTypeLock, lockFlagsSkip)
+}
+
+// StoreStrWithLockSmart stores the record specified by the key and val parameters With LockSmart()
+func (db *MDBM) StoreStrWithLockSmart(key interface{}, val interface{}, flags int, lockflags int) (int, error) {
+	return db.storeStrWithAnyLock(key, val, flags, lockTypeSmart, C.int(lockflags))
+}
+
+// StoreStrWithLockShare stores the record specified by the key and val parameters With LockShare()
+func (db *MDBM) StoreStrWithLockShare(key interface{}, val interface{}, flags int) (int, error) {
+	return db.storeStrWithAnyLock(key, val, flags, lockTypeShared, lockFlagsSkip)
+}
+
+// StoreStrWithPlock stores the record specified by the key and val parameters With Plock()
+func (db *MDBM) StoreStrWithPlock(key interface{}, val interface{}, flags int, lockflags int) (int, error) {
+	return db.storeStrWithAnyLock(key, val, flags, lockTypePlock, C.int(lockflags))
+}
+
+// StoreStrWithTryLock stores the record specified by the key and val parameters With TryLock()
+func (db *MDBM) StoreStrWithTryLock(key interface{}, val interface{}, flags int) (int, error) {
+	return db.storeStrWithAnyLock(key, val, flags, lockTypeTryLock, lockFlagsSkip)
+}
+
+// StoreStrWithTryLockSmart stores the record specified by the key and val parameters With TryLockSmart()
+func (db *MDBM) StoreStrWithTryLockSmart(key interface{}, val interface{}, flags int, lockflags int) (int, error) {
+	return db.storeStrWithAnyLock(key, val, flags, lockTypeTrySmart, C.int(lockflags))
+}
+
+// StoreStrWithTryLockShared stores the record specified by the key and val parameters With TryLockShare()
+func (db *MDBM) StoreStrWithTryLockShared(key interface{}, val interface{}, flags int) (int, error) {
+	return db.storeStrWithAnyLock(key, val, flags, lockTypeTryShared, lockFlagsSkip)
+}
+
+// StoreStrWithTryPlock stores the record specified by the key and val parameters With TryPlock()
+func (db *MDBM) StoreStrWithTryPlock(key interface{}, val interface{}, flags int, lockflags int) (int, error) {
+	return db.storeStrWithAnyLock(key, val, flags, lockTypeTryPlock, C.int(lockflags))
+}
+
+// StoreStr stores the record specified by the key and val parameters
 func (db *MDBM) StoreStr(key interface{}, val interface{}, flags int) (int, error) {
-
-	db.mutex.Lock()
-	defer db.mutex.Unlock()
-
-	rv := -1
-
-	skey, err := db.convertToString(key)
-	if err != nil {
-		return rv, errors.Wrapf(err, "failured")
-	}
-	sval, err := db.convertToString(val)
-	if err != nil {
-		return rv, errors.Wrapf(err, "failured")
-	}
-
-	k := C.CString(skey)
-	v := C.CString(sval)
-	defer C.free(unsafe.Pointer(k))
-	defer C.free(unsafe.Pointer(v))
-
-	rv, _, err = db.cgoRun(func() (int, error) {
-		rv, err := C.mdbm_store_str(db.pmdbm, k, v, C.int(flags))
-		return int(rv), err
-	})
-
-	return rv, err
+	return db.storeStrWithAnyLock(key, val, flags, lockTypeNone, lockFlagsSkip)
 }
 
-// FetchWithLock returns fetche the record specified by the key argument and returns a value with lock
+func (db *MDBM) fetchWithAnyLock(key interface{}, lockType C.int, lockFlags C.int) (int, string, error) {
+
+	var retval string
+	rv := -1
+
+	bkey, err := db.convertToArByte(key)
+	if err != nil {
+		return rv, retval, errors.Wrapf(err, "failured")
+	}
+
+	var k C.datum
+
+	k.dptr = (*C.char)(unsafe.Pointer(&bkey[0]))
+	k.dsize = C.int(len(bkey))
+
+	rv, _, err = db.cgoRun(func() (int, error) {
+		v, err := C.get_mdbm_fetch_with_lock(db.pmdbm, k, lockType, lockFlags)
+
+		retval = C.GoString(v)
+		C.free(unsafe.Pointer(v))
+		return 0, err
+	})
+
+	return rv, retval, err
+}
+
+// FetchWithLock returns fetche the record specified by the key argument and returns a value With Lock()
 func (db *MDBM) FetchWithLock(key interface{}) (int, string, error) {
-
-	var retval string
-	rv := -1
-
-	bkey, err := db.convertToArByte(key)
-	if err != nil {
-		return rv, retval, errors.Wrapf(err, "failured")
-	}
-
-	var k C.datum
-
-	k.dptr = (*C.char)(unsafe.Pointer(&bkey[0]))
-	k.dsize = C.int(len(bkey))
-
-	rv, _, err = db.cgoRun(func() (int, error) {
-		v, err := C.get_mdbm_fetch_with_lock(db.pmdbm, k)
-
-		retval = C.GoString(v)
-		C.free(unsafe.Pointer(v))
-		return 0, err
-	})
-
-	return rv, retval, err
+	return db.fetchWithAnyLock(key, lockTypeLock, lockFlagsSkip)
 }
 
-// FetchWithLockSmart returns fetche the record specified by the key argument and returns a value with lockSmart
+// FetchWithLockSmart returns fetche the record specified by the key argument and returns a value With LocckSmart()
 func (db *MDBM) FetchWithLockSmart(key interface{}, lockflags int) (int, string, error) {
-
-	var retval string
-	rv := -1
-
-	bkey, err := db.convertToArByte(key)
-	if err != nil {
-		return rv, retval, errors.Wrapf(err, "failured")
-	}
-
-	var k C.datum
-
-	k.dptr = (*C.char)(unsafe.Pointer(&bkey[0]))
-	k.dsize = C.int(len(bkey))
-
-	rv, _, err = db.cgoRun(func() (int, error) {
-		v, err := C.get_mdbm_fetch_with_lock_smart(db.pmdbm, k, C.int(lockflags))
-
-		retval = C.GoString(v)
-		C.free(unsafe.Pointer(v))
-		return 0, err
-	})
-
-	return rv, retval, err
+	return db.fetchWithAnyLock(key, lockTypeSmart, C.int(lockflags))
 }
 
-// FetchWithPlock returns fetche the record specified by the key argument and returns a value with plock
+// FetchWithLockShared returns fetche the record specified by the key argument and returns a value With LockShared()
+func (db *MDBM) FetchWithLockShared(key interface{}) (int, string, error) {
+	return db.fetchWithAnyLock(key, lockTypeShared, lockFlagsSkip)
+}
+
+// FetchWithPlock returns fetche the record specified by the key argument and returns a value With Plock()
 func (db *MDBM) FetchWithPlock(key interface{}, lockflags int) (int, string, error) {
-
-	var retval string
-	rv := -1
-
-	bkey, err := db.convertToArByte(key)
-	if err != nil {
-		return rv, retval, errors.Wrapf(err, "failured")
-	}
-
-	var k C.datum
-
-	k.dptr = (*C.char)(unsafe.Pointer(&bkey[0]))
-	k.dsize = C.int(len(bkey))
-
-	rv, _, err = db.cgoRun(func() (int, error) {
-		v, err := C.get_mdbm_fetch_with_plock(db.pmdbm, k, C.int(lockflags)) //flags Ignored.
-
-		retval = C.GoString(v)
-		C.free(unsafe.Pointer(v))
-		return 0, err
-	})
-
-	return rv, retval, err
+	return db.fetchWithAnyLock(key, lockTypePlock, C.int(lockflags))
 }
 
-// Fetch returns fetche the record specified by the key argument and returns a value
+// FetchWithTryLock returns fetche the record specified by the key argument and returns a value With TryLock()
+func (db *MDBM) FetchWithTryLock(key interface{}) (int, string, error) {
+	return db.fetchWithAnyLock(key, lockTypeTryLock, lockFlagsSkip)
+}
+
+// FetchWithTryLockSamrt returns fetche the record specified by the key argument and returns a value With TryLockSmart()
+func (db *MDBM) FetchWithTryLockSamrt(key interface{}, lockflags int) (int, string, error) {
+	return db.fetchWithAnyLock(key, lockTypeTrySmart, C.int(lockflags))
+}
+
+// FetchWithTryLockShared returns fetche the record specified by the key argument and returns a value wtih TryShared()
+func (db *MDBM) FetchWithTryLockShared(key interface{}) (int, string, error) {
+	return db.fetchWithAnyLock(key, lockTypeTryShared, lockFlagsSkip)
+}
+
+// FetchWithTryPlock returns fetche the record specified by the key argument and returns a value With TryPlock()
+func (db *MDBM) FetchWithTryPlock(key interface{}, lockflags int) (int, string, error) {
+	return db.fetchWithAnyLock(key, lockTypeTryPlock, C.int(lockflags))
+}
+
+// Fetch fetchs the record specified by the key and val parameters.
 func (db *MDBM) Fetch(key interface{}) (int, string, error) {
-
-	var retval string
-	rv := -1
-
-	bkey, err := db.convertToArByte(key)
-	if err != nil {
-		return rv, retval, errors.Wrapf(err, "failured")
-	}
-
-	var k, v C.datum
-
-	k.dptr = (*C.char)(unsafe.Pointer(&bkey[0]))
-	k.dsize = C.int(len(bkey))
-
-	rv, _, err = db.cgoRun(func() (int, error) {
-		v, err = C.mdbm_fetch(db.pmdbm, k)
-		return 0, err
-	})
-
-	retval = C.GoStringN(v.dptr, v.dsize)
-
-	return rv, retval, err
+	return db.fetchWithAnyLock(key, lockTypeNone, lockFlagsSkip)
 }
 
-// FetchR returns fetche the record specified by the key argument and returns a value
-func (db *MDBM) FetchR(key interface{}, iter *C.MDBM_ITER) (int, string, Iter, error) {
+func (db *MDBM) fetchRWithAnyLock(key interface{}, iter *C.MDBM_ITER, lockType C.int, lockFlags C.int) (int, string, Iter, error) {
 
 	db.mutex.Lock()
 	defer db.mutex.Unlock()
@@ -1963,7 +1654,7 @@ func (db *MDBM) FetchR(key interface{}, iter *C.MDBM_ITER) (int, string, Iter, e
 	k.dsize = C.int(len(skey))
 
 	rv, _, err = db.cgoRun(func() (int, error) {
-		rv, err := C.mdbm_fetch_r(db.pmdbm, &k, &v, iter)
+		rv, err := C.get_mdbm_fetch_r_with_lock(db.pmdbm, &k, &v, iter, lockType, lockFlags)
 		return int(rv), err
 	})
 
@@ -1974,163 +1665,52 @@ func (db *MDBM) FetchR(key interface{}, iter *C.MDBM_ITER) (int, string, Iter, e
 	return rv, retval, goiter, err
 }
 
-// FetchRWithLock returns fetche the record specified by the key argument and returns a value with lock
+// FetchRWithLock returns fetche the record specified by the key argument and returns a value With Lock()
 func (db *MDBM) FetchRWithLock(key interface{}, iter *C.MDBM_ITER) (int, string, Iter, error) {
-
-	db.mutex.Lock()
-	defer db.mutex.Unlock()
-
-	rv := -1
-	var retval string
-
-	skey, err := db.convertToString(key)
-	if err != nil {
-		return rv, retval, db.convertIter(iter), errors.Wrapf(err, "failured")
-	}
-
-	var k, v C.datum
-
-	k.dptr = C.CString(skey)
-	k.dsize = C.int(len(skey))
-
-	rv, _, err = db.cgoRun(func() (int, error) {
-		rv, err := C.get_mdbm_fetch_r_with_lock(db.pmdbm, &k, &v, iter)
-		return int(rv), err
-	})
-
-	retval = C.GoStringN(v.dptr, v.dsize)
-
-	goiter := db.convertIter(iter)
-
-	return rv, retval, goiter, err
+	return db.fetchRWithAnyLock(key, iter, lockTypeLock, lockFlagsSkip)
 }
 
-// FetchRWithLockSmart returns fetche the record specified by the key argument and returns a value with lock smart
-func (db *MDBM) FetchRWithLockSmart(key interface{}, lockflags int, iter *C.MDBM_ITER) (int, string, Iter, error) {
-
-	db.mutex.Lock()
-	defer db.mutex.Unlock()
-
-	rv := -1
-	var retval string
-
-	skey, err := db.convertToString(key)
-	if err != nil {
-		return rv, retval, db.convertIter(iter), errors.Wrapf(err, "failured")
-	}
-
-	var k, v C.datum
-
-	k.dptr = C.CString(skey)
-	k.dsize = C.int(len(skey))
-
-	rv, _, err = db.cgoRun(func() (int, error) {
-		rv, err := C.get_mdbm_fetch_r_with_lock_smart(db.pmdbm, &k, &v, C.int(lockflags), iter)
-		return int(rv), err
-	})
-
-	retval = C.GoStringN(v.dptr, v.dsize)
-
-	goiter := db.convertIter(iter)
-
-	return rv, retval, goiter, err
+// FetchRWithLockSmart returns fetche the record specified by the key argument and returns a value With LocckSmart()
+func (db *MDBM) FetchRWithLockSmart(key interface{}, iter *C.MDBM_ITER, lockflags int) (int, string, Iter, error) {
+	return db.fetchRWithAnyLock(key, iter, lockTypeSmart, C.int(lockflags))
 }
 
-// FetchRWithPlock returns fetche the record specified by the key argument and returns a value with plock
-func (db *MDBM) FetchRWithPlock(key interface{}, lockflags int, iter *C.MDBM_ITER) (int, string, Iter, error) {
-
-	db.mutex.Lock()
-	defer db.mutex.Unlock()
-
-	rv := -1
-	var retval string
-
-	skey, err := db.convertToString(key)
-	if err != nil {
-		return rv, retval, db.convertIter(iter), errors.Wrapf(err, "failured")
-	}
-
-	var k, v C.datum
-
-	k.dptr = C.CString(skey)
-	k.dsize = C.int(len(skey))
-
-	rv, _, err = db.cgoRun(func() (int, error) {
-		rv, err := C.get_mdbm_fetch_r_with_plock(db.pmdbm, &k, &v, C.int(lockflags), iter)
-		return int(rv), err
-	})
-
-	retval = C.GoStringN(v.dptr, v.dsize)
-
-	goiter := db.convertIter(iter)
-
-	return rv, retval, goiter, err
+// FetchRWithLockShared returns fetche the record specified by the key argument and returns a value With LockShared()
+func (db *MDBM) FetchRWithLockShared(key interface{}, iter *C.MDBM_ITER) (int, string, Iter, error) {
+	return db.fetchRWithAnyLock(key, iter, lockTypeShared, lockFlagsSkip)
 }
 
-// FetchBuf Fetches and copies the record specified by the key argument.
-func (db *MDBM) FetchBuf(key interface{}, sbuf *string) (int, string, error) {
-
-	db.mutex.Lock()
-	defer db.mutex.Unlock()
-
-	rv := -1
-	var retval string
-
-	skey, err := db.convertToString(key)
-	if err != nil {
-		return rv, retval, errors.Wrapf(err, "failured")
-	}
-
-	var k, v, buf C.datum
-
-	k.dptr = C.CString(skey)
-	k.dsize = C.int(len(skey))
-
-	defer C.free(unsafe.Pointer(k.dptr))
-
-	rv, _, err = db.cgoRun(func() (int, error) {
-		rv, err := C.mdbm_fetch_buf(db.pmdbm, &k, &v, &buf, 0) //"0" flags Reserved for future use
-		return int(rv), err
-	})
-
-	retval = C.GoStringN(v.dptr, v.dsize)
-	*sbuf = C.GoStringN(buf.dptr, buf.dsize)
-
-	return rv, retval, err
+// FetchRWithPlock returns fetche the record specified by the key argument and returns a value With Plock()
+func (db *MDBM) FetchRWithPlock(key interface{}, iter *C.MDBM_ITER, lockflags int) (int, string, Iter, error) {
+	return db.fetchRWithAnyLock(key, iter, lockTypePlock, C.int(lockflags))
 }
 
-// FetchDupR fetches the next value for a key inserted via mdbm_store_r with the mdbm.InsertDup (=C.MDBM_INSERT_DUP) flag set.
-func (db *MDBM) FetchDupR(key interface{}, iter *C.MDBM_ITER) (int, string, Iter, error) {
-
-	db.mutex.Lock()
-	defer db.mutex.Unlock()
-
-	rv := -1
-	var retval string
-
-	skey, err := db.convertToString(key)
-	if err != nil {
-		return rv, retval, db.convertIter(iter), errors.Wrapf(err, "failured")
-	}
-
-	var k, v C.datum
-
-	k.dptr = C.CString(skey)
-	k.dsize = C.int(len(skey))
-
-	defer C.free(unsafe.Pointer(k.dptr))
-
-	rv, _, err = db.cgoRun(func() (int, error) {
-		rv, err := C.mdbm_fetch_dup_r(db.pmdbm, &k, &v, iter)
-		return int(rv), err
-	})
-
-	retval = C.GoStringN(v.dptr, v.dsize)
-	return rv, retval, db.convertIter(iter), err
+// FetchRWithTryLock returns fetche the record specified by the key argument and returns a value With TryLock()
+func (db *MDBM) FetchRWithTryLock(key interface{}, iter *C.MDBM_ITER) (int, string, Iter, error) {
+	return db.fetchRWithAnyLock(key, iter, lockTypeTryLock, lockFlagsSkip)
 }
 
-// FetchStr returns fetche the record specified by the key argument and returns a value
-func (db *MDBM) FetchStr(key interface{}) (string, error) {
+// FetchRWithTryLockSamrt returns fetche the record specified by the key argument and returns a value With TryLockSmart()
+func (db *MDBM) FetchRWithTryLockSamrt(key interface{}, iter *C.MDBM_ITER, lockflags int) (int, string, Iter, error) {
+	return db.fetchRWithAnyLock(key, iter, lockTypeTrySmart, C.int(lockflags))
+}
+
+// FetchRWithTryLockShared returns fetche the record specified by the key argument and returns a value wtih TryShared()
+func (db *MDBM) FetchRWithTryLockShared(key interface{}, iter *C.MDBM_ITER) (int, string, Iter, error) {
+	return db.fetchRWithAnyLock(key, iter, lockTypeTryShared, lockFlagsSkip)
+}
+
+// FetchRWithTryPlock returns fetche the record specified by the key argument and returns a value With TryPlock()
+func (db *MDBM) FetchRWithTryPlock(key interface{}, iter *C.MDBM_ITER, lockflags int) (int, string, Iter, error) {
+	return db.fetchRWithAnyLock(key, iter, lockTypeTryPlock, C.int(lockflags))
+}
+
+// FetchR fetchs the record specified by the key and val parameters.
+func (db *MDBM) FetchR(key interface{}, iter *C.MDBM_ITER) (int, string, Iter, error) {
+	return db.fetchRWithAnyLock(key, iter, lockTypeNone, lockFlagsSkip)
+}
+
+func (db *MDBM) fetchStrWithAnyLock(key interface{}, lockType C.int, lockFlags C.int) (string, error) {
 
 	var retval string
 
@@ -2144,12 +1724,170 @@ func (db *MDBM) FetchStr(key interface{}) (string, error) {
 
 	_, _, err = db.cgoRun(func() (int, error) {
 
-		val, err := C.mdbm_fetch_str(db.pmdbm, k)
+		val, err := C.get_mdbm_fetch_str_with_lock(db.pmdbm, k, lockType, lockFlags)
 		retval = C.GoString(val)
 		return 0, err
 	})
 
 	return retval, err
+}
+
+// FetchStrWithLock fetchs the record specified by the key and val parameters With Lock()
+func (db *MDBM) FetchStrWithLock(key interface{}) (string, error) {
+	return db.fetchStrWithAnyLock(key, lockTypeLock, lockFlagsSkip)
+}
+
+// FetchStrWithLockSmart fetchs the record specified by the key and val parameters With LockSmart()
+func (db *MDBM) FetchStrWithLockSmart(key interface{}, lockflags int) (string, error) {
+	return db.fetchStrWithAnyLock(key, lockTypeSmart, C.int(lockflags))
+}
+
+// FetchStrWithLockShare fetchs the record specified by the key and val parameters With LockShare()
+func (db *MDBM) FetchStrWithLockShare(key interface{}) (string, error) {
+	return db.fetchStrWithAnyLock(key, lockTypeShared, lockFlagsSkip)
+}
+
+// FetchStrWithPlock fetchs the record specified by the key and val parameters With Plock()
+func (db *MDBM) FetchStrWithPlock(key interface{}, lockflags int) (string, error) {
+	return db.fetchStrWithAnyLock(key, lockTypePlock, C.int(lockflags))
+}
+
+// FetchStrWithTryLock fetchs the record specified by the key and val parameters With Lock()
+func (db *MDBM) FetchStrWithTryLock(key interface{}) (string, error) {
+	return db.fetchStrWithAnyLock(key, lockTypeTryLock, lockFlagsSkip)
+}
+
+// FetchStrWithTryLockSmart fetchs the record specified by the key and val parameters With LockSmart()
+func (db *MDBM) FetchStrWithTryLockSmart(key interface{}, lockflags int) (string, error) {
+	return db.fetchStrWithAnyLock(key, lockTypeTrySmart, C.int(lockflags))
+}
+
+// FetchStrWithTrLockShared fetchs the record specified by the key and val parameters With LockShare()
+func (db *MDBM) FetchStrWithTrLockShared(key interface{}) (string, error) {
+	return db.fetchStrWithAnyLock(key, lockTypeTryShared, lockFlagsSkip)
+}
+
+// FetchStrWithTryPlock fetchs the record specified by the key and val parameters With Plock()
+func (db *MDBM) FetchStrWithTryPlock(key interface{}, lockflags int) (string, error) {
+	return db.fetchStrWithAnyLock(key, lockTypeTryPlock, C.int(lockflags))
+}
+
+// FetchStr fetchs the record specified by the key and val parameters With Plock()
+func (db *MDBM) FetchStr(key interface{}) (string, error) {
+	return db.fetchStrWithAnyLock(key, lockTypeNone, lockFlagsSkip)
+}
+
+// FetchDupR fetches the next value for a key inserted via StoreR() with the mdbm.InsertDup flag set
+// The order of values returned by iterating via this function is not guaranteed to be the same order as the values were inserted.
+// As with any db iteration, record insertion and deletion during iteration may cause the iteration to skip and/or repeat records.
+// Calling this function with an iterator initialized via iter(=mdbm.GetNewIter()) will cause this function to return the first value for the given key.
+func (db *MDBM) fetchDupRWithAnyLock(key interface{}, iter *C.MDBM_ITER, lockType C.int, lockFlags C.int) (int, string, Iter, error) {
+
+	db.mutex.Lock()
+	defer db.mutex.Unlock()
+
+	rv := -1
+	var retval string
+
+	skey, err := db.convertToString(key)
+	if err != nil {
+		return rv, retval, db.convertIter(iter), errors.Wrapf(err, "failured")
+	}
+
+	var k, v C.datum
+
+	k.dptr = C.CString(skey)
+	k.dsize = C.int(len(skey))
+
+	defer C.free(unsafe.Pointer(k.dptr))
+
+	rv, _, err = db.cgoRun(func() (int, error) {
+		rv, err := C.get_mdbm_fetch_dup_r_with_lock(db.pmdbm, &k, &v, iter, lockType, lockFlags)
+		return int(rv), err
+	})
+
+	retval = C.GoStringN(v.dptr, v.dsize)
+	return rv, retval, db.convertIter(iter), err
+}
+
+// FetchDupRWithLock fetches the next value for a key inserted via StoreR() with the mdbm.InsertDup flag set
+// The order of values returned by iterating via this function is not guaranteed to be the same order as the values were inserted.
+// As with any db iteration, record insertion and deletion during iteration may cause the iteration to skip and/or repeat records.
+// Calling this function with an iterator initialized via iter(=mdbm.GetNewIter()) will cause this function to return the first value for the given key.
+// With Lock()
+func (db *MDBM) FetchDupRWithLock(key interface{}, iter *C.MDBM_ITER) (int, string, Iter, error) {
+	return db.fetchDupRWithAnyLock(key, iter, lockTypeLock, lockFlagsSkip)
+}
+
+// FetchDupRWithLockSmart fetches the next value for a key inserted via StoreR() with the mdbm.InsertDup flag set
+// The order of values returned by iterating via this function is not guaranteed to be the same order as the values were inserted.
+// As with any db iteration, record insertion and deletion during iteration may cause the iteration to skip and/or repeat records.
+// Calling this function with an iterator initialized via iter(=mdbm.GetNewIter()) will cause this function to return the first value for the given key.
+// With LockSmart()
+func (db *MDBM) FetchDupRWithLockSmart(key interface{}, iter *C.MDBM_ITER, lockflags int) (int, string, Iter, error) {
+	return db.fetchDupRWithAnyLock(key, iter, lockTypeSmart, C.int(lockflags))
+}
+
+// FetchDupRWithLockShare fetches the next value for a key inserted via StoreR() with the mdbm.InsertDup flag set
+// The order of values returned by iterating via this function is not guaranteed to be the same order as the values were inserted.
+// As with any db iteration, record insertion and deletion during iteration may cause the iteration to skip and/or repeat records.
+// Calling this function with an iterator initialized via iter(=mdbm.GetNewIter()) will cause this function to return the first value for the given key.
+// With LockShare()
+func (db *MDBM) FetchDupRWithLockShare(key interface{}, iter *C.MDBM_ITER) (int, string, Iter, error) {
+	return db.fetchDupRWithAnyLock(key, iter, lockTypeShared, lockFlagsSkip)
+}
+
+// FetchDupRWithPlock fetches the next value for a key inserted via StoreR() with the mdbm.InsertDup flag set
+// The order of values returned by iterating via this function is not guaranteed to be the same order as the values were inserted.
+// As with any db iteration, record insertion and deletion during iteration may cause the iteration to skip and/or repeat records.
+// Calling this function with an iterator initialized via iter(=mdbm.GetNewIter()) will cause this function to return the first value for the given key.
+// With Plock()
+func (db *MDBM) FetchDupRWithPlock(key interface{}, iter *C.MDBM_ITER, lockflags int) (int, string, Iter, error) {
+	return db.fetchDupRWithAnyLock(key, iter, lockTypePlock, C.int(lockflags))
+}
+
+// FetchDupRWithTryLock fetches the next value for a key inserted via StoreR() with the mdbm.InsertDup flag set
+// The order of values returned by iterating via this function is not guaranteed to be the same order as the values were inserted.
+// As with any db iteration, record insertion and deletion during iteration may cause the iteration to skip and/or repeat records.
+// Calling this function with an iterator initialized via iter(=mdbm.GetNewIter()) will cause this function to return the first value for the given key.
+// With TryLock()
+func (db *MDBM) FetchDupRWithTryLock(key interface{}, iter *C.MDBM_ITER) (int, string, Iter, error) {
+	return db.fetchDupRWithAnyLock(key, iter, lockTypeTryLock, lockFlagsSkip)
+}
+
+// FetchDupRWithTryLockSmart fetches the next value for a key inserted via StoreR() with the mdbm.InsertDup flag set
+// The order of values returned by iterating via this function is not guaranteed to be the same order as the values were inserted.
+// As with any db iteration, record insertion and deletion during iteration may cause the iteration to skip and/or repeat records.
+// Calling this function with an iterator initialized via iter(=mdbm.GetNewIter()) will cause this function to return the first value for the given key.
+// With TryLockSmart()
+func (db *MDBM) FetchDupRWithTryLockSmart(key interface{}, iter *C.MDBM_ITER, lockflags int) (int, string, Iter, error) {
+	return db.fetchDupRWithAnyLock(key, iter, lockTypeTrySmart, C.int(lockflags))
+}
+
+// FetchDupRWithTrLockShared fetches the next value for a key inserted via StoreR() with the mdbm.InsertDup flag set
+// The order of values returned by iterating via this function is not guaranteed to be the same order as the values were inserted.
+// As with any db iteration, record insertion and deletion during iteration may cause the iteration to skip and/or repeat records.
+// Calling this function with an iterator initialized via iter(=mdbm.GetNewIter()) will cause this function to return the first value for the given key.
+// With TryLockShared()
+func (db *MDBM) FetchDupRWithTrLockShared(key interface{}, iter *C.MDBM_ITER) (int, string, Iter, error) {
+	return db.fetchDupRWithAnyLock(key, iter, lockTypeTryShared, lockFlagsSkip)
+}
+
+// FetchDupRWithTryPlock fetches the next value for a key inserted via StoreR() with the mdbm.InsertDup flag set
+// The order of values returned by iterating via this function is not guaranteed to be the same order as the values were inserted.
+// As with any db iteration, record insertion and deletion during iteration may cause the iteration to skip and/or repeat records.
+// Calling this function with an iterator initialized via iter(=mdbm.GetNewIter()) will cause this function to return the first value for the given key.
+// With TryPlock()
+func (db *MDBM) FetchDupRWithTryPlock(key interface{}, iter *C.MDBM_ITER, lockflags int) (int, string, Iter, error) {
+	return db.fetchDupRWithAnyLock(key, iter, lockTypeTryPlock, C.int(lockflags))
+}
+
+// FetchDupR fetches the next value for a key inserted via StoreR() with the mdbm.InsertDup flag set
+// The order of values returned by iterating via this function is not guaranteed to be the same order as the values were inserted.
+// As with any db iteration, record insertion and deletion during iteration may cause the iteration to skip and/or repeat records.
+// Calling this function with an iterator initialized via iter(=mdbm.GetNewIter()) will cause this function to return the first value for the given key.
+func (db *MDBM) FetchDupR(key interface{}, iter *C.MDBM_ITER) (int, string, Iter, error) {
+	return db.fetchDupRWithAnyLock(key, iter, lockTypeNone, lockFlagsSkip)
 }
 
 // FetchInfo ...
@@ -2193,7 +1931,7 @@ func (db *MDBM) FetchInfo(key interface{}, sbuf *string, iter *C.MDBM_ITER) (int
 }
 
 // Delete deletes a specific record
-func (db *MDBM) Delete(key interface{}) (int, error) {
+func (db *MDBM) deleteWithAnyLock(key interface{}, lockType C.int, lockFlags C.int) (int, error) {
 
 	db.mutex.Lock()
 	defer db.mutex.Unlock()
@@ -2210,33 +1948,162 @@ func (db *MDBM) Delete(key interface{}) (int, error) {
 	k.dsize = C.int(len(bkey))
 
 	rv, _, err = db.cgoRun(func() (int, error) {
-		rv, err := C.mdbm_delete(db.pmdbm, k)
+		rv, err := C.set_mdbm_delete_with_lock(db.pmdbm, k, lockType, lockFlags)
 		return int(rv), err
 	})
 
 	return rv, err
 }
 
-// DeleteR deletes the record currently addressed by the iter argument.
-// After deletion, the key and/or value returned by the iterating function is no longer valid.
-// Calling NextR() on the iterator will return the key/value for the entry following the entry that was deleted.
-func (db *MDBM) DeleteR(iter Iter) (int, Iter, error) {
+// DeleteWithLock deletes a specific record with Lock()
+func (db *MDBM) DeleteWithLock(key interface{}) (int, error) {
+	return db.deleteWithAnyLock(key, lockTypeLock, lockFlagsSkip)
+}
+
+// DeleteWithLockSmart deletes a specific record with LockSmart()
+func (db *MDBM) DeleteWithLockSmart(key interface{}, lockflags int) (int, error) {
+	return db.deleteWithAnyLock(key, lockTypeSmart, C.int(lockflags))
+}
+
+// DeleteWithLockShared deletes a specific record with LockShared()
+func (db *MDBM) DeleteWithLockShared(key interface{}) (int, error) {
+	return db.deleteWithAnyLock(key, lockTypeShared, lockFlagsSkip)
+}
+
+// DeleteWithPlock deletes a specific record with Plock()
+func (db *MDBM) DeleteWithPlock(key interface{}, lockflags int) (int, error) {
+	return db.deleteWithAnyLock(key, lockTypePlock, C.int(lockflags))
+}
+
+// DeleteWithTryLock deletes a specific record With TryLock()
+func (db *MDBM) DeleteWithTryLock(key interface{}) (int, error) {
+	return db.deleteWithAnyLock(key, lockTypeTryLock, lockFlagsSkip)
+}
+
+// DeleteWithTryLockSamrt deletes a specific record With TryLockSmart()
+func (db *MDBM) DeleteWithTryLockSamrt(key interface{}, lockflags int) (int, error) {
+	return db.deleteWithAnyLock(key, lockTypeTrySmart, C.int(lockflags))
+}
+
+// DeleteWithTryLockShared deletes a specific record With TryLockShared()
+func (db *MDBM) DeleteWithTryLockShared(key interface{}) (int, error) {
+	return db.deleteWithAnyLock(key, lockTypeTryShared, lockFlagsSkip)
+}
+
+// DeleteWithTryPlock deletes a specific record With TryPlock()
+func (db *MDBM) DeleteWithTryPlock(key interface{}, lockflags int) (int, error) {
+	return db.deleteWithAnyLock(key, lockTypeTryPlock, C.int(lockflags))
+}
+
+// Delete Deletes the record specified by the key and val parameters.
+func (db *MDBM) Delete(key interface{}) (int, error) {
+	return db.deleteWithAnyLock(key, lockTypeNone, lockFlagsSkip)
+}
+
+func (db *MDBM) deleteRWithAnyLock(key interface{}, iter Iter, lockType C.int, lockFlags C.int) (int, Iter, error) {
 
 	db.mutex.Lock()
 	defer db.mutex.Unlock()
 
+	rv := -1
 	citer := db.convertIterToC(iter)
 
+	var k C.datum
+
+	if key != nil {
+		bkey, err := db.convertToArByte(key)
+		if err != nil {
+			return rv, db.convertIter(&citer), errors.Wrapf(err, "failured")
+		}
+
+		k.dptr = (*C.char)(unsafe.Pointer(&bkey[0]))
+		k.dsize = C.int(len(bkey))
+
+	} else {
+		k.dptr = (*C.char)(unsafe.Pointer(uintptr(0)))
+		k.dsize = C.int(-1)
+	}
+
 	rv, _, err := db.cgoRun(func() (int, error) {
-		rv, err := C.mdbm_delete_r(db.pmdbm, &citer)
+		rv, err := C.set_mdbm_delete_r_with_lock(db.pmdbm, k, &citer, lockType, lockFlags)
 		return int(rv), err
 	})
 
 	return rv, db.convertIter(&citer), err
 }
 
-// DeleteStr deletes a string from the MDBM.
-func (db *MDBM) DeleteStr(key interface{}) (int, error) {
+// DeleteRWithLock deletes the record currently addressed by the iter argument.
+// After deletion, the key and/or value returned by the iterating function is no longer valid.
+// Calling NextR() on the iterator will return the key/value for the entry following the entry that was deleted.
+// With Lock()
+func (db *MDBM) DeleteRWithLock(key interface{}, iter Iter) (int, Iter, error) {
+	return db.deleteRWithAnyLock(key, iter, lockTypeLock, lockFlagsSkip)
+}
+
+// DeleteRWithLockSmart deletes the record currently addressed by the iter argument.
+// After deletion, the key and/or value returned by the iterating function is no longer valid.
+// Calling NextR() on the iterator will return the key/value for the entry following the entry that was deleted.
+// With LockSmart()
+func (db *MDBM) DeleteRWithLockSmart(key interface{}, iter Iter, lockflags int) (int, Iter, error) {
+	return db.deleteRWithAnyLock(key, iter, lockTypeSmart, C.int(lockflags))
+}
+
+// DeleteRWithLockShared deletes the record currently addressed by the iter argument.
+// After deletion, the key and/or value returned by the iterating function is no longer valid.
+// Calling NextR() on the iterator will return the key/value for the entry following the entry that was deleted.
+// With LockShared()
+func (db *MDBM) DeleteRWithLockShared(key interface{}, iter Iter) (int, Iter, error) {
+	return db.deleteRWithAnyLock(key, iter, lockTypeShared, lockFlagsSkip)
+}
+
+// DeleteRWithPlock deletes the record currently addressed by the iter argument.
+// After deletion, the key and/or value returned by the iterating function is no longer valid.
+// Calling NextR() on the iterator will return the key/value for the entry following the entry that was deleted.
+// With Plock()
+func (db *MDBM) DeleteRWithPlock(key interface{}, iter Iter, lockflags int) (int, Iter, error) {
+	return db.deleteRWithAnyLock(key, iter, lockTypePlock, C.int(lockflags))
+}
+
+// DeleteRWithTryLock deletes the record currently addressed by the iter argument.
+// After deletion, the key and/or value returned by the iterating function is no longer valid.
+// Calling NextR() on the iterator will return the key/value for the entry following the entry that was deleted.
+// With TryLock()
+func (db *MDBM) DeleteRWithTryLock(key interface{}, iter Iter) (int, Iter, error) {
+	return db.deleteRWithAnyLock(key, iter, lockTypeTryLock, lockFlagsSkip)
+}
+
+// DeleteRWithTryLockSamrt deletes the record currently addressed by the iter argument.
+// After deletion, the key and/or value returned by the iterating function is no longer valid.
+// Calling NextR() on the iterator will return the key/value for the entry following the entry that was deleted.
+// With TryLockSmart()
+func (db *MDBM) DeleteRWithTryLockSamrt(key interface{}, iter Iter, lockflags int) (int, Iter, error) {
+	return db.deleteRWithAnyLock(key, iter, lockTypeTrySmart, C.int(lockflags))
+}
+
+// DeleteRWithTryLockShared deletes the record currently addressed by the iter argument.
+// After deletion, the key and/or value returned by the iterating function is no longer valid.
+// Calling NextR() on the iterator will return the key/value for the entry following the entry that was deleted.
+// With TryLockSahred()
+func (db *MDBM) DeleteRWithTryLockShared(key interface{}, iter Iter) (int, Iter, error) {
+	return db.deleteRWithAnyLock(key, iter, lockTypeTryShared, lockFlagsSkip)
+}
+
+// DeleteRWithTryPlock deletes the record currently addressed by the iter argument.
+// After deletion, the key and/or value returned by the iterating function is no longer valid.
+// Calling NextR() on the iterator will return the key/value for the entry following the entry that was deleted.
+// With TryPlock()
+func (db *MDBM) DeleteRWithTryPlock(key interface{}, iter Iter, lockflags int) (int, Iter, error) {
+	return db.deleteRWithAnyLock(key, iter, lockTypeTryPlock, C.int(lockflags))
+}
+
+// DeleteR deletes the record currently addressed by the iter argument.
+// After deletion, the key and/or value returned by the iterating function is no longer valid.
+// Calling NextR() on the iterator will return the key/value for the entry following the entry that was deleted.
+func (db *MDBM) DeleteR(key interface{}, iter Iter) (int, Iter, error) {
+	return db.deleteRWithAnyLock(key, iter, lockTypeNone, lockFlagsSkip)
+}
+
+func (db *MDBM) deleteStrWithAnyLock(key interface{}, lockType C.int, lockFlags C.int) (int, error) {
 
 	db.mutex.Lock()
 	defer db.mutex.Unlock()
@@ -2251,11 +2118,56 @@ func (db *MDBM) DeleteStr(key interface{}) (int, error) {
 	k := C.CString(skey)
 
 	rv, _, err = db.cgoRun(func() (int, error) {
-		rv, err := C.mdbm_delete_str(db.pmdbm, k)
+		rv, err := C.set_mdbm_delete_str_with_lock(db.pmdbm, k, lockType, lockFlags)
 		return int(rv), err
 	})
 
 	return rv, err
+}
+
+// DeleteStrWithLock deletes a string from the MDBM with Lock()
+func (db *MDBM) DeleteStrWithLock(key interface{}) (int, error) {
+	return db.deleteStrWithAnyLock(key, lockTypeLock, lockFlagsSkip)
+}
+
+// DeleteStrWithLockSmart deletes a string from the MDBM with LockSmart()
+func (db *MDBM) DeleteStrWithLockSmart(key interface{}, lockflags int) (int, error) {
+	return db.deleteStrWithAnyLock(key, lockTypeSmart, C.int(lockflags))
+}
+
+// DeleteStrWithLockShared deletes a string from the MDBM with LockShared()
+func (db *MDBM) DeleteStrWithLockShared(key interface{}) (int, error) {
+	return db.deleteStrWithAnyLock(key, lockTypeShared, lockFlagsSkip)
+}
+
+// DeleteStrWithPlock deletes a string from the MDBM with Plock()
+func (db *MDBM) DeleteStrWithPlock(key interface{}, lockflags int) (int, error) {
+	return db.deleteStrWithAnyLock(key, lockTypePlock, C.int(lockflags))
+}
+
+// DeleteStrWithTryLock deletes a string from the MDBM with TryLock()
+func (db *MDBM) DeleteStrWithTryLock(key interface{}) (int, error) {
+	return db.deleteStrWithAnyLock(key, lockTypeTryLock, lockFlagsSkip)
+}
+
+// DeleteStrWithTryLockSamrt deletes a string from the MDBM with TryLockSmart()
+func (db *MDBM) DeleteStrWithTryLockSamrt(key interface{}, lockflags int) (int, error) {
+	return db.deleteStrWithAnyLock(key, lockTypeTrySmart, C.int(lockflags))
+}
+
+// DeleteStrWithTryLockShared deletes a string from the MDBM with TryLockShared()
+func (db *MDBM) DeleteStrWithTryLockShared(key interface{}) (int, error) {
+	return db.deleteStrWithAnyLock(key, lockTypeTryShared, lockFlagsSkip)
+}
+
+// DeleteStrWithTryPlock deletes a string from the MDBM with TryPlock()
+func (db *MDBM) DeleteStrWithTryPlock(key interface{}, lockflags int) (int, error) {
+	return db.deleteStrWithAnyLock(key, lockTypeTryPlock, C.int(lockflags))
+}
+
+// DeleteStr deletes string from the MDBM
+func (db *MDBM) DeleteStr(key interface{}) (int, error) {
+	return db.deleteStrWithAnyLock(key, lockTypeNone, lockFlagsSkip)
 }
 
 // First returns the first key/value pair from the database.
@@ -2396,7 +2308,7 @@ func (db *MDBM) NextKey() (string, error) {
 
 // FirstKeyR fetches the first key in an MDBM.
 // Initializes the iterator, and returns the first key from the db.
-// Subsequent calls to NextR() or NextKeyR() with this iterator will loop through the entire db.
+// Subsequent calls to NextR() or NextKeyR() With this iterator will loop through the entire db.
 func (db *MDBM) FirstKeyR(iter *Iter) (string, Iter, error) {
 
 	var k C.datum
@@ -2419,7 +2331,7 @@ func (db *MDBM) FirstKeyR(iter *Iter) (string, Iter, error) {
 }
 
 // NextKeyR fetches the next key in an MDBM.  Returns the next key from the db.
-// Subsequent calls to NextR() or NextKeyR() with this iterator
+// Subsequent calls to NextR() or NextKeyR() With this iterator
 // will loop through the entire db.
 func (db *MDBM) NextKeyR(iter *Iter) (string, Iter, error) {
 
@@ -2461,7 +2373,7 @@ func (db *MDBM) GetCacheMode() (int, error) {
 
 // SetCacheMode sets the database as a cache
 // it's must be called before data is inserted.
-// Tracking metadata is stored with each entry which allows MDBM to do cache eviction via LRU, LFU, and GDSF
+// Tracking metadata is stored With each entry which allows MDBM to do cache eviction via LRU, LFU, and GDSF
 // (greedy-dual-size-frequency). MDBM also supports clean/dirty tracking and the application can supply a callback (see SetBackingStore())
 // which is called by MDBM when a dirty entry is about to be evicted allowing
 // the application to sync the entry to a backing store or perform some other type of "clean" operation.
@@ -2794,7 +2706,7 @@ func (db *MDBM) StatAllPage() (string, error) {
 	return out, err
 }
 
-// GetStats gets a a stats block with individual stat values.
+// GetStats gets a a stats block With individual stat values.
 func (db *MDBM) GetStats() (int, Stats, error) {
 
 	var stats C.mdbm_stats_t

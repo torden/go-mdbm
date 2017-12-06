@@ -1,6 +1,7 @@
 package mdbm_test
 
 const (
+	loopLimit        = 65534
 	pathTestDBM1     = "/tmp/test1.mdbm"
 	pathTestDBM2     = "/tmp/test2.mdbm"
 	pathTestDBM3     = "/tmp/test3.mdbm"
@@ -8,5 +9,6 @@ const (
 	pathTestDBMDup   = "/tmp/test_dup.mdbm"
 	pathTestDBMCache = "/tmp/test_cache.mdbm"
 	pathTestDBMV2    = "/tmp/test_v2.mdbm"
-	loopLimit        = 65534
+	pathTestDBMLock1 = "/tmp/test_lock1.mdbm"
+	//pathTestDBMLock2 = "/tmp/test_lock2.mdbm"
 )

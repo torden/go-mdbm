@@ -1,8 +1,7 @@
 package mdbm
 
 /*
-#include <mdbm.h>
-#include <mdbm_log.h>
+#include <mdbm-binding.h>
 */
 import "C"
 
@@ -315,4 +314,15 @@ const (
 
 	// StatNolock is Do not lock for stat operation
 	StatNolock = C.MDBM_STAT_NOLOCK
+
+	lockTypeNone      = C.LT_NONE
+	lockTypeLock      = C.LT_LOCK
+	lockTypeSmart     = C.LT_SMART
+	lockTypeShared    = C.LT_SHARED
+	lockTypePlock     = C.LT_PLOCK
+	lockTypeTryLock   = C.LT_TRY_LOCK
+	lockTypeTrySmart  = C.LT_TRY_SMART
+	lockTypeTryShared = C.LT_TRY_SHARED
+	lockTypeTryPlock  = C.LT_TRY_PLOCK
+	lockFlagsSkip     = C.LF_SKIP
 )
