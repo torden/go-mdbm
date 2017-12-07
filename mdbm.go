@@ -2,15 +2,13 @@ package mdbm
 
 /*
 #cgo CFLAGS: -I/tmp/install/include/
-#cgo LDFLAGS: -L/tmp/install/lib64/ -Wl,-rpath=/tmp/install/lib64/ -lmdbm
+#cgo LDFLAGS: -L/tmp/install/lib64/ -Wl,-rpath=/tmp/install/lib64/ -lmdbm -lpthread
 #include <mdbm-binding.h>
 */
 import "C"
 
 import (
-	"bytes"
 	"fmt"
-	"io"
 	"log"
 	"os"
 	"os/user"
@@ -153,7 +151,7 @@ func NewMDBM() *MDBM {
 	obj := &MDBM{
 		locked:   false,
 		dbmfile:  "",
-		flags:    Create | Rdrw,
+		flags:    Create | Rdrw | AnyLocks,
 		perms:    0666,
 		psize:    0,
 		dsize:    0,
@@ -163,6 +161,8 @@ func NewMDBM() *MDBM {
 	obj.scpagesize = uint(C.sysconf(C._SC_PAGESIZE))
 	obj.minpagesize = obj.scpagesize * 2
 	obj.iter = obj.GetNewIter()
+
+	runtime.GOMAXPROCS(1)
 	return obj
 }
 
@@ -413,6 +413,7 @@ func (db *MDBM) convertWindowStatToC(ws WindowStats) C.mdbm_window_stats_t {
 	return rv
 }
 
+/*
 func (db *MDBM) cgoRun(call func() (int, error)) (int, string, error) {
 
 	db.cgomtx.Lock()
@@ -451,7 +452,6 @@ func (db *MDBM) cgoRun(call func() (int, error)) (int, string, error) {
 
 	out := make(chan []byte)
 	go func() {
-
 		var b bytes.Buffer
 		_, rerr := io.Copy(&b, r)
 		if rerr != nil {
@@ -473,6 +473,14 @@ func (db *MDBM) cgoRun(call func() (int, error)) (int, string, error) {
 	}
 
 	return rv, string(<-out), err
+}
+*/
+
+func (db *MDBM) cgoRun(call func() (int, error)) (int, string, error) {
+
+	//run
+	rv, err := call()
+	return rv, "", err
 }
 
 // convertToArByte returns a data of the any data convert ot Byte Array
@@ -668,18 +676,73 @@ func (db *MDBM) GetErrNo() (int, error) {
 }
 
 // LogMinLevel sets the minimum logging level,Lower priority messages are discarded
-func (db *MDBM) LogMinLevel(lv int) error {
+func (db *MDBM) LogMinLevel(lv C.int) error {
 
-	if lv < C.LOG_EMERG || lv > C.LOG_DEBUG {
-		return errors.New("Not support log level")
+	if lv < LogOff || lv > LogDebug {
+		return fmt.Errorf("Not support log level=%d", int(lv))
 	}
 
 	_, _, err := db.cgoRun(func() (int, error) {
-		C.mdbm_log_minlevel(C.int(1))
+		C.mdbm_log_minlevel(C.int(lv))
 		return 0, nil
 	})
 
 	return err
+}
+
+// LogPlugin sets the logging plug-in.
+// LogToStdErr		stderr
+// LogToFile		file
+// LogToSyslog		syslog
+func (db *MDBM) LogPlugin(plugin int) error {
+
+	var plugname string
+
+	switch plugin {
+	case LogToStdErr:
+		plugname = "stderr"
+	case LogToFile:
+		plugname = "file"
+	case LogToSysLog:
+		plugname = "file"
+	default:
+		return fmt.Errorf("Not support log plugin=%s", plugin)
+	}
+
+	pplugname := C.CString(plugname)
+	defer C.free(unsafe.Pointer(pplugname))
+
+	rv, _, err := db.cgoRun(func() (int, error) {
+		rv, err := C.mdbm_select_log_plugin(pplugname)
+		return int(rv), err
+	})
+
+	if rv == 0 {
+		return nil
+	}
+
+	return err
+}
+
+// LogToFile sets the logging to file (name: /mdbm_path/mdbm_file + .log-PID)
+func (db *MDBM) LogToAutoFile() (int, error) {
+
+	logpath := fmt.Sprintf("%s.log-%d", db.dbmfile, os.Getpid())
+	return db.LogToFile(logpath)
+}
+
+// LogToFile sets the logging to file
+func (db *MDBM) LogToFile(fnpath string) (int, error) {
+
+	logpath := C.CString(fnpath)
+	defer C.free(unsafe.Pointer(logpath))
+
+	rv, _, err := db.cgoRun(func() (int, error) {
+		rv, err := C.mdbm_set_log_filename(logpath)
+		return int(rv), err
+	})
+
+	return rv, err
 }
 
 // EasyOpen Creates and/or opens the MDBM database use the default options
@@ -694,7 +757,7 @@ func (db *MDBM) EasyOpen(dbmfile string, perms int) error {
 
 	db.pdbmfile = C.CString(dbmfile)
 
-	//db.LogMinLevel(LOG_INFO)
+	db.LogMinLevel(LogOff)
 	_, _, err = db.cgoRun(func() (int, error) {
 		db.pmdbm, err = C.mdbm_open(db.pdbmfile, C.int(db.flags), C.int(db.perms), C.int(db.psize), C.int(db.dsize))
 		if db.pmdbm != nil {
@@ -716,6 +779,13 @@ func (db *MDBM) EasyOpen(dbmfile string, perms int) error {
 }
 
 // Open Creates and/or opens the MDBM database
+// mdbmfn	Name of the backing file for the database.
+// flags	Specifies the open-mode for the file, usually either (MDBM_O_RDWR|MDBM_O_CREAT) or (MDBM_O_RDONLY). Flag MDBM_LARGE_OBJECTS may be used to enable large object support. Large object support can only be enabled when the database is first created. Subsequent mdbm_open calls will ignore the flag. Flag MDBM_PARTITIONED_LOCKS may be used to enable partition locking a per mdbm_open basis.
+// mode	Used to set the file permissions if the file needs to be created.
+// psize	Specifies the page size for the database and is set when the database is created. The minimum page size is 128. In v2, the maximum is 64K. In v3, the maximum is 16M - 64. The default, if 0 is specified, is 4096.
+// presize	Specifies the initial size for the database. The database will dynamically grow as records are added, but specifying an initial size may improve efficiency. If this is not a multiple of psize, it will be increased to the next psize multiple.
+//
+
 func (db *MDBM) Open(mdbmfn string, flags, perms, psize, dsize int) error {
 
 	db.flags = flags
@@ -1351,8 +1421,8 @@ func (db *MDBM) storeWithAnyLock(key interface{}, val interface{}, flags int, lo
 	v.dsize = C.int(len(bval))
 
 	rv, out, err := db.cgoRun(func() (int, error) {
-		rv := C.set_mdbm_store_with_lock(db.pmdbm, k, v, C.int(flags), lockType, lockFlags)
-		return int(rv), nil
+		rv, err := C.set_mdbm_store_with_lock(db.pmdbm, k, v, C.int(flags), lockType, lockFlags)
+		return int(rv), err
 	})
 
 	switch rv {

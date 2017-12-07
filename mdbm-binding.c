@@ -92,9 +92,9 @@ static inline int common_unlock_func(MDBM *db, datum *key, int locktype, int loc
     }
 
     if(key == NULL && (locktype == LT_SMART || locktype == LT_PLOCK || locktype == LT_TRY_SMART || locktype == LT_TRY_PLOCK)) {
-        fprintf(stderr, "Not support Un-Lock(=%s) without key", get_locktype_name(locktype));
         return rv;
     }
+
 
     switch(locktype) {
         case LT_SMART:

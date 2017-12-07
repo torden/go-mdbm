@@ -87,6 +87,9 @@ const (
 	// LogDebug is debug-level messages
 	LogDebug = C.LOG_DEBUG
 
+	// LogOff is disable log
+	LogOff = C.int(-1)
+
 	// HashCRC32 is table based 32bit crc
 	HashCRC32 = C.MDBM_HASH_CRC32
 
@@ -325,4 +328,9 @@ const (
 	lockTypeTryShared = C.LT_TRY_SHARED
 	lockTypeTryPlock  = C.LT_TRY_PLOCK
 	lockFlagsSkip     = C.LF_SKIP
+
+	LogToSkip   = 0
+	LogToStdErr = 1
+	LogToFile   = 2
+	LogToSysLog = 3
 )
