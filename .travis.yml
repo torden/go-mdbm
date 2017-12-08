@@ -16,7 +16,7 @@ before_install:
     - godep restore
     - sudo apt-get update -qq
     - sudo apt-get install -y openssl libcppunit-dev libreadline6 libreadline6-dev valgrind realpath libmodule-install-perl
-    - dpkg -i pkg/ubuntu/mdbm.deb
+    - sudo dpkg -i pkg/ubuntu/mdbm.deb
 script:
     - make test
     - make coveralls
