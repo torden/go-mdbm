@@ -2,7 +2,7 @@ package mdbm
 
 /*
 #cgo CFLAGS: -I/usr/local/mdbm/include/ -I./
-#cgo LDFLAGS: -L/usr/local/mdbm/lib64/ -Wl,-rpath=/usr/local/mdbm/lib64/ -lmdbm -lpthread
+#cgo LDFLAGS: -L/usr/local/mdbm/lib64/ -Wl,-rpath=/usr/local/mdbm/lib64/ -lmdbm -lpthread -no-pie
 #include <mdbm-binding.h>
 */
 import "C"
