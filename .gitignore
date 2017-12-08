@@ -10,12 +10,10 @@
 *.iml
 .*
 *.report.*
+!.gitignore
+!.travis.yml
 report/
 vendor/
 *.mdbm
 cmd/
 tmp/
-!.gitignore
-!.travis.yml
-!.coveralls.yml
-!.prebuild-mdbm
