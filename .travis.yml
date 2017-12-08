@@ -2,6 +2,7 @@ sudo: false
 language: go
 dist: trusty
 go:
+    - 1.9.x
     - 1.8.x
     - 1.7.x
     - 1.6.x
@@ -21,7 +22,7 @@ before_install:
     - git clone https://github.com/yahoo/mdbm.git src_mdbm
 before_script:
     - cd src_mdbm/
-    - make -j2 
+    - PREFIX=/usr/local/mdbm/ make -j2 
     - make install
     - cd ..
 script:
