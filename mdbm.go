@@ -1,14 +1,16 @@
 package mdbm
 
 /*
-#cgo CFLAGS: -I/tmp/install/include/
-#cgo LDFLAGS: -L/tmp/install/lib64/ -Wl,-rpath=/tmp/install/lib64/ -lmdbm -lpthread
+#cgo CFLAGS: -I/usr/local/mdbm/include/ -I./
+#cgo LDFLAGS: -L/usr/local/mdbm/lib64/ -Wl,-rpath=/usr/local/mdbm/lib64/ -lmdbm -lpthread
 #include <mdbm-binding.h>
 */
 import "C"
 
 import (
+	"bytes"
 	"fmt"
+	"io"
 	"log"
 	"os"
 	"os/user"
@@ -413,7 +415,6 @@ func (db *MDBM) convertWindowStatToC(ws WindowStats) C.mdbm_window_stats_t {
 	return rv
 }
 
-/*
 func (db *MDBM) cgoRun(call func() (int, error)) (int, string, error) {
 
 	db.cgomtx.Lock()
@@ -474,14 +475,15 @@ func (db *MDBM) cgoRun(call func() (int, error)) (int, string, error) {
 
 	return rv, string(<-out), err
 }
-*/
 
+/*
 func (db *MDBM) cgoRun(call func() (int, error)) (int, string, error) {
 
 	//run
 	rv, err := call()
 	return rv, "", err
 }
+*/
 
 // convertToArByte returns a data of the any data convert ot Byte Array
 // and returns error at raise the exception
