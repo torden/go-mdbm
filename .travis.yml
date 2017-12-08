@@ -22,8 +22,8 @@ before_install:
     - git clone https://github.com/yahoo/mdbm.git src_mdbm
 before_script:
     - cd src_mdbm/
-    - PREFIX=/usr/local/mdbm/ make -j2 
-    - make install
+    - make -j2 
+    - PREFIX=/usr/local/mdbm/ make install
     - cd ..
 script:
     - make test
