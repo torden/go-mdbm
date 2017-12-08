@@ -11,6 +11,7 @@
 .*
 *.report.*
 !.gitignore
+!.travis.yml
 report/
 vendor/
 *.mdbm
