@@ -16,12 +16,13 @@ before_install:
     - godep restore
     - sudo apt-get update -qq
     - sudo apt-get install -y openssl libcppunit-dev libreadline6 libreadline6-dev valgrind realpath libmodule-install-perl
-    - git clone https://github.com/yahoo/mdbm.git src_mdbm
-before_script:
-    - cd src_mdbm/
-    - make -j2 
-    - make install
-    - cd ..
+    - sudo dpkg -i pkg/ubuntu/mdbm-Trusty_Tahr.deb
+#    - git clone https://github.com/yahoo/mdbm.git src_mdbm
+#before_script:
+#    - cd src_mdbm/
+#    - make -j2 
+#    - make install
+#    - cd ..
 script:
     - make test
     - make coveralls
