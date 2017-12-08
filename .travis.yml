@@ -23,7 +23,7 @@ before_install:
 before_script:
     - cd src_mdbm/
     - make -j2 
-    - PREFIX=/usr/local/mdbm/ make install
+    - sudo PREFIX=/usr/local/mdbm/ make install
     - cd ..
 script:
     - make test
