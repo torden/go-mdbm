@@ -415,7 +415,7 @@ func (db *MDBM) convertWindowStatToC(ws WindowStats) C.mdbm_window_stats_t {
 	return rv
 }
 
-func (db *MDBM) cgoRun(call func() (int, error)) (int, string, error) {
+func (db *MDBM) cgoRunCapture(call func() (int, error)) (int, string, error) {
 
 	db.cgomtx.Lock()
 	defer db.cgomtx.Unlock()
@@ -476,14 +476,12 @@ func (db *MDBM) cgoRun(call func() (int, error)) (int, string, error) {
 	return rv, string(<-out), err
 }
 
-/*
 func (db *MDBM) cgoRun(call func() (int, error)) (int, string, error) {
 
 	//run
 	rv, err := call()
 	return rv, "", err
 }
-*/
 
 // convertToArByte returns a data of the any data convert ot Byte Array
 // and returns error at raise the exception
@@ -1007,7 +1005,7 @@ func (db *MDBM) LockReset(dbmpath string) (int, error) {
 	defer C.free(unsafe.Pointer(pdbmfile))
 
 	//flags(2nd arg) Reserved for future use, and must be 0.
-	rv, _, err := db.cgoRun(func() (int, error) {
+	rv, _, err := db.cgoRunCapture(func() (int, error) {
 		rv, err := C.mdbm_lock_reset(pdbmfile, 0)
 		if rv == 0 {
 			db.mutex.Lock()
@@ -1037,7 +1035,7 @@ func (db *MDBM) DeleteLockFiles(dbmpath string) (int, error) {
 	path := C.CString(dbmpath)
 	defer C.free(unsafe.Pointer(path))
 
-	rv, _, err := db.cgoRun(func() (int, error) {
+	rv, _, err := db.cgoRunCapture(func() (int, error) {
 		rv, err := C.mdbm_delete_lockfiles(path)
 		if rv == 0 {
 			db.mutex.Lock()
@@ -1102,7 +1100,7 @@ func (db *MDBM) SetHash(hashid int) error {
 		return fmt.Errorf("not support hash : hashid(%d)", hashid)
 	}
 
-	_, _, err := db.cgoRun(func() (int, error) {
+	_, _, err := db.cgoRunCapture(func() (int, error) {
 		fmt.Println(C.int(hashid))
 		rv, err := C.mdbm_set_hash(db.pmdbm, C.int(hashid))
 		return int(rv), err
@@ -1391,7 +1389,7 @@ func (db *MDBM) Protect(protect int) (int, error) {
 // DumpAllPage dumps information for all pages, in version-specific format, to standard output.
 func (db *MDBM) DumpAllPage() (string, error) {
 
-	_, out, err := db.cgoRun(func() (int, error) {
+	_, out, err := db.cgoRunCapture(func() (int, error) {
 		_, err := C.mdbm_dump_all_page(db.pmdbm)
 		return 0, err
 	})
@@ -2560,7 +2558,7 @@ func (db *MDBM) PreLoad() (int, error) {
 // LockDump returns the state of lock
 func (db *MDBM) LockDump() (string, error) {
 
-	_, out, err := db.cgoRun(func() (int, error) {
+	_, out, err := db.cgoRunCapture(func() (int, error) {
 		_, err := C.mdbm_lock_dump(db.pmdbm)
 		return 0, err
 	})
@@ -2655,7 +2653,7 @@ func (db *MDBM) ChkError(pagenum int, mappedpagenum int, index int) error {
 // DumpPage dumps specified page's information, in version-specific format, to standard output.
 func (db *MDBM) DumpPage(pno int) (string, error) {
 
-	_, out, err := db.cgoRun(func() (int, error) {
+	_, out, err := db.cgoRunCapture(func() (int, error) {
 		_, err := C.mdbm_dump_page(db.pmdbm, C.int(pno))
 		return 0, err
 	})
@@ -2666,7 +2664,7 @@ func (db *MDBM) DumpPage(pno int) (string, error) {
 // ResetStatOperations resets the stat counter and last-time performed for fetch, store, and remove operations.
 func (db *MDBM) ResetStatOperations() error {
 
-	_, _, err := db.cgoRun(func() (int, error) {
+	_, _, err := db.cgoRunCapture(func() (int, error) {
 		_, err := C.mdbm_reset_stat_operations(db.pmdbm)
 		return 0, err
 	})

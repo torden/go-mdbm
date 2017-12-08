@@ -1,9 +1,0 @@
-Package: mdbm
-Version: 4.12.3-master-893f7a8
-Section: release
-Priority: optional
-Architecture: amd64
-Depends:libcppunit-dev,libreadline6,libreadline6-dev,valgrind,realpath,libmodule-install-perl,openssl
-Maintainer: Torden <torden@myself.com>
-Homepage: https://github.com/yahoo/mdbm
-Description: MDBM install package
