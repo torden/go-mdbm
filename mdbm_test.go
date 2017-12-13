@@ -111,7 +111,91 @@ func Test_mdbm_OrdinaryReaplceData_StoreWithLockSmart(t *testing.T) {
 	assert.AssertNil(t, err, "failured, can't open the mdbm, path=%s, err=%v", pathTestDBM1, err)
 
 	for i := 0; i <= loopLimit; i++ {
-		rv, err := dbm.StoreWithLockSmart(i, i, mdbm.Replace, mdbm.Rdrw) //write_lock by key
+		rv, err := dbm.StoreWithLockSmart(i, i, mdbm.Replace, mdbm.Rdrw)
+		assert.AssertNil(t, err, "return value=%d, err=%v\n", rv, err)
+	}
+}
+
+func Test_mdbm_OrdinaryReaplceData_StoreWithLockShared(t *testing.T) {
+
+	dbm := mdbm.NewMDBM()
+	err := dbm.EasyOpen(pathTestDBM1, 0644)
+	defer dbm.EasyClose()
+
+	assert.AssertNil(t, err, "failured, can't open the mdbm, path=%s, err=%v", pathTestDBM1, err)
+
+	for i := 0; i <= loopLimit; i++ {
+		rv, err := dbm.StoreWithLockShared(i, i, mdbm.Replace)
+		assert.AssertNil(t, err, "return value=%d, err=%v\n", rv, err)
+	}
+}
+
+func Test_mdbm_OrdinaryReaplceData_StoreWithPlock(t *testing.T) {
+
+	dbm := mdbm.NewMDBM()
+	err := dbm.EasyOpen(pathTestDBM1, 0644)
+	defer dbm.EasyClose()
+
+	assert.AssertNil(t, err, "failured, can't open the mdbm, path=%s, err=%v", pathTestDBM1, err)
+
+	for i := 0; i <= loopLimit; i++ {
+		rv, err := dbm.StoreWithPlock(i, i, mdbm.Replace, mdbm.Rdrw)
+		assert.AssertNil(t, err, "return value=%d, err=%v\n", rv, err)
+	}
+}
+
+func Test_mdbm_OrdinaryReaplceData_StoreWithTryLock(t *testing.T) {
+
+	dbm := mdbm.NewMDBM()
+	err := dbm.EasyOpen(pathTestDBM1, 0644)
+	defer dbm.EasyClose()
+
+	assert.AssertNil(t, err, "failured, can't open the mdbm, path=%s, err=%v", pathTestDBM1, err)
+
+	for i := 0; i <= loopLimit; i++ {
+		rv, err := dbm.StoreWithTryLock(i, i, mdbm.Replace)
+		assert.AssertNil(t, err, "return value=%d, err=%v\n", rv, err)
+	}
+}
+
+func Test_mdbm_OrdinaryReaplceData_StoreWithTryLockSmart(t *testing.T) {
+
+	dbm := mdbm.NewMDBM()
+	err := dbm.EasyOpen(pathTestDBM1, 0644)
+	defer dbm.EasyClose()
+
+	assert.AssertNil(t, err, "failured, can't open the mdbm, path=%s, err=%v", pathTestDBM1, err)
+
+	for i := 0; i <= loopLimit; i++ {
+		rv, err := dbm.StoreWithTryLockSmart(i, i, mdbm.Replace, mdbm.Rdrw)
+		assert.AssertNil(t, err, "return value=%d, err=%v\n", rv, err)
+	}
+}
+
+func Test_mdbm_OrdinaryReaplceData_StoreWithTryLockShared(t *testing.T) {
+
+	dbm := mdbm.NewMDBM()
+	err := dbm.EasyOpen(pathTestDBM1, 0644)
+	defer dbm.EasyClose()
+
+	assert.AssertNil(t, err, "failured, can't open the mdbm, path=%s, err=%v", pathTestDBM1, err)
+
+	for i := 0; i <= loopLimit; i++ {
+		rv, err := dbm.StoreWithTryLockShared(i, i, mdbm.Replace)
+		assert.AssertNil(t, err, "return value=%d, err=%v\n", rv, err)
+	}
+}
+
+func Test_mdbm_OrdinaryReaplceData_StoreWithTryPlock(t *testing.T) {
+
+	dbm := mdbm.NewMDBM()
+	err := dbm.EasyOpen(pathTestDBM1, 0644)
+	defer dbm.EasyClose()
+
+	assert.AssertNil(t, err, "failured, can't open the mdbm, path=%s, err=%v", pathTestDBM1, err)
+
+	for i := 0; i <= loopLimit; i++ {
+		rv, err := dbm.StoreWithTryPlock(i, i, mdbm.Replace, mdbm.Rdrw)
 		assert.AssertNil(t, err, "return value=%d, err=%v\n", rv, err)
 	}
 }
@@ -126,6 +210,24 @@ func Test_mdbm_OrdinaryFetchData_Fetch(t *testing.T) {
 
 	for i := 0; i <= loopLimit; i++ {
 		rv, val, err := dbm.Fetch(i)
+		assert.AssertNil(t, err, "return value=%d, err=%v\n", rv, err)
+		assert.AssertEquals(t, strconv.Itoa(i), val, "Return Value mismatch.\nExpected: %v\nActual: %v", i, val)
+	}
+}
+
+func Test_mdbm_OrdinaryFetchData_RandomFetch(t *testing.T) {
+
+	dbm := mdbm.NewMDBM()
+	err := dbm.EasyOpen(pathTestDBM1, 0644)
+	defer dbm.EasyClose()
+
+	assert.AssertNil(t, err, "failured, can't open the mdbm, path=%s, err=%v", pathTestDBM1, err)
+
+	r1 := rand.New(rand.NewSource(time.Now().UnixNano()))
+
+	for i := 0; i <= loopLimit; i++ {
+
+		rv, val, err := dbm.Fetch(r1.Intn(loopLimit))
 		assert.AssertNil(t, err, "return value=%d, err=%v\n", rv, err)
 		assert.AssertEquals(t, strconv.Itoa(i), val, "Return Value mismatch.\nExpected: %v\nActual: %v", i, val)
 	}
@@ -155,7 +257,37 @@ func Test_mdbm_OrdinaryFetchData_FetchWithLockSmart(t *testing.T) {
 	assert.AssertNil(t, err, "failured, can't open the mdbm, path=%s, err=%v", pathTestDBM1, err)
 
 	for i := 0; i <= loopLimit; i++ {
-		rv, val, err := dbm.FetchWithLockSmart(i, mdbm.Rdrw) //write_lock by key
+		rv, val, err := dbm.FetchWithLockSmart(i, mdbm.Rdrw)
+		assert.AssertNil(t, err, "return value=%d, err=%v\n", rv, err)
+		assert.AssertEquals(t, strconv.Itoa(i), val, "Return Value mismatch.\nExpected: %v\nActual: %v", i, val)
+	}
+}
+
+func Test_mdbm_OrdinaryFetchData_FetchWithLockShared(t *testing.T) {
+
+	dbm := mdbm.NewMDBM()
+	err := dbm.EasyOpen(pathTestDBM1, 0644)
+	defer dbm.EasyClose()
+
+	assert.AssertNil(t, err, "failured, can't open the mdbm, path=%s, err=%v", pathTestDBM1, err)
+
+	for i := 0; i <= loopLimit; i++ {
+		rv, val, err := dbm.FetchWithLockShared(i)
+		assert.AssertNil(t, err, "return value=%d, err=%v\n", rv, err)
+		assert.AssertEquals(t, strconv.Itoa(i), val, "Return Value mismatch.\nExpected: %v\nActual: %v", i, val)
+	}
+}
+
+func Test_mdbm_OrdinaryFetchData_FetchWithPlock(t *testing.T) {
+
+	dbm := mdbm.NewMDBM()
+	err := dbm.EasyOpen(pathTestDBM1, 0644)
+	defer dbm.EasyClose()
+
+	assert.AssertNil(t, err, "failured, can't open the mdbm, path=%s, err=%v", pathTestDBM1, err)
+
+	for i := 0; i <= loopLimit; i++ {
+		rv, val, err := dbm.FetchWithPlock(i, mdbm.Rdrw)
 		assert.AssertNil(t, err, "return value=%d, err=%v\n", rv, err)
 		assert.AssertEquals(t, strconv.Itoa(i), val, "Return Value mismatch.\nExpected: %v\nActual: %v", i, val)
 	}

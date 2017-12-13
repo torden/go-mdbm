@@ -1460,8 +1460,8 @@ func (db *MDBM) StoreWithTryLock(key interface{}, val interface{}, flags int) (i
 	return db.storeWithAnyLock(key, val, flags, lockTypeTryLock, lockFlagsSkip)
 }
 
-// StoreWithTryLockSamrt adds key and value into the current MDBM With TryLockSmart()
-func (db *MDBM) StoreWithTryLockSamrt(key interface{}, val interface{}, flags int, lockflags int) (int, error) {
+// StoreWithTryLockSmart adds key and value into the current MDBM With TryLockSmart()
+func (db *MDBM) StoreWithTryLockSmart(key interface{}, val interface{}, flags int, lockflags int) (int, error) {
 	return db.storeWithAnyLock(key, val, flags, lockTypeTrySmart, C.int(lockflags))
 }
 
@@ -1685,8 +1685,8 @@ func (db *MDBM) FetchWithTryLock(key interface{}) (int, string, error) {
 	return db.fetchWithAnyLock(key, lockTypeTryLock, lockFlagsSkip)
 }
 
-// FetchWithTryLockSamrt returns fetche the record specified by the key argument and returns a value With TryLockSmart()
-func (db *MDBM) FetchWithTryLockSamrt(key interface{}, lockflags int) (int, string, error) {
+// FetchWithTryLockSmart returns fetche the record specified by the key argument and returns a value With TryLockSmart()
+func (db *MDBM) FetchWithTryLockSmart(key interface{}, lockflags int) (int, string, error) {
 	return db.fetchWithAnyLock(key, lockTypeTrySmart, C.int(lockflags))
 }
 
@@ -1760,8 +1760,8 @@ func (db *MDBM) FetchRWithTryLock(key interface{}, iter *C.MDBM_ITER) (int, stri
 	return db.fetchRWithAnyLock(key, iter, lockTypeTryLock, lockFlagsSkip)
 }
 
-// FetchRWithTryLockSamrt returns fetche the record specified by the key argument and returns a value With TryLockSmart()
-func (db *MDBM) FetchRWithTryLockSamrt(key interface{}, iter *C.MDBM_ITER, lockflags int) (int, string, Iter, error) {
+// FetchRWithTryLockSmart returns fetche the record specified by the key argument and returns a value With TryLockSmart()
+func (db *MDBM) FetchRWithTryLockSmart(key interface{}, iter *C.MDBM_ITER, lockflags int) (int, string, Iter, error) {
 	return db.fetchRWithAnyLock(key, iter, lockTypeTrySmart, C.int(lockflags))
 }
 
@@ -2050,8 +2050,8 @@ func (db *MDBM) DeleteWithTryLock(key interface{}) (int, error) {
 	return db.deleteWithAnyLock(key, lockTypeTryLock, lockFlagsSkip)
 }
 
-// DeleteWithTryLockSamrt deletes a specific record With TryLockSmart()
-func (db *MDBM) DeleteWithTryLockSamrt(key interface{}, lockflags int) (int, error) {
+// DeleteWithTryLockSmart deletes a specific record With TryLockSmart()
+func (db *MDBM) DeleteWithTryLockSmart(key interface{}, lockflags int) (int, error) {
 	return db.deleteWithAnyLock(key, lockTypeTrySmart, C.int(lockflags))
 }
 
@@ -2142,11 +2142,11 @@ func (db *MDBM) DeleteRWithTryLock(key interface{}, iter Iter) (int, Iter, error
 	return db.deleteRWithAnyLock(key, iter, lockTypeTryLock, lockFlagsSkip)
 }
 
-// DeleteRWithTryLockSamrt deletes the record currently addressed by the iter argument.
+// DeleteRWithTryLockSmart deletes the record currently addressed by the iter argument.
 // After deletion, the key and/or value returned by the iterating function is no longer valid.
 // Calling NextR() on the iterator will return the key/value for the entry following the entry that was deleted.
 // With TryLockSmart()
-func (db *MDBM) DeleteRWithTryLockSamrt(key interface{}, iter Iter, lockflags int) (int, Iter, error) {
+func (db *MDBM) DeleteRWithTryLockSmart(key interface{}, iter Iter, lockflags int) (int, Iter, error) {
 	return db.deleteRWithAnyLock(key, iter, lockTypeTrySmart, C.int(lockflags))
 }
 
@@ -2220,8 +2220,8 @@ func (db *MDBM) DeleteStrWithTryLock(key interface{}) (int, error) {
 	return db.deleteStrWithAnyLock(key, lockTypeTryLock, lockFlagsSkip)
 }
 
-// DeleteStrWithTryLockSamrt deletes a string from the MDBM with TryLockSmart()
-func (db *MDBM) DeleteStrWithTryLockSamrt(key interface{}, lockflags int) (int, error) {
+// DeleteStrWithTryLockSmart deletes a string from the MDBM with TryLockSmart()
+func (db *MDBM) DeleteStrWithTryLockSmart(key interface{}, lockflags int) (int, error) {
 	return db.deleteStrWithAnyLock(key, lockTypeTrySmart, C.int(lockflags))
 }
 
