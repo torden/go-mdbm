@@ -108,7 +108,6 @@ vi mdbm.go
 |mdbm_set_stats_func|as soon|
 |mdbm_chunk_iterate|as soon|
 |mdbm_sparsify_file|as soon|
-|mdbm_fetch_buf|similar Fetch() api|
 
 
 ## Todo
