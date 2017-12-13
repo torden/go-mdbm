@@ -1907,7 +1907,6 @@ func Example_mdbm_GetHashValue() {
 	// 1224750888 <nil>
 }
 
-/*
 func Example_mdbm_Plock_Punlock() {
 
 	dbm := mdbm.NewMDBM()
@@ -1966,7 +1965,6 @@ func Example_mdbm_Plock_Punlock() {
 	// Punlock(1) : Success, partition lock was released
 }
 
-
 func Example_mdbm_TryPlock() {
 
 	dbm := mdbm.NewMDBM()
@@ -2008,12 +2006,12 @@ func Example_mdbm_TryPlock() {
 	// Punlock(1) : Success, partition lock was released
 }
 
-func Example_mdbm_LockSamrt_Store_UnLockSmart() {
+func Example_mdbm_LockSmart_Store_UnLockSmart() {
 
 	dbm := mdbm.NewMDBM()
 	err := dbm.EasyOpen(pathTestDBM1, 0644)
 	if err != nil {
-	log.Fatalf("failed mdbm.EasyOpen(), err=%v", err)
+		log.Fatalf("failed mdbm.EasyOpen(), err=%v", err)
 	}
 	defer dbm.EasyClose()
 
@@ -2026,14 +2024,13 @@ func Example_mdbm_LockSamrt_Store_UnLockSmart() {
 			log.Fatalf("Store(%s,%s,mdbm.Replace) : rv=%d, err=%v", i, i, rv, err)
 		}
 
-		dbm.UnLockSmart(i, mdbm.Rdrw)
+		dbm.Unlock()
 	}
 
 	// Output:
 }
-*/
 
-func Example_mdbm_StoreWithLockSamrt() {
+func Example_mdbm_StoreWithLockSmart() {
 
 	dbm := mdbm.NewMDBM()
 	err := dbm.EasyOpen(pathTestDBM1, 0644)
@@ -2058,7 +2055,7 @@ func Example_mdbm_StoreWithLockSamrt() {
 	// Output:
 }
 
-func Example_mdbm_StoreRWithLockSamrt() {
+func Example_mdbm_StoreRWithLockSmart() {
 
 	dbm := mdbm.NewMDBM()
 	err := dbm.EasyOpen(pathTestDBM1, 0644)

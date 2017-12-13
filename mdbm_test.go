@@ -406,3 +406,40 @@ func Test_mdbm_OrdinaryFetchData_Random_PreLoad_FetchWithLockSmart(t *testing.T)
 		assert.AssertEquals(t, strconv.Itoa(i), val, "Return Value mismatch.\nExpected: %v\nActual: %v", i, val)
 	}
 }
+
+func Test_mdbm_LockShared(t *testing.T) {
+
+	dbm := mdbm.NewMDBM()
+	err := dbm.EasyOpen(pathTestDBM1, 0644)
+	defer dbm.EasyClose()
+	assert.AssertNil(t, err, "failured, can't open the mdbm, path=%s, err=%v", pathTestDBM1, err)
+
+	rv, err := dbm.LockShared()
+	assert.AssertEquals(t, 1, rv, "failured, Locks the database for shared access by readers, excluding access to writers., path=%s, err=%v", pathTestDBM1, err)
+	assert.AssertNil(t, err, "failured, Locks the database for shared access by readers, excluding access to writers., path=%s, err=%v", pathTestDBM1, err)
+}
+
+func Test_mdbm_TryLockShared(t *testing.T) {
+
+	dbm := mdbm.NewMDBM()
+	err := dbm.EasyOpen(pathTestDBM1, 0644)
+	defer dbm.EasyClose()
+	assert.AssertNil(t, err, "failured, can't open the mdbm, path=%s, err=%v", pathTestDBM1, err)
+
+	rv, err := dbm.TryLockShared()
+	assert.AssertEquals(t, 1, rv, "failured, locks the database for shared access by readers, excluding access to writers, path=%s, err=%v", pathTestDBM1, err)
+	assert.AssertNil(t, err, "failured, locks the database for shared access by readers, excluding access to writers, path=%s, err=%v", pathTestDBM1, err)
+}
+
+func Test_mdbm_GetLockMode(t *testing.T) {
+
+	dbm := mdbm.NewMDBM()
+	err := dbm.EasyOpen(pathTestDBM1, 0644)
+	defer dbm.EasyClose()
+	assert.AssertNil(t, err, "failured, can't open the mdbm, path=%s, err=%v", pathTestDBM1, err)
+
+	rv, err := dbm.GetLockMode()
+	assert.AssertEquals(t, 1, rv, "failured, gets the mdbm's lock mode, path=%s, err=%v", pathTestDBM1, err)
+	assert.AssertNil(t, err, "failured, gets the mdbm's lock mode, path=%s, err=%v", pathTestDBM1, err)
+
+}
