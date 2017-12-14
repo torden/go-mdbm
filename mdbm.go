@@ -680,7 +680,7 @@ func (db *MDBM) LogMinLevel(lv C.int) error {
 	}
 
 	_, _, err := db.cgoRun(func() (int, error) {
-		C.mdbm_log_minlevel(C.int(lv))
+		C.mdbm_log_minlevel(lv)
 		return 0, nil
 	})
 
@@ -721,7 +721,7 @@ func (db *MDBM) LogPlugin(plugin int) error {
 	return err
 }
 
-// LogToFile sets the logging to file (name: /mdbm_path/mdbm_file + .log-PID)
+// LogToAutoFile sets the logging to file (name: /mdbm_path/mdbm_file + .log-PID)
 func (db *MDBM) LogToAutoFile() (int, error) {
 
 	logpath := fmt.Sprintf("%s.log-%d", db.dbmfile, os.Getpid())
@@ -754,7 +754,11 @@ func (db *MDBM) EasyOpen(dbmfile string, perms int) error {
 
 	db.pdbmfile = C.CString(dbmfile)
 
-	db.LogMinLevel(LogOff)
+	err = db.LogMinLevel(LogOff)
+	if err != nil {
+		return err
+	}
+
 	_, _, err = db.cgoRun(func() (int, error) {
 		db.pmdbm, err = C.mdbm_open(db.pdbmfile, C.int(db.flags), C.int(db.perms), C.int(db.psize), C.int(db.dsize))
 		if db.pmdbm != nil {
@@ -782,7 +786,6 @@ func (db *MDBM) EasyOpen(dbmfile string, perms int) error {
 // psize	Specifies the page size for the database and is set when the database is created. The minimum page size is 128. In v2, the maximum is 64K. In v3, the maximum is 16M - 64. The default, if 0 is specified, is 4096.
 // presize	Specifies the initial size for the database. The database will dynamically grow as records are added, but specifying an initial size may improve efficiency. If this is not a multiple of psize, it will be increased to the next psize multiple.
 //
-
 func (db *MDBM) Open(mdbmfn string, flags, perms, psize, dsize int) error {
 
 	db.flags = flags

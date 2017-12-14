@@ -329,8 +329,15 @@ const (
 	lockTypeTryPlock  = C.LT_TRY_PLOCK
 	lockFlagsSkip     = C.LF_SKIP
 
-	LogToSkip   = 0
+	// LogToSkip is logging to /dev/null
+	LogToSkip = 0
+
+	// LogToStdErr is loging to /dev/stdout
 	LogToStdErr = 1
-	LogToFile   = 2
+
+	// LogToFile is loging to a file
+	LogToFile = 2
+
+	// LogToSysLog is loging to syslog
 	LogToSysLog = 3
 )
