@@ -64,12 +64,12 @@ installpkgs::
 	@$(CMD_GO) get github.com/Songmu/make2help/cmd/make2help
 	@$(CMD_GO) get github.com/davecgh/go-spew/spew
 	@$(CMD_GO) get github.com/k0kubun/pp
-	@$(CMD_GO) get github.com/alecthomas/gometalinter
 	@$(CMD_GO) get github.com/mattn/goveralls
 	@$(CMD_GO) get golang.org/x/tools/cmd/cover
 	@$(CMD_GO) get github.com/modocache/gover
 ifeq ($(GOLANGV16_OVER),1)
 	@$(CMD_GO) get github.com/golang/lint/golint
+	@$(CMD_GO) get github.com/alecthomas/gometalinter
 endif
 	@$(CMD_GO) get -u github.com/awalterschulze/gographviz
 	@$(CMD_ECHO) -e "\033[1;40;36mDone\033[01;m\x1b[0m"
@@ -77,7 +77,11 @@ endif
 ## Install GoMetaLinter 
 metalinter::
 	@$(CMD_ECHO)  -e "\033[1;40;32mInstall Go-metalineter.\033[01;m\x1b[0m"
+ifeq ($(GOLANGV16_OVER),1)
 	@$(shell which gometalinter) --install
+else
+	@$(CMD_ECHO) -e "\033[1;40;36mSKIP: your golang is older version $(shell go version)\033[01;m\x1b[0m"
+endif
 	@$(CMD_ECHO) -e "\033[1;40;36mDone\033[01;m\x1b[0m"
 
 ## Run a LintChecker (Normal)
@@ -88,13 +92,19 @@ ifeq ($(GOLANGV16_OVER),1)
 	@for pkg in $$($(shell which glide) novendor -x); do \
 		$(CMD_GOLINT) -set_exit_status $$pkg || exit $$?; \
 	done
+else
+	@$(CMD_ECHO) -e "\033[1;40;36mSKIP: your golang is older version $(shell go version)\033[01;m\x1b[0m"
 endif
 	@$(CMD_ECHO) -e "\033[1;40;36mDone\033[01;m\x1b[0m"
 
 ## Run a LintChecker (Strict)
 strictlint: setup
 	@$(CMD_ECHO)  -e "\033[1;40;32mRun a LintChecker (Strict).\033[01;m\x1b[0m"
+ifeq ($(GOLANGV16_OVER),1)
 	@$(CMD_GOMETALINTER) $$($(shell which glide) novendor)
+else
+	@$(CMD_ECHO) -e "\033[1;40;36mSKIP: your golang is older version $(shell go version)\033[01;m\x1b[0m"
+endif
 	@$(CMD_ECHO) -e "\033[1;40;36mDone\033[01;m\x1b[0m"
 
 ## Run Go Test with Data Race Detection
@@ -129,9 +139,11 @@ pprof: clean
 	@$(CMD_GO) test -tags unittest -test.parallel 4 -bench . -benchmem -memprofile=$(PATH_REPORT)/raw/$(PATH_PROF_MEM)
 	@$(CMD_ECHO)  -e "\033[1;40;33mGenerate a Block profile.\033[01;m\x1b[0m"
 	@$(CMD_GO) test -tags unittest -test.parallel 4 -bench . -benchmem -blockprofile=$(PATH_REPORT)/raw/$(PATH_PROF_BLOCK)
-ifeq ($(GOLANGV18_OVER),1)
 	@$(CMD_ECHO)  -e "\033[1;40;33mGenerate a Mutex profile.\033[01;m\x1b[0m"
+ifeq ($(GOLANGV18_OVER),1)
 	@$(CMD_GO) test -tags unittest -test.parallel 4 -bench . -benchmem -mutexprofile=$(PATH_REPORT)/raw/$(PATH_PROF_MUTEX)
+else
+	@$(CMD_ECHO) -e "\033[1;40;36mSKIP: your golang is older version $(shell go version)\033[01;m\x1b[0m"
 endif
 	@$(CMD_MV) -f *.test $(PATH_REPORT)/raw/
 	@$(CMD_ECHO) -e "\033[1;40;36mDone\033[01;m\x1b[0m"
