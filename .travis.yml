@@ -25,6 +25,7 @@ before_install:
 #    - make install
 #    - cd ..
 script:
-    - make setup
+    - make installpks
+    - make metalinter
     - make test
     - make coveralls

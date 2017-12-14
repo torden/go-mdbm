@@ -55,8 +55,11 @@ GOLANGV16_OVER=$(shell [ "$(VER_GOLANG)" -ge "160" ] && echo 1 || echo 0)
 all: clean setup
 
 ## Setup Build Environment
-setup::
-	@$(CMD_ECHO)  -e "\033[1;40;32mSetup Build Environment.\033[01;m\x1b[0m"
+setup: installpkgs metalinter
+
+## Install Packages
+installpkgs::
+	@$(CMD_ECHO)  -e "\033[1;40;32mInstall Packages.\033[01;m\x1b[0m"
 	@$(CMD_GO) get github.com/Masterminds/glide
 	@$(CMD_GO) get github.com/Songmu/make2help/cmd/make2help
 	@$(CMD_GO) get github.com/davecgh/go-spew/spew
@@ -69,15 +72,20 @@ ifeq ($(GOLANGV16_OVER),1)
 	@$(CMD_GO) get github.com/golang/lint/golint
 endif
 	@$(CMD_GO) get -u github.com/awalterschulze/gographviz
-	@$(CMD_GOMETALINTER) install
+	@$(CMD_ECHO) -e "\033[1;40;36mDone\033[01;m\x1b[0m"
+
+## Install GoMetaLinter 
+metalinter::
+	@$(CMD_ECHO)  -e "\033[1;40;32mInstall Go-metalineter.\033[01;m\x1b[0m"
+	@$(shell which gometalinter) install
 	@$(CMD_ECHO) -e "\033[1;40;36mDone\033[01;m\x1b[0m"
 
 ## Run a LintChecker (Normal)
 lint: setup
 	@$(CMD_ECHO)  -e "\033[1;40;32mRun a LintChecker (Normal).\033[01;m\x1b[0m"
 ifeq ($(GOLANGV16_OVER),1)
-	@$(CMD_GO) vet $$($(CMD_GLIDE) novendor)
-	@for pkg in $$($(CMD_GLIDE) novendor -x); do \
+	@$(CMD_GO) vet $$($(shell which glide) novendor)
+	@for pkg in $$($(shell which glide) novendor -x); do \
 		$(CMD_GOLINT) -set_exit_status $$pkg || exit $$?; \
 	done
 endif
@@ -86,7 +94,7 @@ endif
 ## Run a LintChecker (Strict)
 strictlint: setup
 	@$(CMD_ECHO)  -e "\033[1;40;32mRun a LintChecker (Strict).\033[01;m\x1b[0m"
-	@$(CMD_GOMETALINTER) $$($(CMD_GLIDE) novendor)
+	@$(CMD_GOMETALINTER) $$($(shell which glide) novendor)
 	@$(CMD_ECHO) -e "\033[1;40;36mDone\033[01;m\x1b[0m"
 
 ## Run Go Test with Data Race Detection
@@ -100,7 +108,7 @@ test: clean
 ## Send a report of coverage profile to coveralls.io
 coveralls::
 	@$(CMD_ECHO)  -e "\033[1;40;32mSend a report of coverage profile to coveralls.io.\033[01;m\x1b[0m"
-	@$(CMD_GOVERALLS) -coverprofile=$(PATH_REPORT)/raw/$(PATH_CONVER_PROFILE) -service=travis-ci
+	@$(shell which goveralls) -coverprofile=$(PATH_REPORT)/raw/$(PATH_CONVER_PROFILE) -service=travis-ci
 	@$(CMD_ECHO) -e "\033[1;40;36mDone\033[01;m\x1b[0m"
 
 ## Generate a report about coverage
