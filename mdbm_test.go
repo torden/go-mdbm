@@ -491,9 +491,6 @@ func Test_mdbm_MutipleDataType_Store(t *testing.T) {
 		rv, err = dbm.StoreWithLock(r.Uint32(), time.Now().UnixNano(), mdbm.Replace)
 		assert.AssertNil(t, err, "return value=%v, err=%v\n", rv, err)
 
-		rv, err = dbm.StoreWithLock(r.Uint64(), time.Now().UnixNano(), mdbm.Replace)
-		assert.AssertNil(t, err, "return value=%v, err=%v\n", rv, err)
-
 		rv, err = dbm.StoreWithLock(r.Float32(), time.Now().UnixNano(), mdbm.Replace)
 		assert.AssertNil(t, err, "return value=%v, err=%v\n", rv, err)
 
