@@ -77,7 +77,7 @@ endif
 ## Install GoMetaLinter 
 metalinter::
 	@$(CMD_ECHO)  -e "\033[1;40;32mInstall Go-metalineter.\033[01;m\x1b[0m"
-	@$(shell which gometalinter) install
+	@$(shell which gometalinter) --install
 	@$(CMD_ECHO) -e "\033[1;40;36mDone\033[01;m\x1b[0m"
 
 ## Run a LintChecker (Normal)
