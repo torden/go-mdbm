@@ -703,7 +703,7 @@ func (db *MDBM) LogPlugin(plugin int) error {
 	case LogToSysLog:
 		plugname = "file"
 	default:
-		return fmt.Errorf("Not support log plugin=%s", plugin)
+		return fmt.Errorf("Not support log plugin=%d", plugin)
 	}
 
 	pplugname := C.CString(plugname)
