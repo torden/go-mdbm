@@ -149,7 +149,7 @@ help::
 ## Clean-up
 clean::
 	@$(CMD_ECHO)  -e "\033[1;40;32mClean-up.\033[01;m\x1b[0m"
-	@$(CMD_RM) -rfv *.coverprofile *.swp *.core *.html *.prof *.test *.report ./$(PATH_REPORT)/*
+	@$(CMD_RM) -rfv *.coverprofile *.swp *.core *.html *.prof *.test *.report ./$(PATH_REPORT)/* ./tmp/* *.mdbm *.txt *.log *.out
 	@$(CMD_ECHO) -e "\033[1;40;36mDone\033[01;m\x1b[0m"
 
 .PHONY: clean cover coveralls help lint pprof report run setup strictlint test

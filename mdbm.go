@@ -27,7 +27,6 @@ import (
 type MDBM struct {
 	pmdbm    *C.MDBM
 	iter     C.MDBM_ITER
-	locked   bool
 	isopened bool
 	dbmfile  string
 	pdbmfile *C.char
@@ -151,7 +150,6 @@ type WindowStats struct { //mdbm_window_stats_t
 func NewMDBM() *MDBM {
 
 	obj := &MDBM{
-		locked:   false,
 		dbmfile:  "",
 		flags:    Create | Rdrw | AnyLocks,
 		perms:    0666,
@@ -641,7 +639,6 @@ func (db *MDBM) DupHandle() (*MDBM, error) {
 	defer db.mutex.Unlock()
 
 	obj := &MDBM{
-		locked:   db.locked,
 		dbmfile:  db.dbmfile,
 		flags:    db.flags,
 		perms:    db.perms,
@@ -892,68 +889,38 @@ func (db *MDBM) EasyClose() {
 // The lock is nestable, so a caller already holding
 // the lock may call mdbm_lock again as long as an equal number of calls
 // to Unlock are made to release the lock.
-func (db *MDBM) Lock() error {
+func (db *MDBM) Lock() (int, error) {
 
-	var err error
-
-	_, _, err = db.cgoRun(func() (int, error) {
+	rv, _, err := db.cgoRun(func() (int, error) {
 		rv, err := C.mdbm_lock(db.pmdbm)
-
-		db.mutex.Lock()
-		{
-			if !db.locked && int(rv) == 1 {
-				db.locked = true
-			}
-		}
-		db.mutex.Unlock()
-		return 0, err
+		return int(rv), err
 	})
 
-	return err
+	return rv, err
 }
 
 // Unlock unlocks the database, releasing exclusive or shared access by the caller.
 // If the caller has called Lock() or LockShared() multiple times
 // in a row, an equal number of unlock calls are required.
-func (db *MDBM) Unlock() error {
+func (db *MDBM) Unlock() (int, error) {
 
-	var err error
-
-	_, _, err = db.cgoRun(func() (int, error) {
-
+	rv, _, err := db.cgoRun(func() (int, error) {
 		rv, err := C.mdbm_unlock(db.pmdbm)
-		db.mutex.Lock()
-		{
-			if db.locked && int(rv) == 1 {
-				db.locked = false
-			}
-		}
-		db.mutex.Unlock()
-		return 0, err
+		return int(rv), err
 	})
 
-	return err
+	return rv, err
 }
 
 // TryLock attempts to exclusively lock the MDBM.
-func (db *MDBM) TryLock() error {
+func (db *MDBM) TryLock() (int, error) {
 
-	var err error
-
-	_, _, err = db.cgoRun(func() (int, error) {
+	rv, _, err := db.cgoRun(func() (int, error) {
 		rv, err := C.mdbm_trylock(db.pmdbm)
-		db.mutex.Lock()
-		{
-			if !db.locked && int(rv) == 1 {
-				db.locked = true
-			}
-		}
-		db.mutex.Unlock()
-
-		return 0, err
+		return int(rv), err
 	})
 
-	return err
+	return rv, err
 }
 
 // IsLocked returns whether or not MDBM is locked by another process or thread.
@@ -1007,13 +974,6 @@ func (db *MDBM) LockReset(dbmpath string) (int, error) {
 	//flags(2nd arg) Reserved for future use, and must be 0.
 	rv, _, err := db.cgoRunCapture(func() (int, error) {
 		rv, err := C.mdbm_lock_reset(pdbmfile, 0)
-		if rv == 0 {
-			db.mutex.Lock()
-			{
-				db.locked = false
-			}
-			db.mutex.Unlock()
-		}
 		return int(rv), err
 	})
 
@@ -1037,13 +997,6 @@ func (db *MDBM) DeleteLockFiles(dbmpath string) (int, error) {
 
 	rv, _, err := db.cgoRunCapture(func() (int, error) {
 		rv, err := C.mdbm_delete_lockfiles(path)
-		if rv == 0 {
-			db.mutex.Lock()
-			{
-				db.locked = false
-			}
-			db.mutex.Unlock()
-		}
 		return int(rv), err
 	})
 
@@ -2940,6 +2893,9 @@ func (db *MDBM) TryPlock(key interface{}) (int, error) {
 // LockSmart performs either partition, shared or exclusive locking based on the locking-related flags supplied to Open()
 func (db *MDBM) LockSmart(key interface{}, flags int) (int, error) {
 
+	db.mutex.Lock()
+	defer db.mutex.Lock()
+
 	skey, err := db.convertToString(key)
 	if err != nil {
 		return -1, errors.Wrapf(err, "failured")
@@ -2961,6 +2917,9 @@ func (db *MDBM) LockSmart(key interface{}, flags int) (int, error) {
 
 // UnLockSmart unlocks an MDBM based on the locking flags supplied to Open()
 func (db *MDBM) UnLockSmart(key interface{}, flags int) (int, error) {
+
+	db.mutex.Lock()
+	defer db.mutex.Lock()
 
 	skey, err := db.convertToString(key)
 	if err != nil {

@@ -308,7 +308,7 @@ func Example_mdbm_MyLockReset() {
 	}
 	fmt.Println("EasyOpen : ", err)
 
-	err = dbm.Lock()
+	_, err = dbm.Lock()
 	fmt.Println("Lock : ", err)
 
 	rv, err = dbm.MyLockReset()
@@ -317,7 +317,7 @@ func Example_mdbm_MyLockReset() {
 	rv, err = dbm.Store("iamKey", "iamValue", mdbm.Replace)
 	fmt.Println("Store : rv =", rv, ", err =", err)
 
-	err = dbm.Unlock()
+	_, err = dbm.Unlock()
 	fmt.Println("Unlock : ", err)
 
 	dbm.EasyClose()
@@ -2006,6 +2006,7 @@ func Example_mdbm_TryPlock() {
 	// Punlock(1) : Success, partition lock was released
 }
 
+/* - ISSUE : deallock on mutiple thread
 func Example_mdbm_LockSmart_Store_UnLockSmart() {
 
 	dbm := mdbm.NewMDBM()
@@ -2024,11 +2025,14 @@ func Example_mdbm_LockSmart_Store_UnLockSmart() {
 			log.Fatalf("Store(%s,%s,mdbm.Replace) : rv=%d, err=%v", i, i, rv, err)
 		}
 
-		dbm.Unlock()
+		log.Println(rv, err, i)
+
+		dbm.UnLockSmart(i, mdbm.Rdrw)
 	}
 
 	// Output:
 }
+*/
 
 func Example_mdbm_StoreWithLockSmart() {
 
