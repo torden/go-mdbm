@@ -1,8 +1,7 @@
 package mdbm
 
 /*
-#include <mdbm.h>
-#include <mdbm_log.h>
+#include <mdbm-binding.h>
 */
 import "C"
 
@@ -87,6 +86,9 @@ const (
 
 	// LogDebug is debug-level messages
 	LogDebug = C.LOG_DEBUG
+
+	// LogOff is disable log
+	LogOff = C.int(-1)
 
 	// HashCRC32 is table based 32bit crc
 	HashCRC32 = C.MDBM_HASH_CRC32
@@ -315,4 +317,27 @@ const (
 
 	// StatNolock is Do not lock for stat operation
 	StatNolock = C.MDBM_STAT_NOLOCK
+
+	lockTypeNone      = C.LT_NONE
+	lockTypeLock      = C.LT_LOCK
+	lockTypeSmart     = C.LT_SMART
+	lockTypeShared    = C.LT_SHARED
+	lockTypePlock     = C.LT_PLOCK
+	lockTypeTryLock   = C.LT_TRY_LOCK
+	lockTypeTrySmart  = C.LT_TRY_SMART
+	lockTypeTryShared = C.LT_TRY_SHARED
+	lockTypeTryPlock  = C.LT_TRY_PLOCK
+	lockFlagsSkip     = C.LF_SKIP
+
+	// LogToSkip is logging to /dev/null
+	LogToSkip = 0
+
+	// LogToStdErr is loging to /dev/stdout
+	LogToStdErr = 1
+
+	// LogToFile is loging to a file
+	LogToFile = 2
+
+	// LogToSysLog is loging to syslog
+	LogToSysLog = 3
 )
