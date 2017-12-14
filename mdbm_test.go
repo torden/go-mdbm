@@ -443,3 +443,61 @@ func Test_mdbm_GetLockMode(t *testing.T) {
 	assert.AssertNil(t, err, "failured, gets the mdbm's lock mode, path=%s, err=%v", pathTestDBM1, err)
 
 }
+
+func Test_mdbm_MutipleDataType_Store(t *testing.T) {
+
+	dbm := mdbm.NewMDBM()
+	err := dbm.Open(pathTestDBMLarge, mdbm.Create|mdbm.Rdrw|mdbm.LargeObjects, 0644, 0, 0)
+	defer dbm.EasyClose()
+	assert.AssertNil(t, err, "failured, can't open the mdbm, path=%s, err=%v", pathTestDBM1, err)
+
+	rv, err := dbm.PreLoad()
+	assert.AssertNil(t, err, "failured, can't pre-load the mdbm, path=%s, rv=%d, err=%v", pathTestDBM1, rv, err)
+
+	rv, err = dbm.StoreWithLock(true, time.Now().UnixNano(), mdbm.Replace)
+	assert.AssertNil(t, err, "return value=%v, err=%v\n", rv, err)
+
+	rv, err = dbm.StoreWithLock(false, time.Now().UnixNano(), mdbm.Replace)
+	assert.AssertNil(t, err, "return value=%v, err=%v\n", rv, err)
+
+	rv, err = dbm.StoreWithLock("true", time.Now().UnixNano(), mdbm.Replace)
+	assert.AssertNil(t, err, "return value=%v, err=%v\n", rv, err)
+
+	rv, err = dbm.StoreWithLock("false", time.Now().UnixNano(), mdbm.Replace)
+	assert.AssertNil(t, err, "return value=%v, err=%v\n", rv, err)
+
+	r := rand.New(rand.NewSource(time.Now().UnixNano()))
+
+	for i := 0; i <= loopLimit; i++ {
+
+		rv, err = dbm.StoreWithLock(int8(r.Intn(100)), time.Now().UnixNano(), mdbm.Replace)
+		assert.AssertNil(t, err, "return value=%v, err=%v\n", rv, err)
+
+		rv, err = dbm.StoreWithLock(int16(r.Intn(100)), time.Now().UnixNano(), mdbm.Replace)
+		assert.AssertNil(t, err, "return value=%v, err=%v\n", rv, err)
+
+		rv, err = dbm.StoreWithLock(uint16(i), time.Now().UnixNano(), mdbm.Replace)
+		assert.AssertNil(t, err, "return value=%v, err=%v\n", rv, err)
+
+		rv, err = dbm.StoreWithLock(uint32(i), time.Now().UnixNano(), mdbm.Replace)
+		assert.AssertNil(t, err, "return value=%v, err=%v\n", rv, err)
+
+		rv, err = dbm.StoreWithLock(r.Int31(), time.Now().UnixNano(), mdbm.Replace)
+		assert.AssertNil(t, err, "return value=%v, err=%v\n", rv, err)
+
+		rv, err = dbm.StoreWithLock(r.Int63(), time.Now().UnixNano(), mdbm.Replace)
+		assert.AssertNil(t, err, "return value=%v, err=%v\n", rv, err)
+
+		rv, err = dbm.StoreWithLock(r.Uint32(), time.Now().UnixNano(), mdbm.Replace)
+		assert.AssertNil(t, err, "return value=%v, err=%v\n", rv, err)
+
+		rv, err = dbm.StoreWithLock(r.Uint64(), time.Now().UnixNano(), mdbm.Replace)
+		assert.AssertNil(t, err, "return value=%v, err=%v\n", rv, err)
+
+		rv, err = dbm.StoreWithLock(r.Float32(), time.Now().UnixNano(), mdbm.Replace)
+		assert.AssertNil(t, err, "return value=%v, err=%v\n", rv, err)
+
+		rv, err = dbm.StoreWithLock(r.Float64(), time.Now().UnixNano(), mdbm.Replace)
+		assert.AssertNil(t, err, "return value=%v, err=%v\n", rv, err)
+	}
+}
