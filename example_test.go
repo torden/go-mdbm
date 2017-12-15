@@ -2066,35 +2066,10 @@ func Example_mdbm_LockSmart_Fetch_UnLockSmart() {
 	// Output:
 }
 
-func Example_mdbm_StoreWithLockSmart() {
+func Example_mdbm_StoreRWithAnyLock() {
 
 	dbm := mdbm.NewMDBM()
-	err := dbm.EasyOpen(pathTestDBM1, 0644)
-	if err != nil {
-		log.Fatalf("failed mdbm.EasyOpen(), err=%v", err)
-	}
-	defer dbm.EasyClose()
-
-	_, err = dbm.MyLockReset()
-	if err != nil {
-		log.Fatalf("failed mdbm.LockReset(), err=%v", err)
-	}
-
-	for i := 0; i <= loopLimit; i++ {
-
-		rv, err := dbm.StoreWithLockSmart(i, i, mdbm.Replace, mdbm.Rdrw)
-		if err != nil {
-			log.Fatalf("Store(%d,%d,mdbm.Replace) : rv=%d, err=%v", i, i, rv, err)
-		}
-	}
-
-	// Output:
-}
-
-func Example_mdbm_StoreRWithLockSmart() {
-
-	dbm := mdbm.NewMDBM()
-	err := dbm.EasyOpen(pathTestDBM1, 0644)
+	err := dbm.EasyOpen(pathTestDBMLarge, 0644)
 	if err != nil {
 		log.Fatalf("failed mdbm.EasyOpen(), err=%v", err)
 	}
@@ -2108,10 +2083,312 @@ func Example_mdbm_StoreRWithLockSmart() {
 	}
 
 	for i := 0; i <= loopLimit; i++ {
-
-		rv, _, err := dbm.StoreRWithLockSmart(i, i, mdbm.Replace, mdbm.Rdrw, &iter)
+		rv, _, err := dbm.StoreRWithLock(i, i, mdbm.Replace, &iter)
 		if err != nil {
 			log.Fatalf("Store(%d,%d,mdbm.Replace) : rv=%d, err=%v", i, i, rv, err)
+		}
+	}
+
+	for i := 0; i <= loopLimit; i++ {
+
+		kv := i * 10
+		rv, _, err := dbm.StoreRWithLockSmart(kv, kv, mdbm.Replace, mdbm.Rdrw, &iter)
+		if err != nil {
+			log.Fatalf("Store(%d,%d,mdbm.Replace) : rv=%d, err=%v", i, i, rv, err)
+		}
+	}
+
+	for i := 0; i <= loopLimit; i++ {
+
+		kv := i * 11
+		rv, _, err := dbm.StoreRWithLockShared(kv, kv, mdbm.Replace, &iter)
+		if err != nil {
+			log.Fatalf("Store(%d,%d,mdbm.Replace) : rv=%d, err=%v", i, i, rv, err)
+		}
+	}
+
+	for i := 0; i <= loopLimit; i++ {
+
+		kv := i * 12
+		rv, _, err := dbm.StoreRWithPlock(kv, kv, mdbm.Replace, mdbm.Rdrw, &iter)
+		if err != nil {
+			log.Fatalf("Store(%d,%d,mdbm.Replace) : rv=%d, err=%v", i, i, rv, err)
+		}
+	}
+
+	for i := 0; i <= loopLimit; i++ {
+
+		kv := i * 13
+		rv, _, err := dbm.StoreRWithTryLock(kv, kv, mdbm.Replace, &iter)
+		if err != nil {
+			log.Fatalf("Store(%d,%d,mdbm.Replace) : rv=%d, err=%v", i, i, rv, err)
+		}
+	}
+
+	for i := 0; i <= loopLimit; i++ {
+
+		kv := i * 14
+		rv, _, err := dbm.StoreRWithTryLockSmart(kv, kv, mdbm.Replace, mdbm.Rdrw, &iter)
+		if err != nil {
+			log.Fatalf("Store(%d,%d,mdbm.Replace) : rv=%d, err=%v", i, i, rv, err)
+		}
+	}
+
+	for i := 0; i <= loopLimit; i++ {
+
+		kv := i * 15
+		rv, _, err := dbm.StoreRWithTryLockShared(kv, kv, mdbm.Replace, &iter)
+		if err != nil {
+			log.Fatalf("Store(%d,%d,mdbm.Replace) : rv=%d, err=%v", i, i, rv, err)
+		}
+	}
+
+	for i := 0; i <= loopLimit; i++ {
+
+		kv := i * 16
+		rv, _, err := dbm.StoreRWithTryPlock(kv, kv, mdbm.Replace, mdbm.Rdrw, &iter)
+		if err != nil {
+			log.Fatalf("Store(%d,%d,mdbm.Replace) : rv=%d, err=%v", i, i, rv, err)
+		}
+	}
+
+	// Output:
+}
+
+func Example_mdbm_FetchWithAnyLock() {
+
+	var rv int
+	var val string
+	var err error
+
+	dbm := mdbm.NewMDBM()
+	err = dbm.EasyOpen(pathTestDBMLarge, 0644)
+	if err != nil {
+		log.Fatalf("failed mdbm.EasyOpen(), err=%v", err)
+	}
+	defer dbm.EasyClose()
+
+	iter := dbm.GetNewIter()
+
+	for i := 0; i <= loopLimit; i++ {
+
+		rv, val, _, err = dbm.FetchRWithLock(i, &iter)
+		if err != nil || strconv.Itoa(i) != val {
+			log.Fatalf("FetchRWithLock(%s) : rv=%d, retval=%s, err=%v\n", i, rv, val, err)
+		}
+	}
+
+	for i := 0; i <= loopLimit; i++ {
+
+		k := i * 10
+		rv, val, _, err = dbm.FetchRWithLockSmart(k, &iter, mdbm.Rdonly)
+		if err != nil || strconv.Itoa(k) != val {
+			log.Fatalf("FetchRWithLockSmart(%s) : rv=%d, retval=%s, err=%v\n", i, rv, val, err)
+		}
+	}
+
+	for i := 0; i <= loopLimit; i++ {
+
+		k := i * 11
+		rv, val, _, err = dbm.FetchRWithLockShared(k, &iter)
+		if err != nil || strconv.Itoa(k) != val {
+			log.Fatalf("FetchRWithLockShared(%s) : rv=%d, retval=%s, err=%v\n", i, rv, val, err)
+		}
+	}
+
+	for i := 0; i <= loopLimit; i++ {
+
+		k := i * 12
+		rv, val, _, err = dbm.FetchRWithPlock(k, &iter, mdbm.Rdonly)
+		if err != nil || strconv.Itoa(k) != val {
+			log.Fatalf("FetchRWithPlock(%s) : rv=%d, retval=%s, err=%v\n", i, rv, val, err)
+		}
+	}
+
+	for i := 0; i <= loopLimit; i++ {
+
+		k := i * 13
+		rv, val, _, err = dbm.FetchRWithTryLock(k, &iter)
+		if err != nil || strconv.Itoa(k) != val {
+			log.Fatalf("FetchRWithTryLock(%s) : rv=%d, retval=%s, err=%v\n", i, rv, val, err)
+		}
+	}
+
+	for i := 0; i <= loopLimit; i++ {
+
+		k := i * 14
+		rv, val, _, err = dbm.FetchRWithTryLockSmart(k, &iter, mdbm.Rdonly)
+		if err != nil || strconv.Itoa(k) != val {
+			log.Fatalf("FetchRWithTryLockSmart(%s) : rv=%d, retval=%s, err=%v\n", i, rv, val, err)
+		}
+	}
+
+	for i := 0; i <= loopLimit; i++ {
+
+		k := i * 15
+		rv, val, _, err = dbm.FetchRWithTryLockShared(k, &iter)
+		if err != nil || strconv.Itoa(k) != val {
+			log.Fatalf("FetchRWithTryLockShared(%s) : rv=%d, retval=%s, err=%v\n", i, rv, val, err)
+		}
+	}
+
+	for i := 0; i <= loopLimit; i++ {
+
+		k := i * 16
+		rv, val, _, err = dbm.FetchRWithTryPlock(k, &iter, mdbm.Rdonly)
+		if err != nil || strconv.Itoa(k) != val {
+			log.Fatalf("FetchRWithTryPlock(%s) : rv=%d, retval=%s, err=%v\n", i, rv, val, err)
+		}
+	}
+
+	// Output:
+}
+
+func Example_mdbm_FetchRWithAnyLock() {
+
+	var val string
+	var err error
+
+	dbm := mdbm.NewMDBM()
+	err = dbm.EasyOpen(pathTestDBMLarge, 0644)
+	if err != nil {
+		log.Fatalf("failed mdbm.EasyOpen(), err=%v", err)
+	}
+	defer dbm.EasyClose()
+
+	for i := 0; i <= loopLimit; i++ {
+
+		val, err = dbm.FetchWithLock(i)
+		if err != nil || strconv.Itoa(i) != val {
+			log.Fatalf("Fetch(%s) : val=%s, err=%v", i, i, val, err)
+		}
+	}
+
+	for i := 0; i <= loopLimit; i++ {
+
+		k := i * 10
+		val, err = dbm.FetchWithLockSmart(k, mdbm.Rdonly)
+		if err != nil || strconv.Itoa(k) != val {
+			log.Fatalf("Fetch(%s) : val=%s, err=%v", i, i, val, err)
+		}
+	}
+
+	for i := 0; i <= loopLimit; i++ {
+
+		k := i * 11
+		val, err = dbm.FetchWithLockShared(k)
+		if err != nil || strconv.Itoa(k) != val {
+			log.Fatalf("Fetch(%s) : val=%s, err=%v", i, i, val, err)
+		}
+	}
+
+	for i := 0; i <= loopLimit; i++ {
+
+		k := i * 12
+		val, err = dbm.FetchWithPlock(k, mdbm.Rdonly)
+		if err != nil || strconv.Itoa(k) != val {
+			log.Fatalf("Fetch(%s) : val=%s, err=%v", i, i, val, err)
+		}
+	}
+
+	for i := 0; i <= loopLimit; i++ {
+
+		k := i * 13
+		val, err = dbm.FetchWithTryLock(k)
+		if err != nil || strconv.Itoa(k) != val {
+			log.Fatalf("Fetch(%s) : val=%s, err=%v", i, i, val, err)
+		}
+	}
+
+	for i := 0; i <= loopLimit; i++ {
+
+		k := i * 14
+		val, err = dbm.FetchWithTryLockSmart(k, mdbm.Rdonly)
+		if err != nil || strconv.Itoa(k) != val {
+			log.Fatalf("Fetch(%s) : val=%s, err=%v", i, i, val, err)
+		}
+	}
+
+	for i := 0; i <= loopLimit; i++ {
+
+		k := i * 15
+		val, err = dbm.FetchWithTryLockShared(k)
+		if err != nil || strconv.Itoa(k) != val {
+			log.Fatalf("Fetch(%s) : val=%s, err=%v", i, i, val, err)
+		}
+	}
+
+	for i := 0; i <= loopLimit; i++ {
+
+		k := i * 16
+		val, err = dbm.FetchWithTryPlock(k, mdbm.Rdonly)
+		if err != nil || strconv.Itoa(k) != val {
+			log.Fatalf("Fetch(%s) : val=%s, err=%v", i, i, val, err)
+		}
+	}
+
+	// Output:
+}
+
+func Example_mdbm_DeleteWithAnyLock() {
+
+	var rv int
+	var err error
+
+	dbm := mdbm.NewMDBM()
+	err = dbm.EasyOpen(pathTestDBMLarge, 0644)
+	if err != nil {
+		log.Fatalf("failed mdbm.EasyOpen(), err=%v", err)
+	}
+	defer dbm.EasyClose()
+
+	for i := 0; i <= loopLimit; i++ {
+
+		rv, err = dbm.DeleteWithLock(i)
+		if err != nil {
+			log.Fatalf("DeleteWithLock(%s) : rv=%d, err=%v\n", i, rv, err)
+		}
+
+		i++
+		rv, err = dbm.DeleteWithLockSmart(i, mdbm.Rdrw)
+		if err != nil {
+			log.Fatalf("DeleteWithLockSmart(%s) : rv=%d, err=%v\n", i, rv, err)
+		}
+
+		i++
+		rv, err = dbm.DeleteWithLockShared(i)
+		if err != nil {
+			log.Fatalf("DeleteWithLockShared(%s) : rv=%d, err=%v\n", i, rv, err)
+		}
+
+		i++
+		rv, err = dbm.DeleteWithPlock(i, mdbm.Rdrw)
+		if err != nil {
+			log.Fatalf("DeleteWithPlock(%s) : rv=%d, err=%v\n", i, rv, err)
+		}
+
+		i++
+		rv, err = dbm.DeleteWithTryLock(i)
+		if err != nil {
+			log.Fatalf("DeleteWithTryLock(%s) : rv=%d, err=%v\n", i, rv, err)
+		}
+
+		i++
+		rv, err = dbm.DeleteWithTryLockSmart(i, mdbm.Rdrw)
+		if err != nil {
+			log.Fatalf("DeleteWithTryLockSmart(%s) : rv=%d, err=%v\n", i, rv, err)
+		}
+
+		i++
+		rv, err = dbm.DeleteWithTryLockShared(i)
+		if err != nil {
+			log.Fatalf("DeleteWithTryLockShared(%s) : rv=%d, err=%v\n", i, rv, err)
+		}
+
+		i++
+		rv, err = dbm.DeleteWithTryPlock(i, mdbm.Rdrw)
+		if err != nil {
+			log.Fatalf("DeleteWithTryPlock(%s) : rv=%d, err=%v\n", i, rv, err)
 		}
 	}
 
