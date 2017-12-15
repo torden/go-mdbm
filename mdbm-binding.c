@@ -55,28 +55,39 @@ static inline int common_lock_func(MDBM *db, datum *key, int locktype, int lockf
     }
 
     if(key == NULL && (locktype == LT_SMART || locktype == LT_PLOCK || locktype == LT_TRY_SMART || locktype == LT_TRY_PLOCK)) {
-        fprintf(stderr, "Not support Lock(=%s) without key", get_locktype_name(locktype));
+        fprintf(stderr, "Not support Lock(=%s) without key\n", get_locktype_name(locktype));
         return rv;
     }
 
     switch(locktype) {
         case LT_SMART:
             rv = mdbm_lock_smart(db, key, lockflags);
+            break;
         case LT_SHARED:
             rv = mdbm_lock_shared(db);
+            break;
         case LT_PLOCK:
             rv = mdbm_plock(db, key, lockflags);
+            break;
         case LT_TRY_LOCK:
             rv = mdbm_trylock(db);
+            break;
         case LT_TRY_SMART:
             rv = mdbm_trylock_smart(db, key, lockflags);
+            break;
         case LT_TRY_SHARED:
             rv = mdbm_trylock_shared(db);
+            break;
         case LT_TRY_PLOCK:
             rv = mdbm_plock(db, key, lockflags);
-        default: //with case LT_LOCK:
+            break;
+        case LT_LOCK:
             rv = mdbm_lock(db);
             break;
+        default:
+            fprintf(stderr, "Not support Lock(=%s,%d) \n", get_locktype_name(locktype), locktype);
+            break;
+
     }
 
     return rv;
@@ -99,12 +110,19 @@ static inline int common_unlock_func(MDBM *db, datum *key, int locktype, int loc
     switch(locktype) {
         case LT_SMART:
             rv = mdbm_unlock_smart(db, key, lockflags);
+            break;
         case LT_PLOCK:
             rv = mdbm_punlock(db, key, lockflags);
+            break;
         case LT_TRY_SMART:
             rv = mdbm_unlock_smart(db, key, lockflags);
+            break;
         case LT_TRY_PLOCK:
             rv = mdbm_punlock(db, key, lockflags);
+            break;
+        case LT_LOCK:
+            rv = mdbm_unlock(db);
+            break;
         default:
             rv = mdbm_unlock(db);
             break;

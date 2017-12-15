@@ -2908,9 +2908,6 @@ func (db *MDBM) TryPlock(key interface{}) (int, error) {
 // LockSmart performs either partition, shared or exclusive locking based on the locking-related flags supplied to Open()
 func (db *MDBM) LockSmart(key interface{}, flags int) (int, error) {
 
-	db.mutex.Lock()
-	defer db.mutex.Lock()
-
 	skey, err := db.convertToString(key)
 	if err != nil {
 		return -1, errors.Wrapf(err, "failured")
@@ -2932,9 +2929,6 @@ func (db *MDBM) LockSmart(key interface{}, flags int) (int, error) {
 
 // UnLockSmart unlocks an MDBM based on the locking flags supplied to Open()
 func (db *MDBM) UnLockSmart(key interface{}, flags int) (int, error) {
-
-	db.mutex.Lock()
-	defer db.mutex.Lock()
 
 	skey, err := db.convertToString(key)
 	if err != nil {
