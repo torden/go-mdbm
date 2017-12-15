@@ -10,8 +10,8 @@
 		},
 		{
 			"ImportPath": "github.com/torden/go-strutil",
-			"Comment": "v0.0.1-14-g6d1073e",
-			"Rev": "6d1073e17dd491c552c29cf2e94b3cf66948aba0"
+			"Comment": "v0.0.1-21-gdf11bf4",
+			"Rev": "df11bf42bf43ce24e72d1a54afc5e481177ad149"
 		}
 	]
 }
