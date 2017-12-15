@@ -13,4 +13,5 @@ const (
 	pathTestDBMLock1  = "/tmp/test_lock1.mdbm"
 	pathTestDBMDelete = "/tmp/test_delete.mdbm"
 	pathTestDBMLock2  = "/tmp/test_lock2.mdbm"
+	pathTestDBMLock3  = "/tmp/test_lock3.mdbm"
 )

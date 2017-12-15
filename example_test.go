@@ -2006,11 +2006,10 @@ func Example_mdbm_TryPlock() {
 	// Punlock(1) : Success, partition lock was released
 }
 
-/* - ISSUE : deallock on mutiple thread
 func Example_mdbm_LockSmart_Store_UnLockSmart() {
 
 	dbm := mdbm.NewMDBM()
-	err := dbm.EasyOpen(pathTestDBM1, 0644)
+	err := dbm.EasyOpen(pathTestDBMLock2, 0644)
 	if err != nil {
 		log.Fatalf("failed mdbm.EasyOpen(), err=%v", err)
 	}
@@ -2018,21 +2017,54 @@ func Example_mdbm_LockSmart_Store_UnLockSmart() {
 
 	for i := 0; i <= loopLimit; i++ {
 
-		dbm.LockSmart(i, mdbm.Rdrw)
+		//Un-stable
+		//dbm.LockSmart(i, mdbm.Rdrw)
 
-		rv, err := dbm.Store(i, i, mdbm.Replace)
+		rv, err := dbm.StoreWithLockSmart(i, i, mdbm.Replace, mdbm.Rdrw)
 		if err != nil {
 			log.Fatalf("Store(%s,%s,mdbm.Replace) : rv=%d, err=%v", i, i, rv, err)
 		}
 
-		log.Println(rv, err, i)
-
-		dbm.UnLockSmart(i, mdbm.Rdrw)
+		//Un-stable
+		//dbm.UnLockSmart(i, mdbm.Rdrw)
 	}
 
 	// Output:
 }
-*/
+
+func Example_mdbm_LockSmart_Fetch_UnLockSmart() {
+
+	dbm := mdbm.NewMDBM()
+	err := dbm.EasyOpen(pathTestDBMLock3, 0644)
+	if err != nil {
+		log.Fatalf("failed mdbm.EasyOpen(), err=%v", err)
+	}
+	defer dbm.EasyClose()
+
+	for i := 0; i <= loopLimit; i++ {
+
+		rv, err := dbm.StoreWithLock(i, i, mdbm.Replace)
+		if err != nil {
+			log.Fatalf("Store(%s,%s,mdbm.Replace) : rv=%d, err=%v", i, i, rv, err)
+		}
+	}
+
+	for i := 0; i <= loopLimit; i++ {
+
+		//Un-stable
+		//dbm.LockSmart(i, mdbm.Rdonly)
+
+		val, err := dbm.FetchWithLockSmart(i, mdbm.Rdonly)
+		if err != nil || strconv.Itoa(i) != val {
+			log.Fatalf("Fetch(%s) : val=%s, err=%v", i, i, val, err)
+		}
+
+		//Un-stable
+		//dbm.UnLockSmart(i, mdbm.Rdonly)
+	}
+
+	// Output:
+}
 
 func Example_mdbm_StoreWithLockSmart() {
 
