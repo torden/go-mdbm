@@ -702,6 +702,9 @@ func (db *MDBM) LogPlugin(plugin int) error {
 		plugname = "file"
 	case LogToSysLog:
 		plugname = "file"
+	case LogToSkip:
+		return nil
+
 	default:
 		return fmt.Errorf("Not support log plugin=%d", plugin)
 	}
@@ -1295,18 +1298,28 @@ func (db *MDBM) Purge() error {
 // Check checks the MDBM's integrity, and displays information on standard output.
 func (db *MDBM) Check(level int, verbose bool) (int, string, error) {
 
+	var rv int
+	var out string
+	var err error
+
 	//leverl between 0 and 10
 	//verbose 0 or 1
 	var verb C.int
 	if verbose {
 		verb = 1
+		rv, out, err = db.cgoRunCapture(func() (int, error) {
+			rv, err := C.mdbm_check(db.pmdbm, C.int(level), verb)
+			return int(rv), err
+		})
+
 	} else {
 		verb = 0
+		rv, out, err = db.cgoRun(func() (int, error) {
+			rv, err := C.mdbm_check(db.pmdbm, C.int(level), verb)
+			return int(rv), err
+		})
+
 	}
-	rv, out, err := db.cgoRun(func() (int, error) {
-		rv, err := C.mdbm_check(db.pmdbm, C.int(level), verb)
-		return int(rv), err
-	})
 
 	return rv, out, err
 }
@@ -1590,14 +1603,13 @@ func (db *MDBM) StoreStr(key interface{}, val interface{}, flags int) (int, erro
 	return db.storeStrWithAnyLock(key, val, flags, lockTypeNone, lockFlagsSkip)
 }
 
-func (db *MDBM) fetchWithAnyLock(key interface{}, lockType C.int, lockFlags C.int) (int, string, error) {
+func (db *MDBM) fetchWithAnyLock(key interface{}, lockType C.int, lockFlags C.int) (string, error) {
 
 	var retval string
-	rv := -1
 
 	bkey, err := db.convertToArByte(key)
 	if err != nil {
-		return rv, retval, errors.Wrapf(err, "failured")
+		return retval, errors.Wrapf(err, "failured")
 	}
 
 	var k C.datum
@@ -1605,7 +1617,7 @@ func (db *MDBM) fetchWithAnyLock(key interface{}, lockType C.int, lockFlags C.in
 	k.dptr = (*C.char)(unsafe.Pointer(&bkey[0]))
 	k.dsize = C.int(len(bkey))
 
-	rv, _, err = db.cgoRun(func() (int, error) {
+	_, _, err = db.cgoRun(func() (int, error) {
 		v, err := C.get_mdbm_fetch_with_lock(db.pmdbm, k, lockType, lockFlags)
 
 		retval = C.GoString(v)
@@ -1613,51 +1625,51 @@ func (db *MDBM) fetchWithAnyLock(key interface{}, lockType C.int, lockFlags C.in
 		return 0, err
 	})
 
-	return rv, retval, err
+	return retval, err
 }
 
 // FetchWithLock returns fetche the record specified by the key argument and returns a value With Lock()
-func (db *MDBM) FetchWithLock(key interface{}) (int, string, error) {
+func (db *MDBM) FetchWithLock(key interface{}) (string, error) {
 	return db.fetchWithAnyLock(key, lockTypeLock, lockFlagsSkip)
 }
 
 // FetchWithLockSmart returns fetche the record specified by the key argument and returns a value With LocckSmart()
-func (db *MDBM) FetchWithLockSmart(key interface{}, lockflags int) (int, string, error) {
+func (db *MDBM) FetchWithLockSmart(key interface{}, lockflags int) (string, error) {
 	return db.fetchWithAnyLock(key, lockTypeSmart, C.int(lockflags))
 }
 
 // FetchWithLockShared returns fetche the record specified by the key argument and returns a value With LockShared()
-func (db *MDBM) FetchWithLockShared(key interface{}) (int, string, error) {
+func (db *MDBM) FetchWithLockShared(key interface{}) (string, error) {
 	return db.fetchWithAnyLock(key, lockTypeShared, lockFlagsSkip)
 }
 
 // FetchWithPlock returns fetche the record specified by the key argument and returns a value With Plock()
-func (db *MDBM) FetchWithPlock(key interface{}, lockflags int) (int, string, error) {
+func (db *MDBM) FetchWithPlock(key interface{}, lockflags int) (string, error) {
 	return db.fetchWithAnyLock(key, lockTypePlock, C.int(lockflags))
 }
 
 // FetchWithTryLock returns fetche the record specified by the key argument and returns a value With TryLock()
-func (db *MDBM) FetchWithTryLock(key interface{}) (int, string, error) {
+func (db *MDBM) FetchWithTryLock(key interface{}) (string, error) {
 	return db.fetchWithAnyLock(key, lockTypeTryLock, lockFlagsSkip)
 }
 
 // FetchWithTryLockSmart returns fetche the record specified by the key argument and returns a value With TryLockSmart()
-func (db *MDBM) FetchWithTryLockSmart(key interface{}, lockflags int) (int, string, error) {
+func (db *MDBM) FetchWithTryLockSmart(key interface{}, lockflags int) (string, error) {
 	return db.fetchWithAnyLock(key, lockTypeTrySmart, C.int(lockflags))
 }
 
 // FetchWithTryLockShared returns fetche the record specified by the key argument and returns a value wtih TryShared()
-func (db *MDBM) FetchWithTryLockShared(key interface{}) (int, string, error) {
+func (db *MDBM) FetchWithTryLockShared(key interface{}) (string, error) {
 	return db.fetchWithAnyLock(key, lockTypeTryShared, lockFlagsSkip)
 }
 
 // FetchWithTryPlock returns fetche the record specified by the key argument and returns a value With TryPlock()
-func (db *MDBM) FetchWithTryPlock(key interface{}, lockflags int) (int, string, error) {
+func (db *MDBM) FetchWithTryPlock(key interface{}, lockflags int) (string, error) {
 	return db.fetchWithAnyLock(key, lockTypeTryPlock, C.int(lockflags))
 }
 
 // Fetch fetchs the record specified by the key and val parameters.
-func (db *MDBM) Fetch(key interface{}) (int, string, error) {
+func (db *MDBM) Fetch(key interface{}) (string, error) {
 	return db.fetchWithAnyLock(key, lockTypeNone, lockFlagsSkip)
 }
 

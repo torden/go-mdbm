@@ -905,9 +905,9 @@ func Example_mdbm_Fetch() {
 	defer dbm.EasyClose()
 
 	for i := 0; i <= loopLimit; i++ {
-		rv, retval, err := dbm.Fetch(i)
+		retval, err := dbm.Fetch(i)
 		if err != nil {
-			log.Fatalf("rv=%d, retval=%s, err=%v\n", rv, retval, err)
+			log.Fatalf("retval=%s, err=%v\n", retval, err)
 		} else {
 
 			if retval != strconv.Itoa(i) {
