@@ -2985,6 +2985,69 @@ func (db *MDBM) CheckResidency() (int, uint32, uint32, error) {
 	return rv, uint32(pgsin), uint32(pgsout), err
 }
 
+//EasyGetNumOfRows returns the number of rows in the MDBM file
+func (db *MDBM) EasyGetNumOfRows() (uint64, error) {
+
+	var cnt uint64
+
+	if !db.isopened {
+		return cnt, errors.New("failed, not found opened mdbm file")
+	}
+
+	key, _, err := db.First()
+	if err != nil || len(key) < 1 {
+		return cnt, errors.Wrapf(err, "failed, can't run mdbm.First()")
+	}
+
+	for {
+
+		key, _, err := db.Next()
+		if err != nil {
+			return cnt, errors.Wrapf(err, "failed, can't run mdbm.Next()")
+		}
+
+		if len(key) < 1 {
+			break
+		}
+		cnt++
+	}
+
+	return cnt, nil
+}
+
+//EasyGetKeyList returns the list of key in the MDBM file
+func (db *MDBM) EasyGetKeyList() ([]string, error) {
+
+	var retval []string
+
+	if !db.isopened {
+		return retval, errors.New("failed, not found opened mdbm file")
+	}
+
+	key, _, err := db.First()
+	if err != nil || len(key) < 1 {
+		return retval, errors.Wrapf(err, "failed, can't run mdbm.First()")
+	}
+
+	retval = append(retval, key)
+
+	for {
+
+		key, _, err := db.Next()
+		if err != nil {
+			return retval, errors.Wrapf(err, "failed, can't run mdbm.Next()")
+		}
+
+		if len(key) < 1 {
+			break
+		}
+
+		retval = append(retval, key)
+	}
+
+	return retval, nil
+}
+
 /*
 func (db *MDBM) CDBDumpToFile(key interface{}, val interface{}, fnpath string, mode string) (int, *C.FILE, error) {
 
