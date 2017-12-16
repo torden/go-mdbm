@@ -274,11 +274,6 @@ func Example_mdbm_TryLockShared() {
 	rv, err = dbm.StoreWithTryLockShared("iamKey", "iamValue", mdbm.Replace)
 	fmt.Println("StoreWithTryLockShared : rv =", rv, ", err =", err)
 
-	rv, err = dbm.Unlock()
-	if err != nil {
-		log.Fatalf("failed mdbm.UnLock(), rv=%d, err=%v", rv, err)
-	}
-
 	dbm.EasyClose()
 
 	// Output:
