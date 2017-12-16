@@ -274,7 +274,11 @@ func Example_mdbm_TryLockShared() {
 	rv, err = dbm.StoreWithTryLockShared("iamKey", "iamValue", mdbm.Replace)
 	fmt.Println("StoreWithTryLockShared : rv =", rv, ", err =", err)
 
-	dbm.Unlock()
+	rv, err = dbm.Unlock()
+	if err != nil {
+		log.Fatalf("failed mdbm.UnLock(), rv=%d, err=%v", rv, err)
+	}
+
 	dbm.EasyClose()
 
 	// Output:
@@ -1916,9 +1920,12 @@ func Example_mdbm_Plock_Punlock() {
 	}
 	defer dbm.EasyClose()
 
-	dbm.MyLockReset()
+	rv, err := dbm.MyLockReset()
+	if err != nil {
+		log.Fatalf("MyLockReset() : rv=%d, err=%v", rv, err)
+	}
 
-	rv, err := dbm.Plock(1)
+	rv, err = dbm.Plock(1)
 	if err != nil {
 		log.Fatalf("Plock(1) : rv=%d, err=%v", rv, err)
 	}

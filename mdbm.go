@@ -1434,7 +1434,7 @@ func (db *MDBM) StoreWithTryLockSmart(key interface{}, val interface{}, flags in
 	return db.storeWithAnyLock(key, val, flags, lockTypeTrySmart, C.int(lockflags))
 }
 
-// StoreWithTryLockShared adds key and value into the current MDBM wtih TryShared()
+// StoreWithTryLockShared adds key and value into the current MDBM with TryShared()
 func (db *MDBM) StoreWithTryLockShared(key interface{}, val interface{}, flags int) (int, error) {
 	return db.storeWithAnyLock(key, val, flags, lockTypeTryShared, lockFlagsSkip)
 }
@@ -1658,7 +1658,7 @@ func (db *MDBM) FetchWithTryLockSmart(key interface{}, lockflags int) (string, e
 	return db.fetchWithAnyLock(key, lockTypeTrySmart, C.int(lockflags))
 }
 
-// FetchWithTryLockShared returns fetche the record specified by the key argument and returns a value wtih TryShared()
+// FetchWithTryLockShared returns fetche the record specified by the key argument and returns a value with TryShared()
 func (db *MDBM) FetchWithTryLockShared(key interface{}) (string, error) {
 	return db.fetchWithAnyLock(key, lockTypeTryShared, lockFlagsSkip)
 }
@@ -1733,7 +1733,7 @@ func (db *MDBM) FetchRWithTryLockSmart(key interface{}, iter *C.MDBM_ITER, lockf
 	return db.fetchRWithAnyLock(key, iter, lockTypeTrySmart, C.int(lockflags))
 }
 
-// FetchRWithTryLockShared returns fetche the record specified by the key argument and returns a value wtih TryShared()
+// FetchRWithTryLockShared returns fetche the record specified by the key argument and returns a value with TryShared()
 func (db *MDBM) FetchRWithTryLockShared(key interface{}, iter *C.MDBM_ITER) (int, string, Iter, error) {
 	return db.fetchRWithAnyLock(key, iter, lockTypeTryShared, lockFlagsSkip)
 }
