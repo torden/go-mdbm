@@ -2022,7 +2022,7 @@ func Example_mdbm_LockSmart_Store_UnLockSmart() {
 
 		rv, err := dbm.StoreWithLockSmart(i, i, mdbm.Replace, mdbm.Rdrw)
 		if err != nil {
-			log.Fatalf("Store(%s,%s,mdbm.Replace) : rv=%d, err=%v", i, i, rv, err)
+			log.Fatalf("Store(%d,%d,mdbm.Replace) : rv=%d, err=%v", i, i, rv, err)
 		}
 
 		//Un-stable
@@ -2045,7 +2045,7 @@ func Example_mdbm_LockSmart_Fetch_UnLockSmart() {
 
 		rv, err := dbm.StoreWithLock(i, i, mdbm.Replace)
 		if err != nil {
-			log.Fatalf("Store(%s,%s,mdbm.Replace) : rv=%d, err=%v", i, i, rv, err)
+			log.Fatalf("Store(%d,%d,mdbm.Replace) : rv=%d, err=%v", i, i, rv, err)
 		}
 	}
 
@@ -2056,7 +2056,7 @@ func Example_mdbm_LockSmart_Fetch_UnLockSmart() {
 
 		val, err := dbm.FetchWithLockSmart(i, mdbm.Rdonly)
 		if err != nil || strconv.Itoa(i) != val {
-			log.Fatalf("Fetch(%s) : val=%s, err=%v", i, i, val, err)
+			log.Fatalf("Fetch(%d) : val=%s, err=%v", i, val, err)
 		}
 
 		//Un-stable
@@ -2174,7 +2174,7 @@ func Example_mdbm_FetchWithAnyLock() {
 
 		rv, val, _, err = dbm.FetchRWithLock(i, &iter)
 		if err != nil || strconv.Itoa(i) != val {
-			log.Fatalf("FetchRWithLock(%s) : rv=%d, retval=%s, err=%v\n", i, rv, val, err)
+			log.Fatalf("FetchRWithLock(%d) : rv=%d, retval=%s, err=%v\n", i, rv, val, err)
 		}
 	}
 
@@ -2183,7 +2183,7 @@ func Example_mdbm_FetchWithAnyLock() {
 		k := i * 10
 		rv, val, _, err = dbm.FetchRWithLockSmart(k, &iter, mdbm.Rdonly)
 		if err != nil || strconv.Itoa(k) != val {
-			log.Fatalf("FetchRWithLockSmart(%s) : rv=%d, retval=%s, err=%v\n", i, rv, val, err)
+			log.Fatalf("FetchRWithLockSmart(%d) : rv=%d, retval=%s, err=%v\n", i, rv, val, err)
 		}
 	}
 
@@ -2192,7 +2192,7 @@ func Example_mdbm_FetchWithAnyLock() {
 		k := i * 11
 		rv, val, _, err = dbm.FetchRWithLockShared(k, &iter)
 		if err != nil || strconv.Itoa(k) != val {
-			log.Fatalf("FetchRWithLockShared(%s) : rv=%d, retval=%s, err=%v\n", i, rv, val, err)
+			log.Fatalf("FetchRWithLockShared(%d) : rv=%d, retval=%s, err=%v\n", i, rv, val, err)
 		}
 	}
 
@@ -2201,7 +2201,7 @@ func Example_mdbm_FetchWithAnyLock() {
 		k := i * 12
 		rv, val, _, err = dbm.FetchRWithPlock(k, &iter, mdbm.Rdonly)
 		if err != nil || strconv.Itoa(k) != val {
-			log.Fatalf("FetchRWithPlock(%s) : rv=%d, retval=%s, err=%v\n", i, rv, val, err)
+			log.Fatalf("FetchRWithPlock(%d) : rv=%d, retval=%s, err=%v\n", i, rv, val, err)
 		}
 	}
 
@@ -2210,7 +2210,7 @@ func Example_mdbm_FetchWithAnyLock() {
 		k := i * 13
 		rv, val, _, err = dbm.FetchRWithTryLock(k, &iter)
 		if err != nil || strconv.Itoa(k) != val {
-			log.Fatalf("FetchRWithTryLock(%s) : rv=%d, retval=%s, err=%v\n", i, rv, val, err)
+			log.Fatalf("FetchRWithTryLock(%d) : rv=%d, retval=%s, err=%v\n", i, rv, val, err)
 		}
 	}
 
@@ -2219,7 +2219,7 @@ func Example_mdbm_FetchWithAnyLock() {
 		k := i * 14
 		rv, val, _, err = dbm.FetchRWithTryLockSmart(k, &iter, mdbm.Rdonly)
 		if err != nil || strconv.Itoa(k) != val {
-			log.Fatalf("FetchRWithTryLockSmart(%s) : rv=%d, retval=%s, err=%v\n", i, rv, val, err)
+			log.Fatalf("FetchRWithTryLockSmart(%d) : rv=%d, retval=%s, err=%v\n", i, rv, val, err)
 		}
 	}
 
@@ -2228,7 +2228,7 @@ func Example_mdbm_FetchWithAnyLock() {
 		k := i * 15
 		rv, val, _, err = dbm.FetchRWithTryLockShared(k, &iter)
 		if err != nil || strconv.Itoa(k) != val {
-			log.Fatalf("FetchRWithTryLockShared(%s) : rv=%d, retval=%s, err=%v\n", i, rv, val, err)
+			log.Fatalf("FetchRWithTryLockShared(%d) : rv=%d, retval=%s, err=%v\n", i, rv, val, err)
 		}
 	}
 
@@ -2237,7 +2237,7 @@ func Example_mdbm_FetchWithAnyLock() {
 		k := i * 16
 		rv, val, _, err = dbm.FetchRWithTryPlock(k, &iter, mdbm.Rdonly)
 		if err != nil || strconv.Itoa(k) != val {
-			log.Fatalf("FetchRWithTryPlock(%s) : rv=%d, retval=%s, err=%v\n", i, rv, val, err)
+			log.Fatalf("FetchRWithTryPlock(%d) : rv=%d, retval=%s, err=%v\n", i, rv, val, err)
 		}
 	}
 
@@ -2260,7 +2260,7 @@ func Example_mdbm_FetchRWithAnyLock() {
 
 		val, err = dbm.FetchWithLock(i)
 		if err != nil || strconv.Itoa(i) != val {
-			log.Fatalf("Fetch(%s) : val=%s, err=%v", i, i, val, err)
+			log.Fatalf("Fetch(%d) : val=%s, err=%v", i, val, err)
 		}
 	}
 
@@ -2269,7 +2269,7 @@ func Example_mdbm_FetchRWithAnyLock() {
 		k := i * 10
 		val, err = dbm.FetchWithLockSmart(k, mdbm.Rdonly)
 		if err != nil || strconv.Itoa(k) != val {
-			log.Fatalf("Fetch(%s) : val=%s, err=%v", i, i, val, err)
+			log.Fatalf("Fetch(%d) : val=%s, err=%v", i, val, err)
 		}
 	}
 
@@ -2278,7 +2278,7 @@ func Example_mdbm_FetchRWithAnyLock() {
 		k := i * 11
 		val, err = dbm.FetchWithLockShared(k)
 		if err != nil || strconv.Itoa(k) != val {
-			log.Fatalf("Fetch(%s) : val=%s, err=%v", i, i, val, err)
+			log.Fatalf("Fetch(%d) : val=%s, err=%v", i, val, err)
 		}
 	}
 
@@ -2287,7 +2287,7 @@ func Example_mdbm_FetchRWithAnyLock() {
 		k := i * 12
 		val, err = dbm.FetchWithPlock(k, mdbm.Rdonly)
 		if err != nil || strconv.Itoa(k) != val {
-			log.Fatalf("Fetch(%s) : val=%s, err=%v", i, i, val, err)
+			log.Fatalf("Fetch(%d) : val=%s, err=%v", i, val, err)
 		}
 	}
 
@@ -2296,7 +2296,7 @@ func Example_mdbm_FetchRWithAnyLock() {
 		k := i * 13
 		val, err = dbm.FetchWithTryLock(k)
 		if err != nil || strconv.Itoa(k) != val {
-			log.Fatalf("Fetch(%s) : val=%s, err=%v", i, i, val, err)
+			log.Fatalf("Fetch(%d) : val=%s, err=%v", i, val, err)
 		}
 	}
 
@@ -2305,7 +2305,7 @@ func Example_mdbm_FetchRWithAnyLock() {
 		k := i * 14
 		val, err = dbm.FetchWithTryLockSmart(k, mdbm.Rdonly)
 		if err != nil || strconv.Itoa(k) != val {
-			log.Fatalf("Fetch(%s) : val=%s, err=%v", i, i, val, err)
+			log.Fatalf("Fetch(%d) : val=%s, err=%v", i, val, err)
 		}
 	}
 
@@ -2314,7 +2314,7 @@ func Example_mdbm_FetchRWithAnyLock() {
 		k := i * 15
 		val, err = dbm.FetchWithTryLockShared(k)
 		if err != nil || strconv.Itoa(k) != val {
-			log.Fatalf("Fetch(%s) : val=%s, err=%v", i, i, val, err)
+			log.Fatalf("Fetch(%d) : val=%s, err=%v", i, val, err)
 		}
 	}
 
@@ -2323,7 +2323,7 @@ func Example_mdbm_FetchRWithAnyLock() {
 		k := i * 16
 		val, err = dbm.FetchWithTryPlock(k, mdbm.Rdonly)
 		if err != nil || strconv.Itoa(k) != val {
-			log.Fatalf("Fetch(%s) : val=%s, err=%v", i, i, val, err)
+			log.Fatalf("Fetch(%d) : val=%s, err=%v", i, val, err)
 		}
 	}
 
@@ -2346,49 +2346,49 @@ func Example_mdbm_DeleteWithAnyLock() {
 
 		rv, err = dbm.DeleteWithLock(i)
 		if err != nil {
-			log.Fatalf("DeleteWithLock(%s) : rv=%d, err=%v\n", i, rv, err)
+			log.Fatalf("DeleteWithLock(%d) : rv=%d, err=%v\n", i, rv, err)
 		}
 
 		i++
 		rv, err = dbm.DeleteWithLockSmart(i, mdbm.Rdrw)
 		if err != nil {
-			log.Fatalf("DeleteWithLockSmart(%s) : rv=%d, err=%v\n", i, rv, err)
+			log.Fatalf("DeleteWithLockSmart(%d) : rv=%d, err=%v\n", i, rv, err)
 		}
 
 		i++
 		rv, err = dbm.DeleteWithLockShared(i)
 		if err != nil {
-			log.Fatalf("DeleteWithLockShared(%s) : rv=%d, err=%v\n", i, rv, err)
+			log.Fatalf("DeleteWithLockShared(%d) : rv=%d, err=%v\n", i, rv, err)
 		}
 
 		i++
 		rv, err = dbm.DeleteWithPlock(i, mdbm.Rdrw)
 		if err != nil {
-			log.Fatalf("DeleteWithPlock(%s) : rv=%d, err=%v\n", i, rv, err)
+			log.Fatalf("DeleteWithPlock(%d) : rv=%d, err=%v\n", i, rv, err)
 		}
 
 		i++
 		rv, err = dbm.DeleteWithTryLock(i)
 		if err != nil {
-			log.Fatalf("DeleteWithTryLock(%s) : rv=%d, err=%v\n", i, rv, err)
+			log.Fatalf("DeleteWithTryLock(%d) : rv=%d, err=%v\n", i, rv, err)
 		}
 
 		i++
 		rv, err = dbm.DeleteWithTryLockSmart(i, mdbm.Rdrw)
 		if err != nil {
-			log.Fatalf("DeleteWithTryLockSmart(%s) : rv=%d, err=%v\n", i, rv, err)
+			log.Fatalf("DeleteWithTryLockSmart(%d) : rv=%d, err=%v\n", i, rv, err)
 		}
 
 		i++
 		rv, err = dbm.DeleteWithTryLockShared(i)
 		if err != nil {
-			log.Fatalf("DeleteWithTryLockShared(%s) : rv=%d, err=%v\n", i, rv, err)
+			log.Fatalf("DeleteWithTryLockShared(%d) : rv=%d, err=%v\n", i, rv, err)
 		}
 
 		i++
 		rv, err = dbm.DeleteWithTryPlock(i, mdbm.Rdrw)
 		if err != nil {
-			log.Fatalf("DeleteWithTryPlock(%s) : rv=%d, err=%v\n", i, rv, err)
+			log.Fatalf("DeleteWithTryPlock(%d) : rv=%d, err=%v\n", i, rv, err)
 		}
 	}
 

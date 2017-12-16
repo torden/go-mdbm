@@ -648,17 +648,51 @@ func Test_mdbm_DeleteWithLock(t *testing.T) {
 	}
 }
 
-func Test_Mdbm_Truncate(t *testing.T) {
+func Test_mdbm_EasyGetNumOfRows(t *testing.T) {
+	dbm := mdbm.NewMDBM()
+	err := dbm.EasyOpen(pathTestDBMLarge, 0644)
+	if err != nil {
+		log.Fatalf("failed mdbm.EasyOpen(), err=%v", err)
+	}
+	defer dbm.EasyClose()
+
+	cnt, err := dbm.EasyGetNumOfRows()
+
+	assert.AssertNil(t, err, "failured, can't obtain the count of number of rows, err=%v\n", err)
+	assert.AssertEquals(t, cnt, uint64(772351), "failured, Return Value mismatch.\nExpected: %v\nActual: %v", 772351, cnt)
+
+}
+
+func Test_mdbm_EasyGetKeyList(t *testing.T) {
+	dbm := mdbm.NewMDBM()
+	err := dbm.EasyOpen(pathTestDBMLarge, 0644)
+	if err != nil {
+		log.Fatalf("failed mdbm.EasyOpen(), err=%v", err)
+	}
+	defer dbm.EasyClose()
+
+	keys, err := dbm.EasyGetKeyList()
+
+	assert.AssertNil(t, err, "failured, can't obtain the list of key, err=%v\n", err)
+
+	assert.AssertEquals(t, len(keys), uint64(772351), "failured, Return Value mismatch.\nExpected: %v\nActual: %v", 772351, len(keys))
+}
+
+func Test_mdbm_Truncate(t *testing.T) {
+
+	var rv int
+	var val string
+	var err error
 
 	dbm := mdbm.NewMDBM()
-	err := dbm.EasyOpen(pathTestDBMDelete, 0644)
+	err = dbm.EasyOpen(pathTestDBMDelete, 0644)
 	if err != nil {
 		log.Fatalf("failed mdbm.EasyOpen(), err=%v", err)
 	}
 	defer dbm.EasyClose()
 
 	for i := 0; i <= loopLimit; i++ {
-		rv, err := dbm.StoreWithLock(i, time.Now().UnixNano(), mdbm.Replace)
+		rv, err = dbm.StoreWithLock(i, time.Now().UnixNano(), mdbm.Replace)
 		assert.AssertNil(t, err, "failured, Return Value mismatch. value=%v, err=%v\n", rv, err)
 	}
 
@@ -670,7 +704,7 @@ func Test_Mdbm_Truncate(t *testing.T) {
 	dbm.Sync()
 	for i := 0; i <= loopLimit; i++ {
 
-		val, err := dbm.Fetch(i)
+		val, err = dbm.Fetch(i)
 		assert.AssertNotNil(t, err, "failured, can't delete record, value=%v, err=%v\n", val, err)
 	}
 }

@@ -4,7 +4,6 @@ import (
 	"io/ioutil"
 	"log"
 	"math/rand"
-	"os"
 	"strings"
 	"time"
 
@@ -16,7 +15,7 @@ const (
 	sample1Path = "./sample1.tsv" //ISO Alpha-2,3 and Numeric Country Codes
 )
 
-func Ordinary_Generate_MDBM_File() {
+func exampleGenerateMDBMFile() {
 
 	log.Printf("generating the mdbm file(=%s)", mdbmPath)
 
@@ -67,7 +66,7 @@ func Ordinary_Generate_MDBM_File() {
 	log.Println("complete")
 }
 
-func Ordinary_Fetch(limit int) {
+func exampleFetch(limit int) {
 
 	//init. the go-mdbm
 	dbm := mdbm.NewMDBM()
@@ -140,7 +139,7 @@ func Ordinary_Fetch(limit int) {
 	log.Println("complete")
 }
 
-func Ordinary_Iteration_Use_FirstNext() {
+func exampleIterationUseFirstNext() {
 
 	//init. the go-mdbm
 	dbm := mdbm.NewMDBM()
@@ -183,7 +182,7 @@ func Ordinary_Iteration_Use_FirstNext() {
 	log.Printf("the count of number of rows in the mdbm(=%s) is `%d` rows", mdbmPath, cnt)
 }
 
-func Ordinary_Num_Rows() {
+func exampleNumRows() {
 
 	//init. the go-mdbm
 	dbm := mdbm.NewMDBM()
@@ -209,7 +208,7 @@ func Ordinary_Num_Rows() {
 
 }
 
-func Ordinary_Key_List() {
+func exampleKeyList() {
 
 	//init. the go-mdbm
 	dbm := mdbm.NewMDBM()
@@ -238,10 +237,10 @@ func Ordinary_Key_List() {
 
 func main() {
 
-	os.Remove(mdbmPath)
-	Ordinary_Generate_MDBM_File()
-	Ordinary_Fetch(10)
-	Ordinary_Iteration_Use_FirstNext()
-	Ordinary_Num_Rows()
-	Ordinary_Key_List()
+	//os.Remove(mdbmPath)
+	exampleGenerateMDBMFile()
+	exampleFetch(10)
+	exampleIterationUseFirstNext()
+	exampleNumRows()
+	exampleKeyList()
 }
