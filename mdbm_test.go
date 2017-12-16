@@ -621,6 +621,8 @@ func Test_mdbm_FetchInfo(t *testing.T) {
 
 func Test_mdbm_DeleteWithLock(t *testing.T) {
 
+	var rv int
+
 	dbm := mdbm.NewMDBM()
 	err := dbm.EasyOpen(pathTestDBMDelete, 0644)
 	if err != nil {
@@ -629,18 +631,21 @@ func Test_mdbm_DeleteWithLock(t *testing.T) {
 	defer dbm.EasyClose()
 
 	for i := 0; i <= loopLimit; i++ {
-		rv, err := dbm.StoreWithLock(i, time.Now().UnixNano(), mdbm.Replace)
+		rv, err = dbm.StoreWithLock(i, time.Now().UnixNano(), mdbm.Replace)
 		assert.AssertNil(t, err, "failured, Return Value mismatch. value=%v, err=%v\n", rv, err)
 	}
 
-	dbm.Sync()
+	rv, err = dbm.Sync()
+	assert.AssertNil(t, err, "failured, mdbm.Sync(). rv=%v, err=%v\n", rv, err)
 
 	for i := 0; i <= loopLimit; i++ {
-		rv, err := dbm.DeleteWithLock(i)
+		rv, err = dbm.DeleteWithLock(i)
 		assert.AssertNil(t, err, "failured, can't delete record, return value=%v, err=%v\n", rv, err)
 	}
 
-	dbm.Sync()
+	rv, err = dbm.Sync()
+	assert.AssertNil(t, err, "failured, mdbm.Sync(). rv=%v, err=%v\n", rv, err)
+
 	for i := 0; i <= loopLimit; i++ {
 
 		val, err := dbm.Fetch(i)
@@ -659,7 +664,7 @@ func Test_mdbm_EasyGetNumOfRows(t *testing.T) {
 	cnt, err := dbm.EasyGetNumOfRows()
 
 	assert.AssertNil(t, err, "failured, can't obtain the count of number of rows, err=%v\n", err)
-	assert.AssertEquals(t, cnt, uint64(772351), "failured, Return Value mismatch.\nExpected: %v\nActual: %v", 772351, cnt)
+	assert.AssertGreaterThanEqualTo(t, cnt, uint64(1), "failured, Return Value mismatch.\nExpected: >=%d\nActual: %d", 1, cnt)
 
 }
 
@@ -674,8 +679,7 @@ func Test_mdbm_EasyGetKeyList(t *testing.T) {
 	keys, err := dbm.EasyGetKeyList()
 
 	assert.AssertNil(t, err, "failured, can't obtain the list of key, err=%v\n", err)
-
-	assert.AssertEquals(t, len(keys), uint64(772351), "failured, Return Value mismatch.\nExpected: %v\nActual: %v", 772351, len(keys))
+	assert.AssertGreaterThanEqualTo(t, len(keys), uint64(1), "failured, Return Value mismatch.\nExpected: >=%d\nActual: %d", 1, len(keys))
 }
 
 func Test_mdbm_Truncate(t *testing.T) {
@@ -696,12 +700,15 @@ func Test_mdbm_Truncate(t *testing.T) {
 		assert.AssertNil(t, err, "failured, Return Value mismatch. value=%v, err=%v\n", rv, err)
 	}
 
-	dbm.Sync()
+	rv, err = dbm.Sync()
+	assert.AssertNil(t, err, "failured, mdbm.Sync(). rv=%v, err=%v\n", rv, err)
 
 	err = dbm.Truncate()
 	assert.AssertNil(t, err, "failured, can't truncate mdbm, err=%v\n", err)
 
-	dbm.Sync()
+	rv, err = dbm.Sync()
+	assert.AssertNil(t, err, "failured, mdbm.Sync(). rv=%v, err=%v\n", rv, err)
+
 	for i := 0; i <= loopLimit; i++ {
 
 		val, err = dbm.Fetch(i)
