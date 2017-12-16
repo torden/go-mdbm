@@ -2988,7 +2988,7 @@ func (db *MDBM) CheckResidency() (int, uint32, uint32, error) {
 //EasyGetNumOfRows returns the number of rows in the MDBM file
 func (db *MDBM) EasyGetNumOfRows() (uint64, error) {
 
-	var cnt uint64 = 0
+	var cnt uint64
 
 	if !db.isopened {
 		return cnt, errors.New("failed, not found opened mdbm file")
