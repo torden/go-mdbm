@@ -15,4 +15,5 @@ const (
 	pathTestDBMLock2       = "/tmp/test_lock2.mdbm"
 	pathTestDBMLock3       = "/tmp/test_lock3.mdbm"
 	pathTestDBMAnyDataType = "/tmp/test_anydatatype.mdbm"
+	pathTestDBMStr         = "/tmp/test_str.mdbm"
 )

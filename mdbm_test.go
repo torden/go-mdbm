@@ -20,7 +20,8 @@ func TestMain(t *testing.T) {
 		pathTestDBM1, pathTestDBM2, pathTestDBM3,
 		pathTestDBMLarge, pathTestDBMHash, pathTestDBMDup,
 		pathTestDBMCache, pathTestDBMV2, pathTestDBMLock1,
-		pathTestDBMDelete, pathTestDBMLock2, pathTestDBMAnyDataType}
+		pathTestDBMDelete, pathTestDBMLock2, pathTestDBMAnyDataType,
+		pathTestDBMStr}
 
 	dbm := mdbm.NewMDBM()
 
@@ -58,24 +59,25 @@ func Test_mdbm_SetCacheMode(t *testing.T) {
 	dbm := mdbm.NewMDBM()
 	err = dbm.EasyOpen(pathTestDBMCache, 0644)
 	defer dbm.EasyClose()
+	assert.AssertNil(t, err, "failured, can't open the mdbm, path=%s, err=%v", pathTestDBM1, err)
 
 	rv, err = dbm.SetCacheMode(mdbm.CacheModeNone)
-	assert.AssertNil(t, err, "failured, can't set cachemode(=mdbm.CacheModeNone), path=%s, rv=%d, err=%v", pathTestDBM1, rv, err)
+	assert.AssertNil(t, err, "failured, can't set cachemode(=mdbm.CacheModeNone), path=%s, rv=%d, err=%v", pathTestDBMCache, rv, err)
 
 	rv, err = dbm.SetCacheMode(mdbm.CacheModeLFU)
-	assert.AssertNil(t, err, "failured, can't set cachemode(=mdbm.CacheModeLfu), path=%s, rv=%d, err=%v", pathTestDBM1, rv, err)
+	assert.AssertNil(t, err, "failured, can't set cachemode(=mdbm.CacheModeLfu), path=%s, rv=%d, err=%v", pathTestDBMCache, rv, err)
 
 	rv, err = dbm.SetCacheMode(mdbm.CacheModeLRU)
-	assert.AssertNil(t, err, "failured, can't set cachemode(=%s), path=%s, rv=%d, err=%v", pathTestDBM1, rv, err)
+	assert.AssertNil(t, err, "failured, can't set cachemode(=%s), path=%s, rv=%d, err=%v", pathTestDBMCache, rv, err)
 
 	rv, err = dbm.SetCacheMode(mdbm.CacheModeGDSF)
-	assert.AssertNil(t, err, "failured, can't set cachemode(=%s), path=%s, rv=%d, err=%v", pathTestDBM1, rv, err)
+	assert.AssertNil(t, err, "failured, can't set cachemode(=%s), path=%s, rv=%d, err=%v", pathTestDBMCache, rv, err)
 
 	rv, err = dbm.SetCacheMode(mdbm.CacheModeMax)
-	assert.AssertNil(t, err, "failured, can't set cachemode(=%s), path=%s, rv=%d, err=%v", pathTestDBM1, rv, err)
+	assert.AssertNil(t, err, "failured, can't set cachemode(=%s), path=%s, rv=%d, err=%v", pathTestDBMCache, rv, err)
 
 	rv, err = dbm.SetCacheMode(mdbm.LargeObjects)
-	assert.AssertNotNil(t, err, "failured, can't cehck wrong cachemode, path=%s, rv=%d, err=%v", pathTestDBM1, rv, err)
+	assert.AssertNotNil(t, err, "failured, can't cehck wrong cachemode, path=%s, rv=%d, err=%v", pathTestDBMCache, rv, err)
 }
 
 func Test_mdbm_GetCacheModeName(t *testing.T) {
@@ -86,25 +88,26 @@ func Test_mdbm_GetCacheModeName(t *testing.T) {
 	dbm := mdbm.NewMDBM()
 	err = dbm.EasyOpen(pathTestDBMCache, 0644)
 	defer dbm.EasyClose()
+	assert.AssertNil(t, err, "failured, can't open the mdbm, path=%s, err=%v", pathTestDBM1, err)
 
 	rv, err = dbm.GetCacheModeName(mdbm.CacheModeNone)
-	assert.AssertNil(t, err, "failured, can't get a cache mode nmae. err=%v\n", rv, err)
+	assert.AssertNil(t, err, "failured, can't get a cache mode name. err=%v\n", rv, err)
 	assert.AssertEquals(t, rv, "none", "return Value mismatch.\nExpected: %v\nActual: %v", "none", rv)
 
 	rv, err = dbm.GetCacheModeName(mdbm.CacheModeLFU)
-	assert.AssertNil(t, err, "failured, can't get a cache mode nmae. err=%v\n", rv, err)
+	assert.AssertNil(t, err, "failured, can't get a cache mode name. err=%v\n", rv, err)
 	assert.AssertEquals(t, rv, "LFU", "return Value mismatch.\nExpected: %v\nActual: %v", "LFU", rv)
 
 	rv, err = dbm.GetCacheModeName(mdbm.CacheModeLRU)
-	assert.AssertNil(t, err, "failured, can't get a cache mode nmae. err=%v\n", rv, err)
+	assert.AssertNil(t, err, "failured, can't get a cache mode name. err=%v\n", rv, err)
 	assert.AssertEquals(t, rv, "LRU", "return Value mismatch.\nExpected: %v\nActual: %v", "LRU", rv)
 
 	rv, err = dbm.GetCacheModeName(mdbm.CacheModeGDSF)
-	assert.AssertNil(t, err, "failured, can't get a cache mode nmae. err=%v\n", rv, err)
+	assert.AssertNil(t, err, "failured, can't get a cache mode name. err=%v\n", rv, err)
 	assert.AssertEquals(t, rv, "GDSF", "return Value mismatch.\nExpected: %v\nActual: %v", "GDSF", rv)
 
 	rv, err = dbm.GetCacheModeName(mdbm.CacheModeMax)
-	assert.AssertNil(t, err, "failured, can't get a cache mode nmae. err=%v\n", rv, err)
+	assert.AssertNil(t, err, "failured, can't get a cache mode name. err=%v\n", rv, err)
 	assert.AssertEquals(t, rv, "GDSF", "return Value mismatch.\nExpected: %v\nActual: %v", "GDSF", rv)
 }
 
@@ -583,7 +586,7 @@ func Test_mdbm_DupHandle_AfterClose(t *testing.T) {
 	dbm.EasyClose()
 
 	_, err = dbm.DupHandle()
-	assert.AssertNotNil(t, err, "failured, return of closed db hanlder, err=%v", err)
+	assert.AssertNotNil(t, err, "failured, return of closed db handler, err=%v", err)
 
 }
 
@@ -713,7 +716,8 @@ func Test_mdbm_AnyDataType_Store(t *testing.T) {
 	rv, err = dbm.StoreWithLock(vcomplex128, vcomplex128, mdbm.Insert)
 	assert.AssertNil(t, err, "failed, can't data(complex128) add to the mdbm file(=%s)\nrv=%d, err=%v", pathTestDBMAnyDataType, rv, err)
 
-	dbm.Sync()
+	rv, err = dbm.Sync()
+	assert.AssertNil(t, err, "failured, can't sync database, path=%s, rv=%d, err=%v", pathTestDBMAnyDataType, rv, err)
 
 	//validation
 	var cnt int
@@ -983,4 +987,45 @@ func Test_mdbm_GetHashValue(t *testing.T) {
 
 	_, err = dbm.GetHashValue(1, mdbm.LargeObjects)
 	assert.AssertNotNil(t, err, "failured, can't check hash type err=%v", err)
+}
+
+func Test_mdbm_StoreStr(t *testing.T) {
+
+	var rv int
+	var err error
+
+	dbm := mdbm.NewMDBM()
+	err = dbm.EasyOpen(pathTestDBMStr, 0644)
+	defer dbm.EasyClose()
+	assert.AssertNil(t, err, "failured, can't open the mdbm, path=%s, err=%v", pathTestDBMStr, err)
+
+	rv, err = dbm.SetCacheMode(mdbm.CacheModeMax)
+	assert.AssertNil(t, err, "failured, can't set cachemode(=%s), path=%s, rv=%d, err=%v", pathTestDBMStr, rv, err)
+
+	for i := 0; i <= 10; i++ {
+		//for i := 0; i <= loopLimit; i++ {
+		rv, err = dbm.StoreStr(i, i, mdbm.Insert)
+		assert.AssertNil(t, err, "failed, can't data(=%d) add to the mdbm file(=%s)\nrv=%d, err=%v", i, pathTestDBMStr, rv, err)
+	}
+
+	key, val, err := dbm.First()
+	assert.AssertNil(t, err, "failured, can't get first recods, path=%s, err=%v", pathTestDBMStr, err)
+
+	log.Println(key, val)
+	for {
+
+		key, val, err = dbm.Next()
+		if err != nil {
+			log.Fatalf("key=%s, val=%s, err=%v", key, val, err)
+		}
+
+		if len(key) < 1 {
+			break
+		}
+
+		log.Println(key, val)
+	}
+
+	rv, err = dbm.Sync()
+	assert.AssertNil(t, err, "failured, mdbm.Sync(). rv=%v, err=%v\n", rv, err)
 }

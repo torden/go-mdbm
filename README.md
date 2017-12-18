@@ -75,13 +75,21 @@ vi mdbm.go
 #cgo LDFLAGS: -L/[MDBM_INSTALLED_PATH]/lib64/ -Wl,-rpath=/[MDBM_INSTALLED_PATH]/lib64/ -lmdbm
 ```
 
-
 ## Support two compatibility branches
 
 |*Branch*|*Support*|*test*|
 |---|---|---|
-|master|yes|always automatic testing|
-|release 4.3.x|yes|tested|
+|master|yes|always testing|
+|release 4.3.x|yes|always testing|
+
+## Support two compatibility O.S 
+
+|*Dist*|*Support*|*test*|
+|---|---|---|
+|rhel|yes|always testing|
+|ubuntu|yes|always testing|
+|bsd|as soon|as soon|
+|osx|as soon|as soon|
 
 ## On Now, Not Support APIs
 
@@ -112,7 +120,7 @@ vi mdbm.go
 
 # Example
 
-[Full Source Code and a sample file](http://yahoo.github.io/mdbm/guide/examples.html)
+[Full Source Code and a sample file](https://github.com/torden/go-mdbm/tree/master/example)
 
 
 ## Creating and populating a database

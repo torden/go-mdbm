@@ -15,7 +15,7 @@ extern int get_next_of_mdbm_iter(MDBM_ITER *iter) {
 //debug
 static inline void echo_str(const char *str) {
 	fprintf(stderr,"----- echo_str -----\n");
-	fprintf(stderr,"[%s]\n", str);
+	fprintf(stderr,"[%s][%d]\n", str, (int)strlen(str));
 	fprintf(stderr,"--------------------\n");
 }
 
@@ -167,7 +167,7 @@ extern int set_mdbm_store_r_with_lock(MDBM *db, datum *key, datum *val, int flag
 extern int set_mdbm_store_str_with_lock(MDBM *db, const char *key, const char *val, int flags, int locktype, int lockflags) {
 
 	int rv;
-	datum lockkey = {(char *)key, strlen(key)};
+	datum lockkey = {(char *)key, strlen(key)+1};
 
     rv = common_lock_func(db, &lockkey, locktype, lockflags);
 	if(rv != 1) {
@@ -244,7 +244,7 @@ extern char *get_mdbm_fetch_str_with_lock(MDBM *db, const char *key, int locktyp
 	int rv;
 	char *retval = NULL;
 
-	datum lockkey = {(char *)key, strlen(key)};
+	datum lockkey = {(char *)key, strlen(key)+1};
     rv = common_lock_func(db, &lockkey, locktype, lockflags);
 	if(rv != 1) {
 		return NULL;
