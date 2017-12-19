@@ -2431,7 +2431,7 @@ func (db *MDBM) SetCacheMode(cachemode int) (int, error) {
 		return int(rv), err
 	})
 
-	return rv, err
+	return rv, errors.Wrapf(err, "SetCachemode must be called before data is inserted.")
 }
 
 // GetCacheModeName returns the cache mode as a string. See SetCacheMode()
@@ -2950,7 +2950,7 @@ func (db *MDBM) UnLockSmart(key interface{}, flags int) (int, error) {
 }
 
 // TryLockSmart attempts to lock an MDBM based on the locking flags supplied to Open()
-func (db *MDBM) TryLockSmart(key interface{}) (int, error) {
+func (db *MDBM) TryLockSmart(key interface{}, flags int) (int, error) {
 
 	skey, err := db.convertToString(key)
 	if err != nil {
@@ -2964,7 +2964,7 @@ func (db *MDBM) TryLockSmart(key interface{}) (int, error) {
 	defer C.free(unsafe.Pointer(k.dptr))
 
 	rv, _, err := db.cgoRun(func() (int, error) {
-		rv, err := C.mdbm_trylock_smart(db.pmdbm, &k, C.int(0)) //flags ignored
+		rv, err := C.mdbm_trylock_smart(db.pmdbm, &k, C.int(flags))
 		return int(rv), err
 	})
 
