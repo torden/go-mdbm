@@ -183,14 +183,14 @@ const (
 	// CacheModeNone is No caching behavior
 	CacheModeNone = C.MDBM_CACHEMODE_NONE
 
-	// CacheModeLfu is Entry with smallest number of accesses is evicted
-	CacheModeLfu = C.MDBM_CACHEMODE_LFU
+	// CacheModeLFU is Entry with smallest number of accesses is evicted
+	CacheModeLFU = C.MDBM_CACHEMODE_LFU
 
-	// CacheModeLru is Entry with oldest access time is evicted
-	CacheModeLru = C.MDBM_CACHEMODE_LRU
+	// CacheModeLRU is Entry with oldest access time is evicted
+	CacheModeLRU = C.MDBM_CACHEMODE_LRU
 
-	// CacheModeGdsf is Greedy dual-size frequency (size and frequency) eviction
-	CacheModeGdsf = C.MDBM_CACHEMODE_GDSF
+	// CacheModeGDSF is Greedy dual-size frequency (size and frequency) eviction
+	CacheModeGDSF = C.MDBM_CACHEMODE_GDSF
 
 	// CacheModeMax is Maximum cache mode value
 	CacheModeMax = C.MDBM_CACHEMODE_MAX
