@@ -21,7 +21,7 @@ func TestMain(t *testing.T) {
 		pathTestDBMLarge, pathTestDBMHash, pathTestDBMDup,
 		pathTestDBMCache, pathTestDBMV2, pathTestDBMLock1,
 		pathTestDBMDelete, pathTestDBMLock2, pathTestDBMAnyDataType,
-		pathTestDBMStr}
+		pathTestDBMStr, pathTestDBMReplace}
 
 	dbm := mdbm.NewMDBM()
 
@@ -1028,4 +1028,64 @@ func Test_mdbm_StoreStr(t *testing.T) {
 
 	rv, err = dbm.Sync()
 	assert.AssertNil(t, err, "failured, mdbm.Sync(). rv=%v, err=%v\n", rv, err)
+}
+
+func Test_mdbm_Double_Close(t *testing.T) {
+
+	dbm := mdbm.NewMDBM()
+	err := dbm.EasyOpen(pathTestDBM1, 0644)
+	assert.AssertNil(t, err, "failured, can't open the mdbm, path=%s, err=%v", pathTestDBMStr, err)
+	defer dbm.EasyClose()
+	dbm.EasyClose()
+}
+
+func Test_mdbm_SetHash(t *testing.T) {
+
+	var rv int
+	var err error
+
+	dbm := mdbm.NewMDBM()
+	err = dbm.EasyOpen(pathTestDBMHash, 0644)
+	assert.AssertNil(t, err, "failured, can't open the mdbm, path=%s, err=%v", pathTestDBMHash, err)
+	defer dbm.EasyClose()
+
+	hashlist := []int{
+		mdbm.HashCRC32,
+		mdbm.HashEJB,
+		mdbm.HashPHONG,
+		mdbm.HashOZ,
+		mdbm.HashTOREK,
+		mdbm.HashFNV,
+		mdbm.HashSTL,
+		mdbm.HashMD5,
+		mdbm.HashSHA1,
+		mdbm.HashJENKINS,
+		mdbm.HashHSIEH,
+		mdbm.MaxHash,
+		mdbm.DefaultHash,
+	}
+
+	for _, hashtype := range hashlist {
+
+		err = dbm.SetHash(mdbm.HashOZ)
+		assert.AssertNil(t, err, "failured, can't set hash(=%d) to the mdbm, path=%s, err=%v", hashtype, pathTestDBMHash, err)
+
+		rv, err = dbm.GetHash()
+		assert.AssertNil(t, err, "failured, can't get hash type of the mdbm, path=%s, err=%v", pathTestDBMHash, err)
+		assert.AssertEquals(t, rv, hashtype, "return Value mismatch.\nExpected: %v\nActual: %v", hashtype, rv)
+	}
+
+	err = dbm.SetHash(mdbm.LargeObjects)
+	assert.AssertNil(t, err, "failured, can't check wrong option, path=%s", pathTestDBMHash)
+}
+
+func Test_mdbm_ReplaceDB(t *testing.T) {
+
+	dbm := mdbm.NewMDBM()
+	err := dbm.EasyOpen(pathTestDBMLarge, 0644)
+	assert.AssertNil(t, err, "failured, can't open the mdbm, path=%s, err=%v", pathTestDBMLarge, err)
+	defer dbm.EasyClose()
+
+	err = dbm.ReplaceDB(pathTestDBMReplace)
+	assert.AssertNil(t, err, "failured, can't replace %s to %s, err=%v", pathTestDBMLarge, pathTestDBMReplace, err)
 }
