@@ -21,7 +21,7 @@ func TestMain(t *testing.T) {
 		pathTestDBMLarge, pathTestDBMHash, pathTestDBMDup,
 		pathTestDBMCache, pathTestDBMV2, pathTestDBMLock1,
 		pathTestDBMDelete, pathTestDBMLock2, pathTestDBMAnyDataType,
-		pathTestDBMStr}
+		pathTestDBMStr, pathTestDBMReplace}
 
 	dbm := mdbm.NewMDBM()
 
