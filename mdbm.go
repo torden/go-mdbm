@@ -421,7 +421,7 @@ func (db *MDBM) IsOpened() bool {
 
 func (db *MDBM) checkAvaliable() error {
 
-	if false == db.IsOpened() {
+	if false == db.isopened {
 		return fmt.Errorf("not yet open the MDBM or closed the MDBM\nmdbm.isopened=%t\nmdbm.dbmfile=%s", db.isopened, db.dbmfile)
 	}
 
@@ -807,7 +807,7 @@ func (db *MDBM) EasyOpen(dbmfile string, perms int) error {
 	var err error
 
 	if len(dbmfile) < 1 {
-		return errors.New("dbm file path is empty")
+		return errors.New("required! dbmfile arguemtn, it's empty")
 	}
 
 	db.dbmfile = dbmfile
@@ -828,10 +828,10 @@ func (db *MDBM) EasyOpen(dbmfile string, perms int) error {
 
 	if err == nil {
 		db.mutex.Lock()
-		{
-			db.isopened = true
-		}
+		db.isopened = true
 		db.mutex.Unlock()
+	} else {
+		return err
 	}
 
 	err = db.LogMinLevel(LogOff)
