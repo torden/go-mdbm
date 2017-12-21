@@ -548,12 +548,14 @@ func Test_mdbm_LargeObject(t *testing.T) {
 	defer dbm.EasyClose()
 	assert.AssertNil(t, err, "failured, can't open the mdbm, path=%s, err=%v", dbm.GetDBMFile(), err)
 
+	err = dbm.SetSpillSize(512)
+	assert.AssertNil(t, err, "failured, can't set the size of item data value , path=%s, err=%v", dbm.GetDBMFile(), err)
+
 	rv, err = dbm.SetStatTimeFunc(mdbm.ClockTSC)
 	assert.AssertNil(t, err, "failured, can't set stat time func, path=%s, rv=%d, err=%v", dbm.GetDBMFile(), rv, err)
 
 	rv, err = dbm.EnableStatOperations(mdbm.StatsBasic | mdbm.StatsTimed)
 	assert.AssertNil(t, err, "failured, can't enable stat operations, path=%s, rv=%d, err=%v", dbm.GetDBMFile(), rv, err)
-
 }
 
 func Test_mdbm_MutipleDataType_Store(t *testing.T) {
