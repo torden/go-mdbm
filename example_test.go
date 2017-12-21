@@ -8,26 +8,7 @@ import (
 	"github.com/torden/go-mdbm"
 )
 
-var pathList = [...]string{
-	pathTestDBM1,
-	pathTestDBM2,
-	pathTestDBM3,
-	pathTestDBMLarge,
-	pathTestDBMHash,
-	pathTestDBMDup,
-	pathTestDBMCache,
-	pathTestDBMCacheNoneData,
-	pathTestDBMV2,
-	pathTestDBMLock1,
-	pathTestDBMDelete,
-	pathTestDBMLock2,
-	pathTestDBMLock3,
-	pathTestDBMAnyDataType1,
-	pathTestDBMAnyDataType2,
-	pathTestDBMStr,
-	pathTestDBMStrAnyLock,
-	pathTestDBMReplace,
-}
+var pathList = [...]string{pathTestDBM1, pathTestDBM2, pathTestDBM3, pathTestDBMHash, pathTestDBMDup, pathTestDBMCache, pathTestDBMV2}
 
 func Example_mdbm_EasyOpen_EasyClose() {
 
