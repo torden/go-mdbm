@@ -422,7 +422,7 @@ func (db *MDBM) IsOpened() bool {
 func (db *MDBM) checkAvaliable() error {
 
 	if false == db.IsOpened() {
-		return errors.New("not yet open the MDBM or closed the MDBM")
+		return fmt.Errorf("not yet open the MDBM or closed the MDBM\nmdbm.isopened=%t\nmdbm.dbmfile=%s", db.isopened, db.dbmfile)
 	}
 
 	return nil
@@ -827,11 +827,11 @@ func (db *MDBM) EasyOpen(dbmfile string, perms int) error {
 	})
 
 	if err == nil {
-		db.mutex.RLock()
+		db.mutex.Lock()
 		{
 			db.isopened = true
 		}
-		db.mutex.RUnlock()
+		db.mutex.Unlock()
 	}
 
 	err = db.LogMinLevel(LogOff)
