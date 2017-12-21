@@ -251,7 +251,6 @@ extern char *get_mdbm_fetch_str_with_lock(MDBM *db, const char *key, int locktyp
 	}
 
 	retval = mdbm_fetch_str(db, key);
-
     common_unlock_func(db, &lockkey, locktype, lockflags);
 	return retval;
 }

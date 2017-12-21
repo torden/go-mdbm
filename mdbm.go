@@ -413,6 +413,21 @@ func (db *MDBM) convertWindowStatToC(ws WindowStats) C.mdbm_window_stats_t {
 	return rv
 }
 
+// IsOpened returns whether a dbm opened and is writable/readable
+func (db *MDBM) IsOpened() bool {
+
+	return db.isopened
+}
+
+func (db *MDBM) checkAvaliable() error {
+
+	if false == db.IsOpened() {
+		return errors.New("not yet open the MDBM or closed the MDBM")
+	}
+
+	return nil
+}
+
 func (db *MDBM) cgoRunCapture(call func() (int, error)) (int, string, error) {
 
 	db.cgomtx.Lock()
@@ -589,6 +604,11 @@ func (db *MDBM) convertToString(obj interface{}) (string, error) {
 // isVersion3Above checks out what the version is 3 or higher
 func (db *MDBM) isVersion3Above() error {
 
+	err := db.checkAvaliable()
+	if err != nil {
+		return err
+	}
+
 	dbver, err := db.GetVersion()
 	if err != nil {
 		return errors.Wrapf(err, "failed obtain the MDBM version")
@@ -603,6 +623,11 @@ func (db *MDBM) isVersion3Above() error {
 
 // isVersion3Above checks out what the version is 2
 func (db *MDBM) isVersion2() error {
+
+	err := db.checkAvaliable()
+	if err != nil {
+		return err
+	}
 
 	dbver, err := db.GetVersion()
 	if err != nil {
@@ -623,17 +648,23 @@ func (db *MDBM) GetNewIter() C.MDBM_ITER {
 	return iter
 }
 
+// GetDBMFile returns a current dbm file path
+func (db *MDBM) GetDBMFile() string {
+	return db.dbmfile
+}
+
 // DupHandle returns a pointer of the Duplicate an existing database handle.
 // The advantage of dup'ing a handle over doing a separate Open is that dup's handle share the same virtual
 // page mapping Within the process space (saving memory).
 // Threaded applications should use pthread_mutex_lock and unlock around calls to mdbm_dup_handle.
 func (db *MDBM) DupHandle() (*MDBM, error) {
 
-	if !db.isopened {
-		return nil, errors.New("Not an existing database handle")
-	}
-
 	var err error
+
+	err = db.checkAvaliable()
+	if err != nil {
+		return nil, err
+	}
 
 	db.mutex.Lock()
 	defer db.mutex.Unlock()
@@ -664,6 +695,11 @@ func (db *MDBM) DupHandle() (*MDBM, error) {
 // Under other circumstances, GetErrNo will not return the actual value of the errno variable.
 func (db *MDBM) GetErrNo() (int, error) {
 
+	err := db.checkAvaliable()
+	if err != nil {
+		return -1, err
+	}
+
 	rv, _, err := db.cgoRun(func() (int, error) {
 		rv, err := C.mdbm_get_errno(db.pmdbm)
 		return int(rv), err
@@ -675,11 +711,16 @@ func (db *MDBM) GetErrNo() (int, error) {
 // LogMinLevel sets the minimum logging level,Lower priority messages are discarded
 func (db *MDBM) LogMinLevel(lv C.int) error {
 
+	err := db.checkAvaliable()
+	if err != nil {
+		return err
+	}
+
 	if lv < LogOff || lv > LogDebug {
 		return fmt.Errorf("Not support log level=%d", int(lv))
 	}
 
-	_, _, err := db.cgoRun(func() (int, error) {
+	_, _, err = db.cgoRun(func() (int, error) {
 		C.mdbm_log_minlevel(lv)
 		return 0, nil
 	})
@@ -692,6 +733,11 @@ func (db *MDBM) LogMinLevel(lv C.int) error {
 // LogToFile		file
 // LogToSyslog		syslog
 func (db *MDBM) LogPlugin(plugin int) error {
+
+	err := db.checkAvaliable()
+	if err != nil {
+		return err
+	}
 
 	var plugname string
 
@@ -727,12 +773,22 @@ func (db *MDBM) LogPlugin(plugin int) error {
 // LogToAutoFile sets the logging to file (name: /mdbm_path/mdbm_file + .log-PID)
 func (db *MDBM) LogToAutoFile() (int, error) {
 
+	err := db.checkAvaliable()
+	if err != nil {
+		return -1, err
+	}
+
 	logpath := fmt.Sprintf("%s.log-%d", db.dbmfile, os.Getpid())
 	return db.LogToFile(logpath)
 }
 
 // LogToFile sets the logging to file
 func (db *MDBM) LogToFile(fnpath string) (int, error) {
+
+	err := db.checkAvaliable()
+	if err != nil {
+		return -1, err
+	}
 
 	logpath := C.CString(fnpath)
 	defer C.free(unsafe.Pointer(logpath))
@@ -750,17 +806,16 @@ func (db *MDBM) EasyOpen(dbmfile string, perms int) error {
 
 	var err error
 
+	if len(dbmfile) < 1 {
+		return errors.New("dbm file path is empty")
+	}
+
 	db.dbmfile = dbmfile
 	if perms > 0 {
 		db.perms = perms
 	}
 
 	db.pdbmfile = C.CString(dbmfile)
-
-	err = db.LogMinLevel(LogOff)
-	if err != nil {
-		return err
-	}
 
 	_, _, err = db.cgoRun(func() (int, error) {
 		db.pmdbm, err = C.mdbm_open(db.pdbmfile, C.int(db.flags), C.int(db.perms), C.int(db.psize), C.int(db.dsize))
@@ -779,6 +834,11 @@ func (db *MDBM) EasyOpen(dbmfile string, perms int) error {
 		db.mutex.RUnlock()
 	}
 
+	err = db.LogMinLevel(LogOff)
+	if err != nil {
+		return err
+	}
+
 	return err
 }
 
@@ -789,7 +849,7 @@ func (db *MDBM) EasyOpen(dbmfile string, perms int) error {
 // psize	Specifies the page size for the database and is set when the database is created. The minimum page size is 128. In v2, the maximum is 64K. In v3, the maximum is 16M - 64. The default, if 0 is specified, is 4096.
 // presize	Specifies the initial size for the database. The database will dynamically grow as records are added, but specifying an initial size may improve efficiency. If this is not a multiple of psize, it will be increased to the next psize multiple.
 //
-func (db *MDBM) Open(mdbmfn string, flags, perms, psize, dsize int) error {
+func (db *MDBM) Open(mdbmfn string, flags int, perms int, psize int, dsize int) error {
 
 	db.flags = flags
 	db.perms = perms
@@ -803,14 +863,16 @@ func (db *MDBM) Open(mdbmfn string, flags, perms, psize, dsize int) error {
 func (db *MDBM) Sync() (int, error) {
 
 	var rv int
-	var err error
 
-	if db.isopened {
-		rv, _, err = db.cgoRun(func() (int, error) {
-			rv, err := C.mdbm_sync(db.pmdbm)
-			return int(rv), err
-		})
+	err := db.checkAvaliable()
+	if err != nil {
+		return -1, err
 	}
+	rv, _, err = db.cgoRun(func() (int, error) {
+		rv, err := C.mdbm_sync(db.pmdbm)
+		return int(rv), err
+	})
+
 	return rv, err
 }
 
@@ -819,14 +881,16 @@ func (db *MDBM) Sync() (int, error) {
 func (db *MDBM) Fsync() (int, error) {
 
 	var rv int
-	var err error
 
-	if db.isopened {
-		rv, _, err = db.cgoRun(func() (int, error) {
-			rv, err := C.mdbm_fsync(db.pmdbm)
-			return int(rv), err
-		})
+	err := db.checkAvaliable()
+	if err != nil {
+		return -1, err
 	}
+
+	rv, _, err = db.cgoRun(func() (int, error) {
+		rv, err := C.mdbm_fsync(db.pmdbm)
+		return int(rv), err
+	})
 
 	return rv, err
 }
@@ -836,14 +900,16 @@ func (db *MDBM) CloseFD() error {
 
 	var err error
 
-	if db.isopened {
-
-		_, _, err = db.cgoRun(func() (int, error) {
-			_, err := C.mdbm_close_fd(db.pmdbm)
-			db.isopened = false
-			return 0, err
-		})
+	err = db.checkAvaliable()
+	if err != nil {
+		return err
 	}
+
+	_, _, err = db.cgoRun(func() (int, error) {
+		_, err := C.mdbm_close_fd(db.pmdbm)
+		db.isopened = false
+		return 0, err
+	})
 
 	return err
 }
@@ -851,44 +917,40 @@ func (db *MDBM) CloseFD() error {
 // Close Closes the database after Sync
 func (db *MDBM) Close() {
 
-	if db == nil {
+	err := db.checkAvaliable()
+	if err != nil {
 		return
 	}
 
 	if db.isopened {
 
-		db.mutex.Lock()
-		{
-			C.mdbm_close(db.pmdbm)
-			db.isopened = false
-		}
-		db.mutex.Unlock()
+		C.mdbm_close(db.pmdbm)
+		db.isopened = false
 	}
 
-	C.free(unsafe.Pointer(db.pdbmfile))
+	if len(db.dbmfile) > 0 {
+		C.free(unsafe.Pointer(db.pdbmfile))
+	}
 }
 
 // EasyClose Closes the database after Sync
 func (db *MDBM) EasyClose() {
 
-	if db == nil {
+	err := db.checkAvaliable()
+	if err != nil {
 		return
 	}
 
-	if db.isopened {
-
-		rv, err := db.Sync()
-		if err != nil {
-			log.Printf("failed db.Sync(), rv=%d, err=%v", rv, err)
-		}
-
-		db.mutex.Lock()
-		{
-			C.mdbm_close(db.pmdbm)
-			db.isopened = false
-		}
-		db.mutex.Unlock()
+	rv, err := db.Sync()
+	if err != nil {
+		log.Printf("failed db.Sync(), rv=%d, err=%v", rv, err)
 	}
+
+	C.mdbm_close(db.pmdbm)
+
+	db.mutex.Lock()
+	defer db.mutex.Unlock()
+	db.isopened = false
 }
 
 // Lock locks the database for exclusive access by the caller.
@@ -897,7 +959,14 @@ func (db *MDBM) EasyClose() {
 // to Unlock are made to release the lock.
 func (db *MDBM) Lock() (int, error) {
 
-	rv, _, err := db.cgoRun(func() (int, error) {
+	var rv int
+
+	err := db.checkAvaliable()
+	if err != nil {
+		return -1, err
+	}
+
+	rv, _, err = db.cgoRun(func() (int, error) {
 		rv, err := C.mdbm_lock(db.pmdbm)
 		return int(rv), err
 	})
@@ -910,7 +979,13 @@ func (db *MDBM) Lock() (int, error) {
 // in a row, an equal number of unlock calls are required.
 func (db *MDBM) Unlock() (int, error) {
 
-	rv, _, err := db.cgoRun(func() (int, error) {
+	var rv int
+	err := db.checkAvaliable()
+	if err != nil {
+		return -1, err
+	}
+
+	rv, _, err = db.cgoRun(func() (int, error) {
 		rv, err := C.mdbm_unlock(db.pmdbm)
 		return int(rv), err
 	})
@@ -921,7 +996,13 @@ func (db *MDBM) Unlock() (int, error) {
 // TryLock attempts to exclusively lock the MDBM.
 func (db *MDBM) TryLock() (int, error) {
 
-	rv, _, err := db.cgoRun(func() (int, error) {
+	var rv int
+	err := db.checkAvaliable()
+	if err != nil {
+		return -1, err
+	}
+
+	rv, _, err = db.cgoRun(func() (int, error) {
 		rv, err := C.mdbm_trylock(db.pmdbm)
 		return int(rv), err
 	})
@@ -934,7 +1015,13 @@ func (db *MDBM) TryLock() (int, error) {
 // rv 1 Database is locked
 func (db *MDBM) IsLocked() (int, error) {
 
-	rv, _, err := db.cgoRun(func() (int, error) {
+	var rv int
+	err := db.checkAvaliable()
+	if err != nil {
+		return -1, err
+	}
+
+	rv, _, err = db.cgoRun(func() (int, error) {
 		rv, err := C.mdbm_islocked(db.pmdbm)
 		return int(rv), err
 	})
@@ -948,7 +1035,13 @@ func (db *MDBM) IsLocked() (int, error) {
 // Use Unlock() to release a shared lock.
 func (db *MDBM) LockShared() (int, error) {
 
-	rv, _, err := db.cgoRun(func() (int, error) {
+	var rv int
+	err := db.checkAvaliable()
+	if err != nil {
+		return -1, err
+	}
+
+	rv, _, err = db.cgoRun(func() (int, error) {
 		rv, err := C.mdbm_lock_shared(db.pmdbm)
 		return int(rv), err
 	})
@@ -961,7 +1054,13 @@ func (db *MDBM) LockShared() (int, error) {
 // This is MROW locking. The database must be opened With the mdbm.RwLocks (=C.MDBM_RW_LOCKS) flag to enable shared locks.
 func (db *MDBM) TryLockShared() (int, error) {
 
-	rv, _, err := db.cgoRun(func() (int, error) {
+	var rv int
+	err := db.checkAvaliable()
+	if err != nil {
+		return -1, err
+	}
+
+	rv, _, err = db.cgoRun(func() (int, error) {
 		rv, err := C.mdbm_trylock_shared(db.pmdbm)
 		return int(rv), err
 	})
@@ -989,7 +1088,6 @@ func (db *MDBM) LockReset(dbmpath string) (int, error) {
 // MyLockReset resets the global lock ownership state of a database.
 // USE THIS FUNCTION WITH EXTREME CAUTION!
 func (db *MDBM) MyLockReset() (int, error) {
-
 	return db.LockReset(db.dbmfile)
 }
 
@@ -998,10 +1096,16 @@ func (db *MDBM) MyLockReset() (int, error) {
 // HINT: /tmp/.mlock-named/[PATH]
 func (db *MDBM) DeleteLockFiles(dbmpath string) (int, error) {
 
+	var rv int
+	err := db.checkAvaliable()
+	if err != nil {
+		return -1, err
+	}
+
 	path := C.CString(dbmpath)
 	defer C.free(unsafe.Pointer(path))
 
-	rv, _, err := db.cgoRunCapture(func() (int, error) {
+	rv, _, err = db.cgoRunCapture(func() (int, error) {
 		rv, err := C.mdbm_delete_lockfiles(path)
 		return int(rv), err
 	})
@@ -1012,15 +1116,20 @@ func (db *MDBM) DeleteLockFiles(dbmpath string) (int, error) {
 // ReplaceDB replaces the database currently in oldfile db With the new database in newfile.
 func (db *MDBM) ReplaceDB(newfile string) error {
 
+	err := db.checkAvaliable()
+	if err != nil {
+		return err
+	}
+
 	newmdbmfn := C.CString(newfile)
 	defer C.free(unsafe.Pointer(newmdbmfn))
 
-	_, _, err := db.cgoRun(func() (int, error) {
+	_, _, err = db.cgoRun(func() (int, error) {
 		rv, err := C.mdbm_replace_db(db.pmdbm, newmdbmfn)
 		return int(rv), err
 	})
 
-	return errors.Wrapf(err, newfile)
+	return err
 }
 
 // ReplaceFile replaces an old database in oldfile With new database in newfile.
@@ -1044,7 +1153,13 @@ func (db *MDBM) ReplaceFile(oldfile, newfile string) error {
 // GetHash returns the MDBM's hash function identifier.
 func (db *MDBM) GetHash() (int, error) {
 
-	rv, _, err := db.cgoRun(func() (int, error) {
+	var rv int
+	err := db.checkAvaliable()
+	if err != nil {
+		return -1, err
+	}
+
+	rv, _, err = db.cgoRun(func() (int, error) {
 		rv, err := C.mdbm_get_hash(db.pmdbm)
 		return int(rv), err
 	})
@@ -1055,11 +1170,16 @@ func (db *MDBM) GetHash() (int, error) {
 // SetHash sets the hashing function for a given MDBM
 func (db *MDBM) SetHash(hashid int) error {
 
+	err := db.checkAvaliable()
+	if err != nil {
+		return err
+	}
+
 	if hashid < HashCRC32 || hashid > MaxHash {
 		return fmt.Errorf("not support hash : hashid(%d)", hashid)
 	}
 
-	_, _, err := db.cgoRunCapture(func() (int, error) {
+	_, _, err = db.cgoRunCapture(func() (int, error) {
 		fmt.Println(C.int(hashid))
 		rv, err := C.mdbm_set_hash(db.pmdbm, C.int(hashid))
 		return int(rv), err
@@ -1074,7 +1194,13 @@ func (db *MDBM) SetHash(hashid int) error {
 // NOTE: The database has to be opened With the MDBM_LARGE_OBJECTS flag for spillsize to take effect.
 func (db *MDBM) SetSpillSize(size int) error {
 
-	rv, _, err := db.cgoRun(func() (int, error) {
+	var rv int
+	err := db.checkAvaliable()
+	if err != nil {
+		return err
+	}
+
+	rv, _, err = db.cgoRun(func() (int, error) {
 		rv, err := C.mdbm_setspillsize(db.pmdbm, C.int(size))
 		return int(rv), err
 	})
@@ -1094,7 +1220,13 @@ func (db *MDBM) SetSpillSize(size int) error {
 // rv 7 - 64-bit alignment
 func (db *MDBM) GetAlignment() (int, error) {
 
-	rv, _, err := db.cgoRun(func() (int, error) {
+	var rv int
+	err := db.checkAvaliable()
+	if err != nil {
+		return -1, err
+	}
+
+	rv, _, err = db.cgoRun(func() (int, error) {
 		rv, err := C.mdbm_get_alignment(db.pmdbm)
 		return int(rv), err
 	})
@@ -1108,11 +1240,17 @@ func (db *MDBM) GetAlignment() (int, error) {
 // and should use the default of 8-bit alignment.
 func (db *MDBM) SetAlignment(align int) (int, error) {
 
+	var rv int
+	err := db.checkAvaliable()
+	if err != nil {
+		return -1, err
+	}
+
 	if align < Align8Bits || align > Align64Bits {
 		return -1, fmt.Errorf("not support align=%d", align)
 	}
 
-	rv, _, err := db.cgoRun(func() (int, error) {
+	rv, _, err = db.cgoRun(func() (int, error) {
 		rv, err := C.mdbm_set_alignment(db.pmdbm, C.int(align))
 		return int(rv), err
 	})
@@ -1124,7 +1262,12 @@ func (db *MDBM) SetAlignment(align int) (int, error) {
 func (db *MDBM) GetLimitSize() (uint64, error) {
 
 	var rv uint64
-	_, _, err := db.cgoRun(func() (int, error) {
+	err := db.checkAvaliable()
+	if err != nil {
+		return 0, err
+	}
+
+	_, _, err = db.cgoRun(func() (int, error) {
 		size, err := C.mdbm_get_limit_size(db.pmdbm)
 		rv = uint64(size)
 		return 0, err
@@ -1137,11 +1280,16 @@ func (db *MDBM) GetLimitSize() (uint64, error) {
 // The number of pages is rounded up to a power of 2.
 func (db *MDBM) LimitDirSize(pages int) error {
 
+	err := db.checkAvaliable()
+	if err != nil {
+		return err
+	}
+
 	if pages < 1 {
 		return fmt.Errorf("the internal page directory size must be at least 1, pages=%d", pages)
 	}
 
-	_, _, err := db.cgoRun(func() (int, error) {
+	_, _, err = db.cgoRun(func() (int, error) {
 		rv, err := C.mdbm_limit_dir_size(db.pmdbm, C.int(pages))
 		return int(rv), err
 	})
@@ -1153,7 +1301,11 @@ func (db *MDBM) LimitDirSize(pages int) error {
 func (db *MDBM) GetVersion() (uint32, error) {
 
 	var rv uint32
-	_, _, err := db.cgoRun(func() (int, error) {
+	err := db.checkAvaliable()
+	if err != nil {
+		return 0, err
+	}
+	_, _, err = db.cgoRun(func() (int, error) {
 		ver, err := C.mdbm_get_version(db.pmdbm)
 		rv = uint32(ver)
 		return 0, err
@@ -1166,7 +1318,11 @@ func (db *MDBM) GetVersion() (uint32, error) {
 func (db *MDBM) GetSize() (uint64, error) {
 
 	var rv uint64
-	_, _, err := db.cgoRun(func() (int, error) {
+	err := db.checkAvaliable()
+	if err != nil {
+		return 0, err
+	}
+	_, _, err = db.cgoRun(func() (int, error) {
 		size, err := C.mdbm_get_size(db.pmdbm)
 		rv = uint64(size)
 		return 0, err
@@ -1192,6 +1348,11 @@ func (db *MDBM) GetMagicNumber() (uint32, error) {
 	var rv uint32
 	var magic C.uint32_t
 
+	err := db.checkAvaliable()
+	if err != nil {
+		return 0, err
+	}
+
 	errno, _, err := db.cgoRun(func() (int, error) {
 		no, err := C.mdbm_get_magic_number(db.pmdbm, &magic)
 		rv = uint32(no)
@@ -1215,11 +1376,16 @@ func (db *MDBM) GetMagicNumber() (uint32, error) {
 // In windowing mode, pages are accessed through a "window" to the database.
 func (db *MDBM) SetWindowSize(wsize uint) error {
 
+	err := db.checkAvaliable()
+	if err != nil {
+		return err
+	}
+
 	if wsize < db.minpagesize {
 		return fmt.Errorf("wsize should be at least 2 pages, SC_PAGESIZE=%d, wsize=%d", db.minpagesize, wsize)
 	}
 
-	_, _, err := db.cgoRun(func() (int, error) {
+	_, _, err = db.cgoRun(func() (int, error) {
 		_, err := C.mdbm_set_window_size(db.pmdbm, C.size_t(wsize))
 		return 0, err
 	})
@@ -1230,6 +1396,11 @@ func (db *MDBM) SetWindowSize(wsize uint) error {
 // IsOwned returns whether or not MDBM is currently locked (owned) by the calling process.
 // Owned MDBMs have multiple nested locks in place.
 func (db *MDBM) IsOwned() (int, error) {
+
+	err := db.checkAvaliable()
+	if err != nil {
+		return -1, err
+	}
 
 	rv, _, err := db.cgoRun(func() (int, error) {
 		rv, err := C.mdbm_isowned(db.pmdbm)
@@ -1251,6 +1422,11 @@ func (db *MDBM) IsOwned() (int, error) {
 // GetLockMode return the MDBM's lock mode.
 func (db *MDBM) GetLockMode() (int, error) {
 
+	err := db.checkAvaliable()
+	if err != nil {
+		return -1, err
+	}
+
 	rv, _, err := db.cgoRun(func() (int, error) {
 		rv, err := C.mdbm_get_lockmode(db.pmdbm)
 		return int(rv), err
@@ -1263,8 +1439,13 @@ func (db *MDBM) GetLockMode() (int, error) {
 // Attempts to rebalance the directory and to compress the db to a smaller size.
 func (db *MDBM) CompressTree() error {
 
+	err := db.checkAvaliable()
+	if err != nil {
+		return err
+	}
+
 	//mdbm_compress_tree
-	_, _, err := db.cgoRun(func() (int, error) {
+	_, _, err = db.cgoRun(func() (int, error) {
 		_, err := C.mdbm_compress_tree(db.pmdbm)
 		return 0, err
 	})
@@ -1275,7 +1456,12 @@ func (db *MDBM) CompressTree() error {
 // Truncate truncates the MDBM to single empty page
 func (db *MDBM) Truncate() error {
 
-	_, _, err := db.cgoRun(func() (int, error) {
+	err := db.checkAvaliable()
+	if err != nil {
+		return err
+	}
+
+	_, _, err = db.cgoRun(func() (int, error) {
 		_, err := C.mdbm_truncate(db.pmdbm)
 		return 0, err
 	})
@@ -1287,7 +1473,12 @@ func (db *MDBM) Truncate() error {
 // This does not change the MDBM's configuration or general structure.
 func (db *MDBM) Purge() error {
 
-	_, _, err := db.cgoRun(func() (int, error) {
+	err := db.checkAvaliable()
+	if err != nil {
+		return err
+	}
+
+	_, _, err = db.cgoRun(func() (int, error) {
 		_, err := C.mdbm_purge(db.pmdbm)
 		return 0, err
 	})
@@ -1301,6 +1492,11 @@ func (db *MDBM) Check(level int, verbose bool) (int, string, error) {
 	var rv int
 	var out string
 	var err error
+
+	err = db.checkAvaliable()
+	if err != nil {
+		return -1, "", err
+	}
 
 	//leverl between 0 and 10
 	//verbose 0 or 1
@@ -1329,7 +1525,13 @@ func (db *MDBM) Check(level int, verbose bool) (int, string, error) {
 // See v2 and v3 in ChkPage() to determine if errors detected in the database.
 func (db *MDBM) CheckAllPage() (int, error) {
 
-	rv, _, err := db.cgoRun(func() (int, error) {
+	var rv int
+	err := db.checkAvaliable()
+	if err != nil {
+		return -1, err
+	}
+
+	rv, _, err = db.cgoRun(func() (int, error) {
 		rv, err := C.mdbm_chk_all_page(db.pmdbm)
 		return int(rv), err
 	})
@@ -1343,11 +1545,17 @@ func (db *MDBM) CheckAllPage() (int, error) {
 // Users that want to use the built-in protect feature should specify Protect (=MDBM_PROTECT) in their Open() flags.
 func (db *MDBM) Protect(protect int) (int, error) {
 
+	var rv int
+	err := db.checkAvaliable()
+	if err != nil {
+		return -1, err
+	}
+
 	if protect < ProtNone || protect > ProtAccess {
 		return -1, fmt.Errorf("not support protect=%d", protect)
 	}
 
-	rv, _, err := db.cgoRun(func() (int, error) {
+	rv, _, err = db.cgoRun(func() (int, error) {
 		rv, err := C.mdbm_protect(db.pmdbm, C.int(protect))
 		return int(rv), err
 	})
@@ -1357,6 +1565,11 @@ func (db *MDBM) Protect(protect int) (int, error) {
 
 // DumpAllPage dumps information for all pages, in version-specific format, to standard output.
 func (db *MDBM) DumpAllPage() (string, error) {
+
+	err := db.checkAvaliable()
+	if err != nil {
+		return "", err
+	}
 
 	_, out, err := db.cgoRunCapture(func() (int, error) {
 		_, err := C.mdbm_dump_all_page(db.pmdbm)
@@ -1372,6 +1585,10 @@ func (db *MDBM) storeWithAnyLock(key interface{}, val interface{}, flags int, lo
 	defer db.mutex.Unlock()
 
 	rv := -1
+	err := db.checkAvaliable()
+	if err != nil {
+		return -1, err
+	}
 
 	bkey, err := db.convertToArByte(key)
 	if err != nil {
@@ -1455,6 +1672,10 @@ func (db *MDBM) storeRWithAnyLock(key interface{}, val interface{}, flags int, i
 	defer db.mutex.Unlock()
 
 	rv := -1
+	err := db.checkAvaliable()
+	if err != nil {
+		return -1, db.convertIter(iter), err
+	}
 
 	skey, err := db.convertToString(key)
 	if err != nil {
@@ -1512,7 +1733,7 @@ func (db *MDBM) StoreRWithTryLockSmart(key interface{}, val interface{}, flags i
 	return db.storeRWithAnyLock(key, val, flags, iter, lockTypeTrySmart, C.int(lockflags))
 }
 
-// StoreRWithTryLockShared the record specified by the key and val parameters With TryLockShare()
+// StoreRWithTryLockShared the record specified by the key and val parameters With TryLockShared()
 func (db *MDBM) StoreRWithTryLockShared(key interface{}, val interface{}, flags int, iter *C.MDBM_ITER) (int, Iter, error) {
 	return db.storeRWithAnyLock(key, val, flags, iter, lockTypeTryShared, lockFlagsSkip)
 }
@@ -1534,6 +1755,10 @@ func (db *MDBM) storeStrWithAnyLock(key interface{}, val interface{}, flags int,
 	defer db.mutex.Unlock()
 
 	rv := -1
+	err := db.checkAvaliable()
+	if err != nil {
+		return -1, err
+	}
 
 	skey, err := db.convertToString(key)
 	if err != nil {
@@ -1568,8 +1793,8 @@ func (db *MDBM) StoreStrWithLockSmart(key interface{}, val interface{}, flags in
 	return db.storeStrWithAnyLock(key, val, flags, lockTypeSmart, C.int(lockflags))
 }
 
-// StoreStrWithLockShare stores the record specified by the key and val parameters With LockShare()
-func (db *MDBM) StoreStrWithLockShare(key interface{}, val interface{}, flags int) (int, error) {
+// StoreStrWithLockShared stores the record specified by the key and val parameters With LockShared()
+func (db *MDBM) StoreStrWithLockShared(key interface{}, val interface{}, flags int) (int, error) {
 	return db.storeStrWithAnyLock(key, val, flags, lockTypeShared, lockFlagsSkip)
 }
 
@@ -1588,7 +1813,7 @@ func (db *MDBM) StoreStrWithTryLockSmart(key interface{}, val interface{}, flags
 	return db.storeStrWithAnyLock(key, val, flags, lockTypeTrySmart, C.int(lockflags))
 }
 
-// StoreStrWithTryLockShared stores the record specified by the key and val parameters With TryLockShare()
+// StoreStrWithTryLockShared stores the record specified by the key and val parameters With TryLockShared()
 func (db *MDBM) StoreStrWithTryLockShared(key interface{}, val interface{}, flags int) (int, error) {
 	return db.storeStrWithAnyLock(key, val, flags, lockTypeTryShared, lockFlagsSkip)
 }
@@ -1604,6 +1829,11 @@ func (db *MDBM) StoreStr(key interface{}, val interface{}, flags int) (int, erro
 }
 
 func (db *MDBM) fetchWithAnyLock(key interface{}, lockType C.int, lockFlags C.int) (string, error) {
+
+	err := db.checkAvaliable()
+	if err != nil {
+		return "", err
+	}
 
 	var retval string
 
@@ -1681,6 +1911,11 @@ func (db *MDBM) fetchRWithAnyLock(key interface{}, iter *C.MDBM_ITER, lockType C
 	rv := -1
 	var retval string
 
+	err := db.checkAvaliable()
+	if err != nil {
+		return rv, retval, db.convertIter(iter), err
+	}
+
 	skey, err := db.convertToString(key)
 	if err != nil {
 		return rv, retval, db.convertIter(iter), errors.Wrapf(err, "failured")
@@ -1752,6 +1987,11 @@ func (db *MDBM) fetchStrWithAnyLock(key interface{}, lockType C.int, lockFlags C
 
 	var retval string
 
+	err := db.checkAvaliable()
+	if err != nil {
+		return retval, err
+	}
+
 	skey, err := db.convertToString(key)
 	if err != nil {
 		return retval, errors.Wrapf(err, "failured")
@@ -1780,8 +2020,8 @@ func (db *MDBM) FetchStrWithLockSmart(key interface{}, lockflags int) (string, e
 	return db.fetchStrWithAnyLock(key, lockTypeSmart, C.int(lockflags))
 }
 
-// FetchStrWithLockShare fetchs the record specified by the key and val parameters With LockShare()
-func (db *MDBM) FetchStrWithLockShare(key interface{}) (string, error) {
+// FetchStrWithLockShared fetchs the record specified by the key and val parameters With LockShared()
+func (db *MDBM) FetchStrWithLockShared(key interface{}) (string, error) {
 	return db.fetchStrWithAnyLock(key, lockTypeShared, lockFlagsSkip)
 }
 
@@ -1800,8 +2040,8 @@ func (db *MDBM) FetchStrWithTryLockSmart(key interface{}, lockflags int) (string
 	return db.fetchStrWithAnyLock(key, lockTypeTrySmart, C.int(lockflags))
 }
 
-// FetchStrWithTrLockShared fetchs the record specified by the key and val parameters With LockShare()
-func (db *MDBM) FetchStrWithTrLockShared(key interface{}) (string, error) {
+// FetchStrWithTryLockShared fetchs the record specified by the key and val parameters With LockShared()
+func (db *MDBM) FetchStrWithTryLockShared(key interface{}) (string, error) {
 	return db.fetchStrWithAnyLock(key, lockTypeTryShared, lockFlagsSkip)
 }
 
@@ -1826,6 +2066,11 @@ func (db *MDBM) fetchDupRWithAnyLock(key interface{}, iter *C.MDBM_ITER, lockTyp
 
 	rv := -1
 	var retval string
+
+	err := db.checkAvaliable()
+	if err != nil {
+		return rv, retval, db.convertIter(iter), err
+	}
 
 	skey, err := db.convertToString(key)
 	if err != nil {
@@ -1866,12 +2111,12 @@ func (db *MDBM) FetchDupRWithLockSmart(key interface{}, iter *C.MDBM_ITER, lockf
 	return db.fetchDupRWithAnyLock(key, iter, lockTypeSmart, C.int(lockflags))
 }
 
-// FetchDupRWithLockShare fetches the next value for a key inserted via StoreR() with the mdbm.InsertDup flag set
+// FetchDupRWithLockShared fetches the next value for a key inserted via StoreR() with the mdbm.InsertDup flag set
 // The order of values returned by iterating via this function is not guaranteed to be the same order as the values were inserted.
 // As with any db iteration, record insertion and deletion during iteration may cause the iteration to skip and/or repeat records.
 // Calling this function with an iterator initialized via iter(=mdbm.GetNewIter()) will cause this function to return the first value for the given key.
-// With LockShare()
-func (db *MDBM) FetchDupRWithLockShare(key interface{}, iter *C.MDBM_ITER) (int, string, Iter, error) {
+// With LockShared()
+func (db *MDBM) FetchDupRWithLockShared(key interface{}, iter *C.MDBM_ITER) (int, string, Iter, error) {
 	return db.fetchDupRWithAnyLock(key, iter, lockTypeShared, lockFlagsSkip)
 }
 
@@ -1902,12 +2147,12 @@ func (db *MDBM) FetchDupRWithTryLockSmart(key interface{}, iter *C.MDBM_ITER, lo
 	return db.fetchDupRWithAnyLock(key, iter, lockTypeTrySmart, C.int(lockflags))
 }
 
-// FetchDupRWithTrLockShared fetches the next value for a key inserted via StoreR() with the mdbm.InsertDup flag set
+// FetchDupRWithTryLockShared fetches the next value for a key inserted via StoreR() with the mdbm.InsertDup flag set
 // The order of values returned by iterating via this function is not guaranteed to be the same order as the values were inserted.
 // As with any db iteration, record insertion and deletion during iteration may cause the iteration to skip and/or repeat records.
 // Calling this function with an iterator initialized via iter(=mdbm.GetNewIter()) will cause this function to return the first value for the given key.
 // With TryLockShared()
-func (db *MDBM) FetchDupRWithTrLockShared(key interface{}, iter *C.MDBM_ITER) (int, string, Iter, error) {
+func (db *MDBM) FetchDupRWithTryLockShared(key interface{}, iter *C.MDBM_ITER) (int, string, Iter, error) {
 	return db.fetchDupRWithAnyLock(key, iter, lockTypeTryShared, lockFlagsSkip)
 }
 
@@ -1938,7 +2183,12 @@ func (db *MDBM) FetchInfo(key interface{}, sbuf *string, iter *C.MDBM_ITER) (int
 	var retval string
 	var info C.struct_mdbm_fetch_info
 
-	err := db.isVersion3Above()
+	err := db.checkAvaliable()
+	if err != nil {
+		return rv, retval, db.convertFetchInfo(info), db.convertIter(iter), err
+	}
+
+	err = db.isVersion3Above()
 	if err != nil {
 		return rv, retval, db.convertFetchInfo(info), db.convertIter(iter), err
 	}
@@ -1975,6 +2225,10 @@ func (db *MDBM) deleteWithAnyLock(key interface{}, lockType C.int, lockFlags C.i
 	defer db.mutex.Unlock()
 
 	rv := -1
+	err := db.checkAvaliable()
+	if err != nil {
+		return -1, err
+	}
 
 	bkey, err := db.convertToArByte(key)
 	if err != nil {
@@ -2044,6 +2298,11 @@ func (db *MDBM) deleteRWithAnyLock(key interface{}, iter Iter, lockType C.int, l
 	defer db.mutex.Unlock()
 
 	rv := -1
+	err := db.checkAvaliable()
+	if err != nil {
+		return -1, iter, err
+	}
+
 	citer := db.convertIterToC(iter)
 
 	var k C.datum
@@ -2062,7 +2321,7 @@ func (db *MDBM) deleteRWithAnyLock(key interface{}, iter Iter, lockType C.int, l
 		k.dsize = C.int(-1)
 	}
 
-	rv, _, err := db.cgoRun(func() (int, error) {
+	rv, _, err = db.cgoRun(func() (int, error) {
 		rv, err := C.set_mdbm_delete_r_with_lock(db.pmdbm, k, &citer, lockType, lockFlags)
 		return int(rv), err
 	})
@@ -2147,6 +2406,10 @@ func (db *MDBM) deleteStrWithAnyLock(key interface{}, lockType C.int, lockFlags 
 	defer db.mutex.Unlock()
 
 	rv := -1
+	err := db.checkAvaliable()
+	if err != nil {
+		return -1, err
+	}
 
 	skey, err := db.convertToString(key)
 	if err != nil {
@@ -2215,6 +2478,11 @@ func (db *MDBM) First() (string, string, error) {
 	var kv C.kvpair
 	var err error
 
+	err = db.checkAvaliable()
+	if err != nil {
+		return "", "", err
+	}
+
 	_, _, err = db.cgoRun(func() (int, error) {
 		kv, err = C.mdbm_first(db.pmdbm)
 		return 0, err
@@ -2237,6 +2505,11 @@ func (db *MDBM) Next() (string, string, error) {
 	var kv C.kvpair
 	var err error
 
+	err = db.checkAvaliable()
+	if err != nil {
+		return "", "", err
+	}
+
 	_, _, err = db.cgoRun(func() (int, error) {
 		kv, err = C.mdbm_next(db.pmdbm)
 		return 0, err
@@ -2258,6 +2531,12 @@ func (db *MDBM) FirstR(iter *Iter) (string, string, Iter, error) {
 
 	var kv C.kvpair
 	var err error
+
+	err = db.checkAvaliable()
+	if err != nil {
+		return "", "", *iter, err
+	}
+
 	citer := db.convertIterToC(*iter)
 
 	_, _, err = db.cgoRun(func() (int, error) {
@@ -2283,6 +2562,12 @@ func (db *MDBM) NextR(iter *Iter) (string, string, Iter, error) {
 
 	var kv C.kvpair
 	var err error
+
+	err = db.checkAvaliable()
+	if err != nil {
+		return "", "", *iter, err
+	}
+
 	citer := db.convertIterToC(*iter)
 
 	_, _, err = db.cgoRun(func() (int, error) {
@@ -2309,6 +2594,11 @@ func (db *MDBM) FirstKey() (string, error) {
 	var k C.datum
 	var err error
 
+	err = db.checkAvaliable()
+	if err != nil {
+		return "", err
+	}
+
 	_, _, err = db.cgoRun(func() (int, error) {
 		k, err = C.mdbm_firstkey(db.pmdbm)
 		return 0, err
@@ -2329,6 +2619,11 @@ func (db *MDBM) NextKey() (string, error) {
 
 	var k C.datum
 	var err error
+
+	err = db.checkAvaliable()
+	if err != nil {
+		return "", err
+	}
 
 	_, _, err = db.cgoRun(func() (int, error) {
 		k, err = C.mdbm_nextkey(db.pmdbm)
@@ -2351,6 +2646,12 @@ func (db *MDBM) FirstKeyR(iter *Iter) (string, Iter, error) {
 
 	var k C.datum
 	var err error
+
+	err = db.checkAvaliable()
+	if err != nil {
+		return "", *iter, err
+	}
+
 	citer := db.convertIterToC(*iter)
 
 	_, _, err = db.cgoRun(func() (int, error) {
@@ -2375,6 +2676,12 @@ func (db *MDBM) NextKeyR(iter *Iter) (string, Iter, error) {
 
 	var k C.datum
 	var err error
+
+	err = db.checkAvaliable()
+	if err != nil {
+		return "", *iter, err
+	}
+
 	citer := db.convertIterToC(*iter)
 
 	_, _, err = db.cgoRun(func() (int, error) {
@@ -2396,7 +2703,12 @@ func (db *MDBM) NextKeyR(iter *Iter) (string, Iter, error) {
 // See the cachemode parameter in SetCacheMode() for the valid values.
 func (db *MDBM) GetCacheMode() (int, error) {
 
-	err := db.isVersion3Above()
+	err := db.checkAvaliable()
+	if err != nil {
+		return -1, err
+	}
+
+	err = db.isVersion3Above()
 	if err != nil {
 		return -1, err
 	}
@@ -2417,7 +2729,12 @@ func (db *MDBM) GetCacheMode() (int, error) {
 // the application to sync the entry to a backing store or perform some other type of "clean" operation.
 func (db *MDBM) SetCacheMode(cachemode int) (int, error) {
 
-	err := db.isVersion3Above()
+	err := db.checkAvaliable()
+	if err != nil {
+		return -1, err
+	}
+
+	err = db.isVersion3Above()
 	if err != nil {
 		return -1, err
 	}
@@ -2437,7 +2754,12 @@ func (db *MDBM) SetCacheMode(cachemode int) (int, error) {
 // GetCacheModeName returns the cache mode as a string. See SetCacheMode()
 func (db *MDBM) GetCacheModeName(cachemode int) (string, error) {
 
-	err := db.isVersion3Above()
+	err := db.checkAvaliable()
+	if err != nil {
+		return "", err
+	}
+
+	err = db.isVersion3Above()
 	if err != nil {
 		return "", err
 	}
@@ -2460,6 +2782,11 @@ func (db *MDBM) CountRecords() (uint64, error) {
 	var retval uint64
 	var err error
 
+	err = db.checkAvaliable()
+	if err != nil {
+		return 0, err
+	}
+
 	_, _, err = db.cgoRun(func() (int, error) {
 		rv, err := C.mdbm_count_records(db.pmdbm)
 		retval = uint64(rv)
@@ -2474,6 +2801,11 @@ func (db *MDBM) CountPages() (uint32, error) {
 
 	var retval uint32
 	var err error
+
+	err = db.checkAvaliable()
+	if err != nil {
+		return 0, err
+	}
 
 	_, _, err = db.cgoRun(func() (int, error) {
 		rv, err := C.mdbm_count_pages(db.pmdbm)
@@ -2490,6 +2822,11 @@ func (db *MDBM) GetPage(key interface{}) (uint32, error) {
 
 	var retval uint32
 	var err error
+
+	err = db.checkAvaliable()
+	if err != nil {
+		return 0, err
+	}
 
 	skey, err := db.convertToString(key)
 	if err != nil {
@@ -2515,6 +2852,11 @@ func (db *MDBM) GetPage(key interface{}) (uint32, error) {
 // PreLoad pre-loads mdbm: Read every 4k bytes to force all pages into memory
 func (db *MDBM) PreLoad() (int, error) {
 
+	err := db.checkAvaliable()
+	if err != nil {
+		return -1, err
+	}
+
 	rv, _, err := db.cgoRun(func() (int, error) {
 		rv, err := C.mdbm_preload(db.pmdbm)
 		return int(rv), err
@@ -2525,6 +2867,11 @@ func (db *MDBM) PreLoad() (int, error) {
 
 // LockDump returns the state of lock
 func (db *MDBM) LockDump() (string, error) {
+
+	err := db.checkAvaliable()
+	if err != nil {
+		return "", err
+	}
 
 	_, out, err := db.cgoRunCapture(func() (int, error) {
 		_, err := C.mdbm_lock_dump(db.pmdbm)
@@ -2545,6 +2892,11 @@ func (db *MDBM) LockPages() (int, error) {
 
 	var rv int
 	var err error
+
+	err = db.checkAvaliable()
+	if err != nil {
+		return -1, err
+	}
 
 	user, err := user.Current()
 	if err != nil {
@@ -2572,6 +2924,11 @@ func (db *MDBM) UnLockPages() (int, error) {
 	var rv int
 	var err error
 
+	err = db.checkAvaliable()
+	if err != nil {
+		return -1, err
+	}
+
 	user, err := user.Current()
 	if err != nil {
 		log.Fatal(err)
@@ -2595,6 +2952,11 @@ func (db *MDBM) UnLockPages() (int, error) {
 // It will print errors found on the page, including bad key size, bad val size, and bad offsets of various fields.
 func (db *MDBM) ChkPage(pagenum int) (int, string, error) {
 
+	err := db.checkAvaliable()
+	if err != nil {
+		return -1, "", err
+	}
+
 	rv, out, err := db.cgoRun(func() (int, error) {
 		rv, err := C.mdbm_chk_page(db.pmdbm, C.int(pagenum))
 		return int(rv), err
@@ -2605,6 +2967,11 @@ func (db *MDBM) ChkPage(pagenum int) (int, string, error) {
 
 // ChkError checks integrity of an entry on a page.
 func (db *MDBM) ChkError(pagenum int, mappedpagenum int, index int) error {
+
+	err := db.checkAvaliable()
+	if err != nil {
+		return err
+	}
 
 	_, out, err := db.cgoRun(func() (int, error) {
 		_, err := C.mdbm_chk_error(db.pmdbm, C.int(pagenum), C.int(mappedpagenum), C.int(index))
@@ -2621,6 +2988,11 @@ func (db *MDBM) ChkError(pagenum int, mappedpagenum int, index int) error {
 // DumpPage dumps specified page's information, in version-specific format, to standard output.
 func (db *MDBM) DumpPage(pno int) (string, error) {
 
+	err := db.checkAvaliable()
+	if err != nil {
+		return "", err
+	}
+
 	_, out, err := db.cgoRunCapture(func() (int, error) {
 		_, err := C.mdbm_dump_page(db.pmdbm, C.int(pno))
 		return 0, err
@@ -2632,7 +3004,12 @@ func (db *MDBM) DumpPage(pno int) (string, error) {
 // ResetStatOperations resets the stat counter and last-time performed for fetch, store, and remove operations.
 func (db *MDBM) ResetStatOperations() error {
 
-	_, _, err := db.cgoRunCapture(func() (int, error) {
+	err := db.checkAvaliable()
+	if err != nil {
+		return err
+	}
+
+	_, _, err = db.cgoRunCapture(func() (int, error) {
 		_, err := C.mdbm_reset_stat_operations(db.pmdbm)
 		return 0, err
 	})
@@ -2642,6 +3019,11 @@ func (db *MDBM) ResetStatOperations() error {
 
 // EnableStatOperations enables and disables gathering of stat counters and/or last-time performed for fetch, store, and remove operations.
 func (db *MDBM) EnableStatOperations(flags int) (int, error) {
+
+	err := db.checkAvaliable()
+	if err != nil {
+		return -1, err
+	}
 
 	if flags < 0 || flags > (StatsBasic|StatsTimed) {
 		return -1, fmt.Errorf("not support flags=%d", flags)
@@ -2657,6 +3039,11 @@ func (db *MDBM) EnableStatOperations(flags int) (int, error) {
 
 // GetStatCounter enables and disables gathering of stat counters and/or last-time performed for fetch, store, and remove operations.
 func (db *MDBM) GetStatCounter(stype int) (int, uint64, error) {
+
+	err := db.checkAvaliable()
+	if err != nil {
+		return -1, 0, err
+	}
 
 	if stype < StatTypeFetch || stype > StatTypeMax {
 		return -1, 0, fmt.Errorf("not support stype=%d", stype)
@@ -2675,9 +3062,14 @@ func (db *MDBM) GetStatCounter(stype int) (int, uint64, error) {
 // GetStatName gets the name of a stat.
 func (db *MDBM) GetStatName(stype int) (string, error) {
 
+	err := db.checkAvaliable()
+	if err != nil {
+		return "", err
+	}
+
 	//stype between 0 (MDBM_STAT_TAG_FETCH) and 16 (MDBM_STAT_TAG_DELETE_FAILED) on mdbm 4.x
 	var retval string
-	_, _, err := db.cgoRun(func() (int, error) {
+	_, _, err = db.cgoRun(func() (int, error) {
 		rv, err := C.mdbm_get_stat_name(C.int(stype))
 		retval = C.GoString(rv)
 
@@ -2689,6 +3081,11 @@ func (db *MDBM) GetStatName(stype int) (string, error) {
 
 // GetStatTime Gets the last time when an type operation was performed.
 func (db *MDBM) GetStatTime(stype int) (int, uint64, error) {
+
+	err := db.checkAvaliable()
+	if err != nil {
+		return -1, 0, err
+	}
 
 	if stype < StatTypeFetch || stype > StatTypeMax {
 		return -1, 0, fmt.Errorf("not support stype=%d", stype)
@@ -2710,7 +3107,12 @@ func (db *MDBM) GetStatTime(stype int) (int, uint64, error) {
 // The standard behavior of timed stat operations is to use clock_gettime(MONOTONIC)
 func (db *MDBM) SetStatTimeFunc(flags int) (int, error) {
 
-	if flags < ClockStandard || flags > ClockTsc {
+	err := db.checkAvaliable()
+	if err != nil {
+		return -1, err
+	}
+
+	if flags < ClockStandard || flags > ClockTSC {
 		return -1, fmt.Errorf("not support flags=%d", flags)
 	}
 
@@ -2730,7 +3132,12 @@ func (db *MDBM) SetStatTimeFunc(flags int) (int, error) {
 // Minimum free bytes on page, Minimum free bytes on page post compress
 func (db *MDBM) StatAllPage() (string, error) {
 
-	err := db.isVersion2()
+	err := db.checkAvaliable()
+	if err != nil {
+		return "", err
+	}
+
+	err = db.isVersion2()
 	if err != nil {
 		return "", err
 	}
@@ -2748,6 +3155,12 @@ func (db *MDBM) StatAllPage() (string, error) {
 func (db *MDBM) GetStats() (int, Stats, error) {
 
 	var stats C.mdbm_stats_t
+
+	err := db.checkAvaliable()
+	if err != nil {
+		return -1, db.convertStats(stats), err
+	}
+
 	rv, _, err := db.cgoRun(func() (int, error) {
 		rv, err := C.mdbm_get_stats(db.pmdbm, &stats, C.sizeof_mdbm_stats_t)
 		return int(rv), err
@@ -2760,6 +3173,12 @@ func (db *MDBM) GetStats() (int, Stats, error) {
 func (db *MDBM) GetDBInfo() (int, DBInfo, error) {
 
 	var info C.mdbm_db_info_t
+
+	err := db.checkAvaliable()
+	if err != nil {
+		return -1, db.convertDBInfo(info), err
+	}
+
 	rv, _, err := db.cgoRun(func() (int, error) {
 		rv, err := C.mdbm_get_db_info(db.pmdbm, &info)
 		return int(rv), err
@@ -2771,12 +3190,17 @@ func (db *MDBM) GetDBInfo() (int, DBInfo, error) {
 // GetDBStats gets overall database stats.
 func (db *MDBM) GetDBStats(flags int) (int, DBInfo, StatInfo, error) {
 
+	var dbinfo C.mdbm_db_info_t
+	var statinfo C.mdbm_stat_info_t
+
+	err := db.checkAvaliable()
+	if err != nil {
+		return -1, db.convertDBInfo(dbinfo), db.convertStatInfo(statinfo), err
+	}
+
 	if flags != StatNolock && flags > IterateNolock {
 		return -1, DBInfo{}, StatInfo{}, fmt.Errorf("not support flags=%d", flags)
 	}
-
-	var dbinfo C.mdbm_db_info_t
-	var statinfo C.mdbm_stat_info_t
 
 	rv, _, err := db.cgoRun(func() (int, error) {
 		rv, err := C.mdbm_get_db_stats(db.pmdbm, &dbinfo, &statinfo, C.int(flags))
@@ -2791,6 +3215,11 @@ func (db *MDBM) GetWindowStats() (int, WindowStats, error) {
 
 	var stats C.mdbm_window_stats_t
 
+	err := db.checkAvaliable()
+	if err != nil {
+		return -1, db.convertWindowStat(stats), err
+	}
+
 	rv, _, err := db.cgoRun(func() (int, error) {
 		rv, err := C.mdbm_get_window_stats(db.pmdbm, &stats, C.sizeof_mdbm_window_stats_t)
 		return int(rv), err
@@ -2802,6 +3231,11 @@ func (db *MDBM) GetWindowStats() (int, WindowStats, error) {
 // GetHashValue return the hash function code, get the hash value for the given key.
 // See SetHash() for the list of valid hash function codes.
 func (db *MDBM) GetHashValue(key interface{}, hashFunctionCode int) (uint32, error) {
+
+	err := db.checkAvaliable()
+	if err != nil {
+		return 0, err
+	}
 
 	if hashFunctionCode < HashCRC32 || hashFunctionCode > MaxHash {
 		return 0, fmt.Errorf("not support hashFunctionCode=%d", hashFunctionCode)
@@ -2835,6 +3269,11 @@ func (db *MDBM) GetHashValue(key interface{}, hashFunctionCode int) (uint32, err
 // as long as an equal number of calls to Punlock() are made to release the lock.
 func (db *MDBM) Plock(key interface{}) (int, error) {
 
+	err := db.checkAvaliable()
+	if err != nil {
+		return -1, err
+	}
+
 	skey, err := db.convertToString(key)
 	if err != nil {
 		return -1, errors.Wrapf(err, "failured")
@@ -2859,6 +3298,11 @@ func (db *MDBM) Plock(key interface{}) (int, error) {
 // If the caller has called Plock() multiple times in a row, an equal number of unlock calls are required.
 // See Plock() for usage.
 func (db *MDBM) Punlock(key interface{}) (int, error) {
+
+	err := db.checkAvaliable()
+	if err != nil {
+		return -1, err
+	}
 
 	skey, err := db.convertToString(key)
 	if err != nil {
@@ -2886,6 +3330,11 @@ func (db *MDBM) Punlock(key interface{}) (int, error) {
 // See Plock() for usage.
 func (db *MDBM) TryPlock(key interface{}) (int, error) {
 
+	err := db.checkAvaliable()
+	if err != nil {
+		return -1, err
+	}
+
 	skey, err := db.convertToString(key)
 	if err != nil {
 		return -1, errors.Wrapf(err, "failured")
@@ -2907,6 +3356,11 @@ func (db *MDBM) TryPlock(key interface{}) (int, error) {
 
 // LockSmart performs either partition, shared or exclusive locking based on the locking-related flags supplied to Open()
 func (db *MDBM) LockSmart(key interface{}, flags int) (int, error) {
+
+	err := db.checkAvaliable()
+	if err != nil {
+		return -1, err
+	}
 
 	skey, err := db.convertToString(key)
 	if err != nil {
@@ -2930,6 +3384,11 @@ func (db *MDBM) LockSmart(key interface{}, flags int) (int, error) {
 // UnLockSmart unlocks an MDBM based on the locking flags supplied to Open()
 func (db *MDBM) UnLockSmart(key interface{}, flags int) (int, error) {
 
+	err := db.checkAvaliable()
+	if err != nil {
+		return -1, err
+	}
+
 	skey, err := db.convertToString(key)
 	if err != nil {
 		return -1, errors.Wrapf(err, "failured")
@@ -2951,6 +3410,11 @@ func (db *MDBM) UnLockSmart(key interface{}, flags int) (int, error) {
 
 // TryLockSmart attempts to lock an MDBM based on the locking flags supplied to Open()
 func (db *MDBM) TryLockSmart(key interface{}, flags int) (int, error) {
+
+	err := db.checkAvaliable()
+	if err != nil {
+		return -1, err
+	}
 
 	skey, err := db.convertToString(key)
 	if err != nil {
@@ -2977,6 +3441,11 @@ func (db *MDBM) CheckResidency() (int, uint32, uint32, error) {
 
 	var pgsin, pgsout C.mdbm_ubig_t
 
+	err := db.checkAvaliable()
+	if err != nil {
+		return -1, uint32(pgsin), uint32(pgsout), err
+	}
+
 	rv, _, err := db.cgoRun(func() (int, error) {
 		rv, err := C.mdbm_check_residency(db.pmdbm, &pgsin, &pgsout)
 		return int(rv), err
@@ -2990,8 +3459,9 @@ func (db *MDBM) EasyGetNumOfRows() (uint64, error) {
 
 	var cnt uint64
 
-	if !db.isopened {
-		return cnt, errors.New("failed, not found opened mdbm file")
+	err := db.checkAvaliable()
+	if err != nil {
+		return 0, err
 	}
 
 	key, _, err := db.First()
@@ -3020,8 +3490,9 @@ func (db *MDBM) EasyGetKeyList() ([]string, error) {
 
 	var retval []string
 
-	if !db.isopened {
-		return retval, errors.New("failed, not found opened mdbm file")
+	err := db.checkAvaliable()
+	if err != nil {
+		return retval, err
 	}
 
 	key, _, err := db.First()

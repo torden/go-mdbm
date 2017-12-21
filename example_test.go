@@ -8,7 +8,26 @@ import (
 	"github.com/torden/go-mdbm"
 )
 
-var pathList = [...]string{pathTestDBM1, pathTestDBM2, pathTestDBM3, pathTestDBMHash, pathTestDBMDup, pathTestDBMCache, pathTestDBMV2}
+var pathList = [...]string{
+	pathTestDBM1,
+	pathTestDBM2,
+	pathTestDBM3,
+	pathTestDBMLarge,
+	pathTestDBMHash,
+	pathTestDBMDup,
+	pathTestDBMCache,
+	pathTestDBMCacheNoneData,
+	pathTestDBMV2,
+	pathTestDBMLock1,
+	pathTestDBMDelete,
+	pathTestDBMLock2,
+	pathTestDBMLock3,
+	pathTestDBMAnyDataType1,
+	pathTestDBMAnyDataType2,
+	pathTestDBMStr,
+	pathTestDBMStrAnyLock,
+	pathTestDBMReplace,
+}
 
 func Example_mdbm_EasyOpen_EasyClose() {
 
@@ -20,46 +39,21 @@ func Example_mdbm_EasyOpen_EasyClose() {
 		if err != nil {
 			log.Fatalf("failed mdbm.EasyOpen(%s), err=%v", path, err)
 		}
-		fmt.Println(err)
 
 		rv, err := dbm.EnableStatOperations(mdbm.StatsTimed)
 		if err != nil {
 			log.Fatalf("failed dbm.EnableStatOperations(mdbm.StatsTimed), rv=%d, err=%v", rv, err)
 		}
 
-		fmt.Println(err)
-		rv, err = dbm.SetStatTimeFunc(mdbm.ClockTsc)
+		rv, err = dbm.SetStatTimeFunc(mdbm.ClockTSC)
 		if err != nil {
-			log.Fatalf("failed dbm.SetStatTimeFunc(mdbm.ClockTsc), rv=%d, err=%v", rv, err)
+			log.Fatalf("failed dbm.SetStatTimeFunc(mdbm.ClockTSC), rv=%d, err=%v", rv, err)
 		}
-
-		fmt.Println(err)
 
 		dbm.EasyClose()
 	}
 
 	// Output:
-	// <nil>
-	// <nil>
-	// <nil>
-	// <nil>
-	// <nil>
-	// <nil>
-	// <nil>
-	// <nil>
-	// <nil>
-	// <nil>
-	// <nil>
-	// <nil>
-	// <nil>
-	// <nil>
-	// <nil>
-	// <nil>
-	// <nil>
-	// <nil>
-	// <nil>
-	// <nil>
-	// <nil>
 }
 
 func Example_mdbm_Open_Close() {
@@ -70,7 +64,7 @@ func Example_mdbm_Open_Close() {
 
 	_, err = dbm.EnableStatOperations(mdbm.StatsTimed)
 	fmt.Println(err)
-	_, err = dbm.SetStatTimeFunc(mdbm.ClockTsc)
+	_, err = dbm.SetStatTimeFunc(mdbm.ClockTSC)
 	fmt.Println(err)
 
 	dbm.Close()
@@ -107,9 +101,13 @@ func Example_mdbm_GetErrNo() {
 
 func Example_mdbm_LogMinLevel() {
 
-	var err error
-
 	dbm := mdbm.NewMDBM()
+	err := dbm.EasyOpen(pathTestDBM1, 0644)
+	defer dbm.EasyClose()
+	if err != nil {
+		log.Fatalf("failed mdbm.EasyOpen(), err=%v", err)
+	}
+
 	err = dbm.LogMinLevel(mdbm.LogEmerg)
 	fmt.Println(err)
 	err = dbm.LogMinLevel(mdbm.LogAlert)
@@ -219,7 +217,7 @@ func Example_mdbm_IsLocked() {
 	dbm := mdbm.NewMDBM()
 	err := dbm.Open(pathTestDBMLock1, mdbm.Create|mdbm.Rdrw|mdbm.RwLocks, 0644, 0, 0)
 	if err != nil {
-		log.Fatalf("failed mdbm.EasyOpen(), err=%v", err)
+		log.Fatalf("failed mdbm.EasyOpen(=%s), err=%v", pathTestDBMLock1, err)
 	}
 	fmt.Println("EasyOpen : ", err)
 
@@ -247,7 +245,7 @@ func Example_mdbm_LockShared() {
 	dbm := mdbm.NewMDBM()
 	err := dbm.Open(pathTestDBMLock1, mdbm.Create|mdbm.Rdrw|mdbm.RwLocks, 0644, 0, 0)
 	if err != nil {
-		log.Fatalf("failed mdbm.Open(mdbm.Create|mdbm.Rdrw|mdbm.RwLocks), err=%v", err)
+		log.Fatalf("failed mdbm.Open(%s, mdbm.Create|mdbm.Rdrw|mdbm.RwLocks), err=%v", pathTestDBMLock1, err)
 	}
 	fmt.Println("EasyOpen : ", err)
 
@@ -329,7 +327,7 @@ func Example_mdbm_MyLockReset() {
 	// Unlock :  operation not permitted
 }
 
-func Example_mdbm_ReplaceDB() {
+func Example_mdbm_ReplaceFile() {
 
 	dbm := mdbm.NewMDBM()
 
@@ -1278,7 +1276,7 @@ func Example_mdbm_SetCacheMode() {
 
 	var rv int
 	dbm := mdbm.NewMDBM()
-	err := dbm.EasyOpen(pathTestDBMCache, 0644)
+	err := dbm.EasyOpen(pathTestDBMCacheNoneData, 0644)
 	if err != nil {
 		log.Fatalf("failed mdbm.EasyOpen(), err=%v", err)
 	}
@@ -1720,7 +1718,7 @@ func Example_mdbm_SetStatTimeFunc() {
 
 	fmt.Println(rv, err)
 
-	rv, err = dbm.SetStatTimeFunc(mdbm.ClockTsc)
+	rv, err = dbm.SetStatTimeFunc(mdbm.ClockTSC)
 	if err != nil {
 		log.Fatalf("rv=%d, err=%v", rv, err)
 	}

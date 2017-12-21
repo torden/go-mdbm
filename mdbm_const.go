@@ -213,8 +213,8 @@ const (
 	// StatTypeMax is C.MDBM_STAT_TYPE_DELETE
 	StatTypeMax = C.MDBM_STAT_TYPE_MAX
 
-	// ClockTsc is Enables use of TSC
-	ClockTsc = C.MDBM_CLOCK_TSC
+	// ClockTSC is Enables use of TSC
+	ClockTSC = C.MDBM_CLOCK_TSC
 
 	// ClockStandard is Disables use of TSC
 	ClockStandard = C.MDBM_CLOCK_STANDARD
