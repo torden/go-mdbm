@@ -1255,7 +1255,7 @@ func Test_mdbm_FetchStr(t *testing.T) {
 	var val string
 
 	dbm := mdbm.NewMDBM()
-	err = dbm.EasyOpen(pathTestDBMStr, 0644)
+	err = dbm.EasyOpen(pathTestDBMStrAnyLock, 0644)
 	defer dbm.EasyClose()
 	assert.AssertNil(t, err, "failured, can't open the mdbm, path=%s, err=%v", dbm.GetDBMFile(), err)
 
