@@ -1323,6 +1323,39 @@ func Test_mdbm_FirstNext(t *testing.T) {
 	}
 }
 
+func Test_mdbm_FirstRNextR(t *testing.T) {
+
+	var iter mdbm.Iter
+	var err error
+
+	dbm := mdbm.NewMDBM()
+	err = dbm.EasyOpen(pathTestDBMLarge, 0644)
+	defer dbm.EasyClose()
+	assert.AssertNil(t, err, "failured, can't open the mdbm, path=%s, err=%v", dbm.GetDBMFile(), err)
+
+	key, val, goiter, err := dbm.FirstR(&iter)
+	assert.AssertNil(t, err, "failured, can't obtain first record from the mdbm, path=%s, err=%v", dbm.GetDBMFile(), err)
+	assert.AssertEquals(t, key, val, "failured, key and value mismatch, key=%s,val=%s", key, val)
+
+	assert.AssertGreaterThanEqualTo(t, goiter.PageNo, 0, "failured, pageno of iter is not valid, iter.PageNo=%d", goiter.PageNo)
+	assert.AssertLessThanEqualTo(t, goiter.Next, 0, "failured, next of iter is not valid, iter.Next=%d", goiter.Next)
+
+	for {
+
+		key, val, goiter, err := dbm.NextR(&iter)
+		assert.AssertNil(t, err, "failured, can't obtain first record from the mdbm, path=%s, err=%v", dbm.GetDBMFile(), err)
+
+		if len(key) < 1 {
+			break
+		}
+
+		assert.AssertGreaterThanEqualTo(t, goiter.PageNo, 0, "failured, pageno of iter is not valid, iter.PageNo=%d", goiter.PageNo)
+		assert.AssertLessThanEqualTo(t, goiter.Next, 0, "failured, next of iter is not valid, iter.Next=%d", goiter.Next)
+
+		assert.AssertEquals(t, key, val, "failured, key and value mismatch, key=%s,val=%s", key, val)
+	}
+}
+
 func Test_mdbm_Double_Close(t *testing.T) {
 
 	dbm := mdbm.NewMDBM()

@@ -1095,16 +1095,10 @@ func (db *MDBM) MyLockReset() (int, error) {
 // HINT: /tmp/.mlock-named/[PATH]
 func (db *MDBM) DeleteLockFiles(dbmpath string) (int, error) {
 
-	var rv int
-	err := db.checkAvaliable()
-	if err != nil {
-		return -1, err
-	}
-
 	path := C.CString(dbmpath)
 	defer C.free(unsafe.Pointer(path))
 
-	rv, _, err = db.cgoRunCapture(func() (int, error) {
+	rv, _, err := db.cgoRunCapture(func() (int, error) {
 		rv, err := C.mdbm_delete_lockfiles(path)
 		return int(rv), err
 	})
