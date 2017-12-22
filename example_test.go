@@ -12,7 +12,24 @@ func Example_mdbm_EasyOpen_EasyClose() {
 
 	dbm := mdbm.NewMDBM()
 
-	for _, path := range gPathList {
+	pathList := [...]string{
+		pathTestDBM1,
+		pathTestDBM2,
+		pathTestDBM3,
+		pathTestDBMLarge,
+		pathTestDBMHash,
+		pathTestDBMDup,
+		pathTestDBMCache,
+		pathTestDBMV2,
+		pathTestDBMDelete,
+		pathTestDBMAnyDataType1,
+		pathTestDBMAnyDataType2,
+		pathTestDBMStr,
+		pathTestDBMReplace,
+		pathTestDBMStrAnyLock,
+		pathTestDBMCacheNoneData}
+
+	for _, path := range pathList {
 
 		err := dbm.EasyOpen(path, 0644)
 		if err != nil {

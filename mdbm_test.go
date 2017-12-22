@@ -1297,6 +1297,32 @@ func Test_mdbm_FetchStrAnyLock(t *testing.T) {
 	}
 }
 
+func Test_mdbm_FirstNext(t *testing.T) {
+
+	var err error
+
+	dbm := mdbm.NewMDBM()
+	err = dbm.EasyOpen(pathTestDBMStrAnyLock, 0644)
+	defer dbm.EasyClose()
+	assert.AssertNil(t, err, "failured, can't open the mdbm, path=%s, err=%v", dbm.GetDBMFile(), err)
+
+	key, val, err := dbm.First()
+	assert.AssertNil(t, err, "failured, can't obtain first record from the mdbm, path=%s, err=%v", dbm.GetDBMFile(), err)
+	assert.AssertEquals(t, key, val, "failured, key and value mismatch, key=%s,val=%s", key, val)
+
+	for {
+
+		key, val, err := dbm.Next()
+		assert.AssertNil(t, err, "failured, can't obtain first record from the mdbm, path=%s, err=%v", dbm.GetDBMFile(), err)
+
+		if len(key) < 1 {
+			break
+		}
+
+		assert.AssertEquals(t, key, val, "failured, key and value mismatch, key=%s,val=%s", key, val)
+	}
+}
+
 func Test_mdbm_Double_Close(t *testing.T) {
 
 	dbm := mdbm.NewMDBM()
