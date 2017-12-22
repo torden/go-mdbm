@@ -1,4 +1,4 @@
-sudo: required 
+sudo: false
 language: go
 go:
     - 1.9.x
@@ -8,13 +8,13 @@ go:
     - 1.5.x
     - 1.4.x
 before_install:
-    - sudo go get github.com/tools/godep
-    - sudo go get github.com/davecgh/go-spew/spew
-    - sudo go get github.com/k0kubun/pp
-    - sudo go get github.com/mattn/goveralls
-    - sudo go get golang.org/x/tools/cmd/cover
-    - sudo go get github.com/modocache/gover
-    - sudo godep restore
+    - go get github.com/tools/godep
+    - go get github.com/davecgh/go-spew/spew
+    - go get github.com/k0kubun/pp
+    - go get github.com/mattn/goveralls
+    - go get golang.org/x/tools/cmd/cover
+    - go get github.com/modocache/gover
+    - godep restore
     - sudo apt-get update -qq
     - sudo apt-get install -y openssl libcppunit-dev libreadline6 libreadline6-dev valgrind realpath libmodule-install-perl
     - sudo dpkg -i pkg/ubuntu/mdbm-Trusty_Tahr.deb
@@ -25,7 +25,7 @@ before_install:
 #    - make install
 #    - cd ..
 script:
-    - sudo make installpkgs
-    - sudo make metalinter
-    - sudo make test
-    - sudo make coveralls
+    - make installpkgs
+    - make metalinter
+    - make test
+    - make coveralls
