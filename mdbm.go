@@ -827,11 +827,11 @@ func (db *MDBM) EasyOpen(dbmfile string, perms int) error {
 	})
 
 	if err == nil {
-		db.mutex.RLock()
-		{
-			db.isopened = true
-		}
-		db.mutex.RUnlock()
+		db.mutex.Lock()
+		db.isopened = true
+		db.mutex.Unlock()
+	} else {
+		return err
 	}
 
 	err = db.LogMinLevel(LogOff)
