@@ -421,8 +421,8 @@ func (db *MDBM) IsOpened() bool {
 
 func (db *MDBM) checkAvaliable() error {
 
-	if false == db.isopened {
-		return fmt.Errorf("not yet open the MDBM or closed the MDBM\nmdbm.isopened=%t\nmdbm.dbmfile=%s", db.isopened, db.dbmfile)
+	if false == db.IsOpened() {
+		return errors.New("not yet open the MDBM or closed the MDBM")
 	}
 
 	return nil
@@ -807,7 +807,7 @@ func (db *MDBM) EasyOpen(dbmfile string, perms int) error {
 	var err error
 
 	if len(dbmfile) < 1 {
-		return errors.New("required! dbmfile arguemtn, it's empty")
+		return errors.New("dbm file path is empty")
 	}
 
 	db.dbmfile = dbmfile
@@ -923,7 +923,6 @@ func (db *MDBM) Close() {
 	}
 
 	if db.isopened {
-
 		C.mdbm_close(db.pmdbm)
 		db.isopened = false
 	}
@@ -1096,16 +1095,10 @@ func (db *MDBM) MyLockReset() (int, error) {
 // HINT: /tmp/.mlock-named/[PATH]
 func (db *MDBM) DeleteLockFiles(dbmpath string) (int, error) {
 
-	var rv int
-	err := db.checkAvaliable()
-	if err != nil {
-		return -1, err
-	}
-
 	path := C.CString(dbmpath)
 	defer C.free(unsafe.Pointer(path))
 
-	rv, _, err = db.cgoRunCapture(func() (int, error) {
+	rv, _, err := db.cgoRunCapture(func() (int, error) {
 		rv, err := C.mdbm_delete_lockfiles(path)
 		return int(rv), err
 	})
@@ -1498,7 +1491,11 @@ func (db *MDBM) Check(level int, verbose bool) (int, string, error) {
 		return -1, "", err
 	}
 
-	//leverl between 0 and 10
+	//level between 0 and 10
+	if level < 0 || level > 10 {
+		return -1, "", fmt.Errorf("not support level(=%d), required level between 1 and 10", level)
+	}
+
 	//verbose 0 or 1
 	var verb C.int
 	if verbose {
@@ -1543,6 +1540,7 @@ func (db *MDBM) CheckAllPage() (int, error) {
 // Protect sets all database pages to protect permission.
 // This function is for advanced users only.
 // Users that want to use the built-in protect feature should specify Protect (=MDBM_PROTECT) in their Open() flags.
+// NOTE: RHEL is unable to set mdbm.ProtWrite without mdbm.ProtRead , so specifying mdbm.ProtWrite does not protect against reads.
 func (db *MDBM) Protect(protect int) (int, error) {
 
 	var rv int

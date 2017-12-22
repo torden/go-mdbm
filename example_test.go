@@ -8,13 +8,11 @@ import (
 	"github.com/torden/go-mdbm"
 )
 
-var pathList = [...]string{pathTestDBM1, pathTestDBM2, pathTestDBM3, pathTestDBMHash, pathTestDBMDup, pathTestDBMCache, pathTestDBMV2}
-
 func Example_mdbm_EasyOpen_EasyClose() {
 
 	dbm := mdbm.NewMDBM()
 
-	for _, path := range pathList {
+	for _, path := range gPathList {
 
 		err := dbm.EasyOpen(path, 0644)
 		if err != nil {
@@ -196,9 +194,9 @@ func Example_mdbm_IsLocked() {
 
 	var rv int
 	dbm := mdbm.NewMDBM()
-	err := dbm.Open(pathTestDBMLock1, mdbm.Create|mdbm.Rdrw|mdbm.RwLocks, 0644, 0, 0)
+	err := dbm.Open(pathTestDBMStrAnyLock, mdbm.Create|mdbm.Rdrw, 0644, 0, 0)
 	if err != nil {
-		log.Fatalf("failed mdbm.EasyOpen(=%s), err=%v", pathTestDBMLock1, err)
+		log.Fatalf("failed mdbm.Open(%s, mdbm.Create|mdbm.Rdrw), err=%v", pathTestDBMLock1, err)
 	}
 	fmt.Println("EasyOpen : ", err)
 
@@ -224,9 +222,9 @@ func Example_mdbm_LockShared() {
 
 	var rv int
 	dbm := mdbm.NewMDBM()
-	err := dbm.Open(pathTestDBMLock1, mdbm.Create|mdbm.Rdrw|mdbm.RwLocks, 0644, 0, 0)
+	err := dbm.Open(pathTestDBMLock1, mdbm.Create|mdbm.Rdrw, 0644, 0, 0)
 	if err != nil {
-		log.Fatalf("failed mdbm.Open(%s, mdbm.Create|mdbm.Rdrw|mdbm.RwLocks), err=%v", pathTestDBMLock1, err)
+		log.Fatalf("failed mdbm.Open(%s, mdbm.Create|mdbm.Rdrw), err=%v", pathTestDBMLock1, err)
 	}
 	fmt.Println("EasyOpen : ", err)
 
@@ -244,9 +242,9 @@ func Example_mdbm_TryLockShared() {
 
 	var rv int
 	dbm := mdbm.NewMDBM()
-	err := dbm.Open(pathTestDBMLock1, mdbm.Create|mdbm.Rdrw|mdbm.RwLocks, 0644, 0, 0)
+	err := dbm.Open(pathTestDBMLock1, mdbm.Create|mdbm.Rdrw, 0644, 0, 0)
 	if err != nil {
-		log.Fatalf("failed mdbm.EasyOpen(), err=%v", err)
+		log.Fatalf("failed mdbm.Open(%s, mdbm.Create|mdbm.Rdrw), err=%v", pathTestDBMLock1, err)
 	}
 	fmt.Println("EasyOpen : ", err)
 
@@ -265,7 +263,7 @@ func Example_mdbm_LockReset() {
 
 	dbm := mdbm.NewMDBM()
 
-	for _, path := range pathList {
+	for _, path := range gPathList {
 		rv, err := dbm.LockReset(path)
 		if rv != 0 {
 			fmt.Printf("failed rv=%d, err=%v", rv, err)
