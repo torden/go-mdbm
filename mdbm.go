@@ -2290,7 +2290,7 @@ func (db *MDBM) Delete(key interface{}) (int, error) {
 	return db.deleteWithAnyLock(key, lockTypeNone, lockFlagsSkip)
 }
 
-func (db *MDBM) deleteRWithAnyLock(key interface{}, iter Iter, lockType C.int, lockFlags C.int) (int, Iter, error) {
+func (db *MDBM) deleteRWithAnyLock(key interface{}, iter *C.MDBM_ITER, lockType C.int, lockFlags C.int) (int, Iter, error) {
 
 	db.mutex.Lock()
 	defer db.mutex.Unlock()
@@ -2298,17 +2298,15 @@ func (db *MDBM) deleteRWithAnyLock(key interface{}, iter Iter, lockType C.int, l
 	rv := -1
 	err := db.checkAvaliable()
 	if err != nil {
-		return -1, iter, err
+		return -1, db.convertIter(iter), err
 	}
-
-	citer := db.convertIterToC(iter)
 
 	var k C.datum
 
 	if key != nil {
 		bkey, err := db.convertToArByte(key)
 		if err != nil {
-			return rv, db.convertIter(&citer), errors.Wrapf(err, "failured")
+			return rv, db.convertIter(iter), errors.Wrapf(err, "failured")
 		}
 
 		k.dptr = (*C.char)(unsafe.Pointer(&bkey[0]))
@@ -2320,18 +2318,18 @@ func (db *MDBM) deleteRWithAnyLock(key interface{}, iter Iter, lockType C.int, l
 	}
 
 	rv, _, err = db.cgoRun(func() (int, error) {
-		rv, err := C.set_mdbm_delete_r_with_lock(db.pmdbm, k, &citer, lockType, lockFlags)
+		rv, err := C.set_mdbm_delete_r_with_lock(db.pmdbm, k, iter, lockType, lockFlags)
 		return int(rv), err
 	})
 
-	return rv, db.convertIter(&citer), err
+	return rv, db.convertIter(iter), err
 }
 
 // DeleteRWithLock deletes the record currently addressed by the iter argument.
 // After deletion, the key and/or value returned by the iterating function is no longer valid.
 // Calling NextR() on the iterator will return the key/value for the entry following the entry that was deleted.
 // With Lock()
-func (db *MDBM) DeleteRWithLock(key interface{}, iter Iter) (int, Iter, error) {
+func (db *MDBM) DeleteRWithLock(key interface{}, iter *C.MDBM_ITER) (int, Iter, error) {
 	return db.deleteRWithAnyLock(key, iter, lockTypeLock, lockFlagsSkip)
 }
 
@@ -2339,7 +2337,7 @@ func (db *MDBM) DeleteRWithLock(key interface{}, iter Iter) (int, Iter, error) {
 // After deletion, the key and/or value returned by the iterating function is no longer valid.
 // Calling NextR() on the iterator will return the key/value for the entry following the entry that was deleted.
 // With LockSmart()
-func (db *MDBM) DeleteRWithLockSmart(key interface{}, iter Iter, lockflags int) (int, Iter, error) {
+func (db *MDBM) DeleteRWithLockSmart(key interface{}, iter *C.MDBM_ITER, lockflags int) (int, Iter, error) {
 	return db.deleteRWithAnyLock(key, iter, lockTypeSmart, C.int(lockflags))
 }
 
@@ -2347,7 +2345,7 @@ func (db *MDBM) DeleteRWithLockSmart(key interface{}, iter Iter, lockflags int) 
 // After deletion, the key and/or value returned by the iterating function is no longer valid.
 // Calling NextR() on the iterator will return the key/value for the entry following the entry that was deleted.
 // With LockShared()
-func (db *MDBM) DeleteRWithLockShared(key interface{}, iter Iter) (int, Iter, error) {
+func (db *MDBM) DeleteRWithLockShared(key interface{}, iter *C.MDBM_ITER) (int, Iter, error) {
 	return db.deleteRWithAnyLock(key, iter, lockTypeShared, lockFlagsSkip)
 }
 
@@ -2355,7 +2353,7 @@ func (db *MDBM) DeleteRWithLockShared(key interface{}, iter Iter) (int, Iter, er
 // After deletion, the key and/or value returned by the iterating function is no longer valid.
 // Calling NextR() on the iterator will return the key/value for the entry following the entry that was deleted.
 // With Plock()
-func (db *MDBM) DeleteRWithPlock(key interface{}, iter Iter, lockflags int) (int, Iter, error) {
+func (db *MDBM) DeleteRWithPlock(key interface{}, iter *C.MDBM_ITER, lockflags int) (int, Iter, error) {
 	return db.deleteRWithAnyLock(key, iter, lockTypePlock, C.int(lockflags))
 }
 
@@ -2363,7 +2361,7 @@ func (db *MDBM) DeleteRWithPlock(key interface{}, iter Iter, lockflags int) (int
 // After deletion, the key and/or value returned by the iterating function is no longer valid.
 // Calling NextR() on the iterator will return the key/value for the entry following the entry that was deleted.
 // With TryLock()
-func (db *MDBM) DeleteRWithTryLock(key interface{}, iter Iter) (int, Iter, error) {
+func (db *MDBM) DeleteRWithTryLock(key interface{}, iter *C.MDBM_ITER) (int, Iter, error) {
 	return db.deleteRWithAnyLock(key, iter, lockTypeTryLock, lockFlagsSkip)
 }
 
@@ -2371,7 +2369,7 @@ func (db *MDBM) DeleteRWithTryLock(key interface{}, iter Iter) (int, Iter, error
 // After deletion, the key and/or value returned by the iterating function is no longer valid.
 // Calling NextR() on the iterator will return the key/value for the entry following the entry that was deleted.
 // With TryLockSmart()
-func (db *MDBM) DeleteRWithTryLockSmart(key interface{}, iter Iter, lockflags int) (int, Iter, error) {
+func (db *MDBM) DeleteRWithTryLockSmart(key interface{}, iter *C.MDBM_ITER, lockflags int) (int, Iter, error) {
 	return db.deleteRWithAnyLock(key, iter, lockTypeTrySmart, C.int(lockflags))
 }
 
@@ -2379,7 +2377,7 @@ func (db *MDBM) DeleteRWithTryLockSmart(key interface{}, iter Iter, lockflags in
 // After deletion, the key and/or value returned by the iterating function is no longer valid.
 // Calling NextR() on the iterator will return the key/value for the entry following the entry that was deleted.
 // With TryLockSahred()
-func (db *MDBM) DeleteRWithTryLockShared(key interface{}, iter Iter) (int, Iter, error) {
+func (db *MDBM) DeleteRWithTryLockShared(key interface{}, iter *C.MDBM_ITER) (int, Iter, error) {
 	return db.deleteRWithAnyLock(key, iter, lockTypeTryShared, lockFlagsSkip)
 }
 
@@ -2387,14 +2385,14 @@ func (db *MDBM) DeleteRWithTryLockShared(key interface{}, iter Iter) (int, Iter,
 // After deletion, the key and/or value returned by the iterating function is no longer valid.
 // Calling NextR() on the iterator will return the key/value for the entry following the entry that was deleted.
 // With TryPlock()
-func (db *MDBM) DeleteRWithTryPlock(key interface{}, iter Iter, lockflags int) (int, Iter, error) {
+func (db *MDBM) DeleteRWithTryPlock(key interface{}, iter *C.MDBM_ITER, lockflags int) (int, Iter, error) {
 	return db.deleteRWithAnyLock(key, iter, lockTypeTryPlock, C.int(lockflags))
 }
 
 // DeleteR deletes the record currently addressed by the iter argument.
 // After deletion, the key and/or value returned by the iterating function is no longer valid.
 // Calling NextR() on the iterator will return the key/value for the entry following the entry that was deleted.
-func (db *MDBM) DeleteR(key interface{}, iter Iter) (int, Iter, error) {
+func (db *MDBM) DeleteR(key interface{}, iter *C.MDBM_ITER) (int, Iter, error) {
 	return db.deleteRWithAnyLock(key, iter, lockTypeNone, lockFlagsSkip)
 }
 
@@ -2525,64 +2523,60 @@ func (db *MDBM) Next() (string, string, error) {
 
 // FirstR returns the first key/value pair from the database.
 // The order that records are returned is not specified.
-func (db *MDBM) FirstR(iter *Iter) (string, string, Iter, error) {
+func (db *MDBM) FirstR(iter *C.MDBM_ITER) (string, string, Iter, error) {
 
 	var kv C.kvpair
 	var err error
 
 	err = db.checkAvaliable()
 	if err != nil {
-		return "", "", *iter, err
+		return "", "", db.convertIter(iter), err
 	}
 
-	citer := db.convertIterToC(*iter)
-
 	_, _, err = db.cgoRun(func() (int, error) {
-		kv, err = C.mdbm_first_r(db.pmdbm, &citer)
+		kv, err = C.mdbm_first_r(db.pmdbm, iter)
 		return 0, err
 	})
 
 	if int(kv.key.dsize) == 0 {
-		return "", "", db.convertIter(&citer), errors.Wrapf(err, "database is empty")
+		return "", "", db.convertIter(iter), errors.Wrapf(err, "database is empty")
 	}
 
 	key := C.GoStringN(kv.key.dptr, kv.key.dsize)
 	val := C.GoStringN(kv.val.dptr, kv.val.dsize)
 
-	*iter = db.convertIter(&citer)
+	goiter := db.convertIter(iter)
 
-	return key, val, *iter, nil
+	return key, val, goiter, nil
 }
 
 // NextR Fetches the next record in an MDBM.
 // Returns the next key/value pair from the db, based on the iterator.
-func (db *MDBM) NextR(iter *Iter) (string, string, Iter, error) {
+func (db *MDBM) NextR(iter *C.MDBM_ITER) (string, string, Iter, error) {
 
 	var kv C.kvpair
 	var err error
 
 	err = db.checkAvaliable()
 	if err != nil {
-		return "", "", *iter, err
+		return "", "", db.convertIter(iter), err
 	}
 
-	citer := db.convertIterToC(*iter)
-
 	_, _, err = db.cgoRun(func() (int, error) {
-		kv, err = C.mdbm_next_r(db.pmdbm, &citer)
+		kv, err = C.mdbm_next_r(db.pmdbm, iter)
 		return 0, err
 	})
 
 	if int(kv.key.dsize) == 0 {
-		return "", "", db.convertIter(&citer), errors.Wrapf(err, "database is empty")
+		return "", "", db.convertIter(iter), errors.Wrapf(err, "database is empty")
 	}
 
 	key := C.GoStringN(kv.key.dptr, kv.key.dsize)
 	val := C.GoStringN(kv.val.dptr, kv.val.dsize)
 
-	*iter = db.convertIter(&citer)
+	goiter := db.convertIter(iter)
 
-	return key, val, *iter, nil
+	return key, val, goiter, nil
 }
 
 // FirstKey Returns the first key from the database.

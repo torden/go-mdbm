@@ -1119,7 +1119,7 @@ func Example_mdbm_FirstR_NextR_Iteration() {
 	}
 	defer dbm.EasyClose()
 
-	var iter mdbm.Iter
+	iter := dbm.GetNewIter()
 
 	key, val, _, err := dbm.FirstR(&iter)
 	if err != nil {
