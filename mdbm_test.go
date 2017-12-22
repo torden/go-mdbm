@@ -1325,13 +1325,14 @@ func Test_mdbm_FirstNext(t *testing.T) {
 
 func Test_mdbm_FirstRNextR(t *testing.T) {
 
-	var iter mdbm.Iter
 	var err error
 
 	dbm := mdbm.NewMDBM()
 	err = dbm.EasyOpen(pathTestDBMLarge, 0644)
 	defer dbm.EasyClose()
 	assert.AssertNil(t, err, "failured, can't open the mdbm, path=%s, err=%v", dbm.GetDBMFile(), err)
+
+	iter := dbm.GetNewIter()
 
 	key, val, goiter, err := dbm.FirstR(&iter)
 	assert.AssertNil(t, err, "failured, can't obtain first record from the mdbm, path=%s, err=%v", dbm.GetDBMFile(), err)
@@ -1634,4 +1635,199 @@ func Test_mdbm_DeleteStrAnyLock(t *testing.T) {
 		rv, err = dbm.DeleteStrWithTryPlock(i, mdbm.Rdrw)
 		assert.AssertNil(t, err, "failed, can't delete a record(key=%d) in the mdbm file(=%s)\nrv=%d, err=%v", i, dbm.GetDBMFile(), rv, err)
 	}
+}
+
+func Test_mdbm_DeleteRWithAnyLock(t *testing.T) {
+
+	var rv int
+	var goiter mdbm.Iter
+
+	dbm := mdbm.NewMDBM()
+	err := dbm.EasyOpen(pathTestDBMDelete, 0644)
+	defer dbm.EasyClose()
+	assert.AssertNil(t, err, "failured, can't open the mdbm, path=%s, err=%v", dbm.GetDBMFile(), err)
+
+	for i := 0; i <= loopLimit; i++ {
+		rv, err = dbm.StoreWithLock(i, time.Now().UnixNano(), mdbm.Replace)
+		assert.AssertNil(t, err, "failured, return Value mismatch. value=%v, err=%v\n", rv, err)
+	}
+
+	rv, err = dbm.Sync()
+	assert.AssertNil(t, err, "failured, mdbm.Sync(). rv=%v, err=%v\n", rv, err)
+
+	iter := dbm.GetNewIter()
+	key, val, goiter, err := dbm.FirstR(&iter)
+	assert.AssertNil(t, err, "failured, can't obtain first record from the mdbm, path=%s, err=%v", dbm.GetDBMFile(), err)
+	assert.AssertEquals(t, key, val, "failured, key and value mismatch, key=%s,val=%s", key, val)
+
+	assert.AssertGreaterThanEqualTo(t, goiter.PageNo, 0, "failured, pageno of iter is not valid, iter.PageNo=%d", goiter.PageNo)
+	assert.AssertLessThanEqualTo(t, goiter.Next, 0, "failured, next of iter is not valid, iter.Next=%d", goiter.Next)
+
+	i := -1
+	for {
+
+		// ------------------------
+		key, val, goiter, err := dbm.NextR(&iter)
+		assert.AssertNil(t, err, "failured, can't obtain first record from the mdbm, path=%s, err=%v", dbm.GetDBMFile(), err)
+		if len(key) < 1 {
+			break
+		}
+
+		assert.AssertGreaterThanEqualTo(t, goiter.PageNo, 0, "failured, pageno of iter is not valid, iter.PageNo=%d", goiter.PageNo)
+		assert.AssertLessThanEqualTo(t, goiter.Next, 0, "failured, next of iter is not valid, iter.Next=%d", goiter.Next)
+		assert.AssertEquals(t, key, val, "failured, key and value mismatch, key=%s,val=%s", key, val)
+
+		i++
+		rv, goiter, err = dbm.DeleteR(i, &iter)
+		assert.AssertNil(t, err, "failured, can't delete record, lockkey=%d, iter.PageNo=%d, iter.Next=%d, rv=%v, err=%v\n", i, goiter.PageNo, goiter.Next, rv, err)
+		assert.AssertGreaterThanEqualTo(t, goiter.PageNo, 0, "failured, pageno of iter is not valid, iter.PageNo=%d", goiter.PageNo)
+		assert.AssertLessThanEqualTo(t, goiter.Next, 0, "failured, next of iter is not valid, iter.Next=%d", goiter.Next)
+
+		// ------------------------
+		key, val, goiter, err = dbm.NextR(&iter)
+		assert.AssertNil(t, err, "failured, can't obtain first record from the mdbm, path=%s, err=%v", dbm.GetDBMFile(), err)
+		if len(key) < 1 {
+			break
+		}
+
+		assert.AssertGreaterThanEqualTo(t, goiter.PageNo, 0, "failured, pageno of iter is not valid, iter.PageNo=%d", goiter.PageNo)
+		assert.AssertLessThanEqualTo(t, goiter.Next, 0, "failured, next of iter is not valid, iter.Next=%d", goiter.Next)
+		assert.AssertEquals(t, key, val, "failured, key and value mismatch, key=%s,val=%s", key, val)
+
+		i++
+		rv, goiter, err = dbm.DeleteRWithLock(i, &iter)
+		assert.AssertNil(t, err, "failured, can't delete record, lockkey=%d, iter.PageNo=%d, iter.Next=%d, rv=%v, err=%v\n", i, goiter.PageNo, goiter.Next, rv, err)
+		assert.AssertGreaterThanEqualTo(t, goiter.PageNo, 0, "failured, pageno of iter is not valid, iter.PageNo=%d", goiter.PageNo)
+		assert.AssertLessThanEqualTo(t, goiter.Next, 0, "failured, next of iter is not valid, iter.Next=%d", goiter.Next)
+
+		// ------------------------
+		key, val, goiter, err = dbm.NextR(&iter)
+		assert.AssertNil(t, err, "failured, can't obtain first record from the mdbm, path=%s, err=%v", dbm.GetDBMFile(), err)
+		if len(key) < 1 {
+			break
+		}
+
+		assert.AssertGreaterThanEqualTo(t, goiter.PageNo, 0, "failured, pageno of iter is not valid, iter.PageNo=%d", goiter.PageNo)
+		assert.AssertLessThanEqualTo(t, goiter.Next, 0, "failured, next of iter is not valid, iter.Next=%d", goiter.Next)
+		assert.AssertEquals(t, key, val, "failured, key and value mismatch, key=%s,val=%s", key, val)
+
+		i++
+		rv, goiter, err = dbm.DeleteRWithLockSmart(i, &iter, mdbm.Rdrw)
+		assert.AssertNil(t, err, "failured, can't delete record, lockkey=%d, iter.PageNo=%d, iter.Next=%d, rv=%v, err=%v\n", i, goiter.PageNo, goiter.Next, rv, err)
+		assert.AssertGreaterThanEqualTo(t, goiter.PageNo, 0, "failured, pageno of iter is not valid, iter.PageNo=%d", goiter.PageNo)
+		assert.AssertLessThanEqualTo(t, goiter.Next, 0, "failured, next of iter is not valid, iter.Next=%d", goiter.Next)
+
+		// ------------------------
+		key, val, goiter, err = dbm.NextR(&iter)
+		assert.AssertNil(t, err, "failured, can't obtain first record from the mdbm, path=%s, err=%v", dbm.GetDBMFile(), err)
+		if len(key) < 1 {
+			break
+		}
+
+		assert.AssertGreaterThanEqualTo(t, goiter.PageNo, 0, "failured, pageno of iter is not valid, iter.PageNo=%d", goiter.PageNo)
+		assert.AssertLessThanEqualTo(t, goiter.Next, 0, "failured, next of iter is not valid, iter.Next=%d", goiter.Next)
+		assert.AssertEquals(t, key, val, "failured, key and value mismatch, key=%s,val=%s", key, val)
+
+		i++
+		rv, goiter, err = dbm.DeleteRWithLockShared(i, &iter)
+		assert.AssertNil(t, err, "failured, can't delete record, lockkey=%d, iter.PageNo=%d, iter.Next=%d, rv=%v, err=%v\n", i, goiter.PageNo, goiter.Next, rv, err)
+		assert.AssertGreaterThanEqualTo(t, goiter.PageNo, 0, "failured, pageno of iter is not valid, iter.PageNo=%d", goiter.PageNo)
+		assert.AssertLessThanEqualTo(t, goiter.Next, 0, "failured, next of iter is not valid, iter.Next=%d", goiter.Next)
+
+		// ------------------------
+		key, val, goiter, err = dbm.NextR(&iter)
+		assert.AssertNil(t, err, "failured, can't obtain first record from the mdbm, path=%s, err=%v", dbm.GetDBMFile(), err)
+		if len(key) < 1 {
+			break
+		}
+
+		assert.AssertGreaterThanEqualTo(t, goiter.PageNo, 0, "failured, pageno of iter is not valid, iter.PageNo=%d", goiter.PageNo)
+		assert.AssertLessThanEqualTo(t, goiter.Next, 0, "failured, next of iter is not valid, iter.Next=%d", goiter.Next)
+		assert.AssertEquals(t, key, val, "failured, key and value mismatch, key=%s,val=%s", key, val)
+
+		i++
+		rv, goiter, err = dbm.DeleteRWithPlock(i, &iter, mdbm.Rdrw)
+		assert.AssertNil(t, err, "failured, can't delete record, lockkey=%d, iter.PageNo=%d, iter.Next=%d, rv=%v, err=%v\n", i, goiter.PageNo, goiter.Next, rv, err)
+		assert.AssertGreaterThanEqualTo(t, goiter.PageNo, 0, "failured, pageno of iter is not valid, iter.PageNo=%d", goiter.PageNo)
+		assert.AssertLessThanEqualTo(t, goiter.Next, 0, "failured, next of iter is not valid, iter.Next=%d", goiter.Next)
+
+		// ----------------------------------------------------------------------------------------------------
+		key, val, goiter, err = dbm.NextR(&iter)
+		assert.AssertNil(t, err, "failured, can't obtain first record from the mdbm, path=%s, err=%v", dbm.GetDBMFile(), err)
+		if len(key) < 1 {
+			break
+		}
+
+		assert.AssertGreaterThanEqualTo(t, goiter.PageNo, 0, "failured, pageno of iter is not valid, iter.PageNo=%d", goiter.PageNo)
+		assert.AssertLessThanEqualTo(t, goiter.Next, 0, "failured, next of iter is not valid, iter.Next=%d", goiter.Next)
+		assert.AssertEquals(t, key, val, "failured, key and value mismatch, key=%s,val=%s", key, val)
+
+		i++
+		rv, goiter, err = dbm.DeleteRWithTryLock(i, &iter)
+		assert.AssertNil(t, err, "failured, can't delete record, lockkey=%d, iter.PageNo=%d, iter.Next=%d, rv=%v, err=%v\n", i, goiter.PageNo, goiter.Next, rv, err)
+		assert.AssertGreaterThanEqualTo(t, goiter.PageNo, 0, "failured, pageno of iter is not valid, iter.PageNo=%d", goiter.PageNo)
+		assert.AssertLessThanEqualTo(t, goiter.Next, 0, "failured, next of iter is not valid, iter.Next=%d", goiter.Next)
+
+		// ------------------------
+		key, val, goiter, err = dbm.NextR(&iter)
+		assert.AssertNil(t, err, "failured, can't obtain first record from the mdbm, path=%s, err=%v", dbm.GetDBMFile(), err)
+		if len(key) < 1 {
+			break
+		}
+
+		assert.AssertGreaterThanEqualTo(t, goiter.PageNo, 0, "failured, pageno of iter is not valid, iter.PageNo=%d", goiter.PageNo)
+		assert.AssertLessThanEqualTo(t, goiter.Next, 0, "failured, next of iter is not valid, iter.Next=%d", goiter.Next)
+		assert.AssertEquals(t, key, val, "failured, key and value mismatch, key=%s,val=%s", key, val)
+
+		i++
+		rv, goiter, err = dbm.DeleteRWithTryLockSmart(i, &iter, mdbm.Rdrw)
+		assert.AssertNil(t, err, "failured, can't delete record, lockkey=%d, iter.PageNo=%d, iter.Next=%d, rv=%v, err=%v\n", i, goiter.PageNo, goiter.Next, rv, err)
+		assert.AssertGreaterThanEqualTo(t, goiter.PageNo, 0, "failured, pageno of iter is not valid, iter.PageNo=%d", goiter.PageNo)
+		assert.AssertLessThanEqualTo(t, goiter.Next, 0, "failured, next of iter is not valid, iter.Next=%d", goiter.Next)
+
+		// ------------------------
+		key, val, goiter, err = dbm.NextR(&iter)
+		assert.AssertNil(t, err, "failured, can't obtain first record from the mdbm, path=%s, err=%v", dbm.GetDBMFile(), err)
+		if len(key) < 1 {
+			break
+		}
+
+		assert.AssertGreaterThanEqualTo(t, goiter.PageNo, 0, "failured, pageno of iter is not valid, iter.PageNo=%d", goiter.PageNo)
+		assert.AssertLessThanEqualTo(t, goiter.Next, 0, "failured, next of iter is not valid, iter.Next=%d", goiter.Next)
+		assert.AssertEquals(t, key, val, "failured, key and value mismatch, key=%s,val=%s", key, val)
+
+		i++
+		rv, goiter, err = dbm.DeleteRWithTryLockShared(i, &iter)
+		assert.AssertNil(t, err, "failured, can't delete record, lockkey=%d, iter.PageNo=%d, iter.Next=%d, rv=%v, err=%v\n", i, goiter.PageNo, goiter.Next, rv, err)
+		assert.AssertGreaterThanEqualTo(t, goiter.PageNo, 0, "failured, pageno of iter is not valid, iter.PageNo=%d", goiter.PageNo)
+		assert.AssertLessThanEqualTo(t, goiter.Next, 0, "failured, next of iter is not valid, iter.Next=%d", goiter.Next)
+
+		// ------------------------
+		key, val, goiter, err = dbm.NextR(&iter)
+		assert.AssertNil(t, err, "failured, can't obtain first record from the mdbm, path=%s, err=%v", dbm.GetDBMFile(), err)
+		if len(key) < 1 {
+			break
+		}
+
+		assert.AssertGreaterThanEqualTo(t, goiter.PageNo, 0, "failured, pageno of iter is not valid, iter.PageNo=%d", goiter.PageNo)
+		assert.AssertLessThanEqualTo(t, goiter.Next, 0, "failured, next of iter is not valid, iter.Next=%d", goiter.Next)
+		assert.AssertEquals(t, key, val, "failured, key and value mismatch, key=%s,val=%s", key, val)
+
+		i++
+		rv, goiter, err = dbm.DeleteRWithTryPlock(i, &iter, mdbm.Rdrw)
+		assert.AssertNil(t, err, "failured, can't delete record, lockkey=%d, iter.PageNo=%d, iter.Next=%d, rv=%v, err=%v\n", i, goiter.PageNo, goiter.Next, rv, err)
+		assert.AssertGreaterThanEqualTo(t, goiter.PageNo, 0, "failured, pageno of iter is not valid, iter.PageNo=%d", goiter.PageNo)
+		assert.AssertLessThanEqualTo(t, goiter.Next, 0, "failured, next of iter is not valid, iter.Next=%d", goiter.Next)
+
+	}
+
+	rv, err = dbm.Sync()
+	assert.AssertNil(t, err, "failured, mdbm.Sync(). rv=%v, err=%v\n", rv, err)
+
+	/*
+		for i := 0; i <= loopLimit; i++ {
+			val, err := dbm.Fetch(i)
+			assert.AssertNotNil(t, err, "failured, can't delete record, value=%v, err=%v\n", val, err)
+		}
+	*/
 }
