@@ -2634,61 +2634,57 @@ func (db *MDBM) NextKey() (string, error) {
 // FirstKeyR fetches the first key in an MDBM.
 // Initializes the iterator, and returns the first key from the db.
 // Subsequent calls to NextR() or NextKeyR() With this iterator will loop through the entire db.
-func (db *MDBM) FirstKeyR(iter *Iter) (string, Iter, error) {
+func (db *MDBM) FirstKeyR(iter *C.MDBM_ITER) (string, Iter, error) {
 
 	var k C.datum
 	var err error
 
 	err = db.checkAvaliable()
 	if err != nil {
-		return "", *iter, err
+		return "", db.convertIter(iter), err
 	}
 
-	citer := db.convertIterToC(*iter)
-
 	_, _, err = db.cgoRun(func() (int, error) {
-		k, err = C.mdbm_firstkey_r(db.pmdbm, &citer)
+		k, err = C.mdbm_firstkey_r(db.pmdbm, iter)
 		return 0, err
 	})
 
 	if int(k.dsize) == 0 {
-		return "", db.convertIter(&citer), errors.Wrapf(err, "database is empty")
+		return "", db.convertIter(iter), errors.Wrapf(err, "database is empty")
 	}
 
 	key := C.GoStringN(k.dptr, k.dsize)
-	*iter = db.convertIter(&citer)
+	goiter := db.convertIter(iter)
 
-	return key, *iter, nil
+	return key, goiter, nil
 }
 
 // NextKeyR fetches the next key in an MDBM.  Returns the next key from the db.
 // Subsequent calls to NextR() or NextKeyR() With this iterator
 // will loop through the entire db.
-func (db *MDBM) NextKeyR(iter *Iter) (string, Iter, error) {
+func (db *MDBM) NextKeyR(iter *C.MDBM_ITER) (string, Iter, error) {
 
 	var k C.datum
 	var err error
 
 	err = db.checkAvaliable()
 	if err != nil {
-		return "", *iter, err
+		return "", db.convertIter(iter), err
 	}
 
-	citer := db.convertIterToC(*iter)
-
 	_, _, err = db.cgoRun(func() (int, error) {
-		k, err = C.mdbm_nextkey_r(db.pmdbm, &citer)
+		k, err = C.mdbm_nextkey_r(db.pmdbm, iter)
 		return 0, err
 	})
 
 	if int(k.dsize) == 0 {
-		return "", db.convertIter(&citer), errors.Wrapf(err, "database is empty")
+		return "", db.convertIter(iter), errors.Wrapf(err, "database is empty")
 	}
 
 	key := C.GoStringN(k.dptr, k.dsize)
-	*iter = db.convertIter(&citer)
+	goiter := db.convertIter(iter)
 
-	return key, *iter, nil
+	return key, goiter, nil
 }
 
 // GetCacheMode returns the current cache style of the database.

@@ -1195,7 +1195,7 @@ func Example_mdbm_FirstKeyR() {
 	}
 	defer dbm.EasyClose()
 
-	var iter mdbm.Iter
+	iter := dbm.GetNewIter()
 
 	key, _, err := dbm.FirstKeyR(&iter)
 	if err != nil {
@@ -1215,7 +1215,7 @@ func Example_mdbm_NextKeyR() {
 	}
 	defer dbm.EasyClose()
 
-	var iter mdbm.Iter
+	iter := dbm.GetNewIter()
 
 	fkey, _, err := dbm.FirstKeyR(&iter)
 	if err != nil {
