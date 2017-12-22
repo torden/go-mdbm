@@ -16,28 +16,9 @@ var assert = strutils.NewAssert()
 
 func TestMain(t *testing.T) {
 
-	pathList := [...]string{
-		pathTestDBM1,
-		pathTestDBM2,
-		pathTestDBM3,
-		pathTestDBMLarge,
-		pathTestDBMHash,
-		pathTestDBMDup,
-		pathTestDBMCache,
-		pathTestDBMV2,
-		pathTestDBMLock1,
-		pathTestDBMDelete,
-		pathTestDBMLock2,
-		pathTestDBMAnyDataType1,
-		pathTestDBMAnyDataType2,
-		pathTestDBMStr,
-		pathTestDBMReplace,
-		pathTestDBMStrAnyLock,
-		pathTestDBMCacheNoneData}
-
 	dbm := mdbm.NewMDBM()
 
-	for _, path := range pathList {
+	for _, path := range gPathList {
 
 		_, err := dbm.DeleteLockFiles(path)
 		if err == nil {
@@ -548,14 +529,12 @@ func Test_mdbm_LargeObject(t *testing.T) {
 	defer dbm.EasyClose()
 	assert.AssertNil(t, err, "failured, can't open the mdbm, path=%s, err=%v", dbm.GetDBMFile(), err)
 
-	err = dbm.SetSpillSize(512)
-	assert.AssertNil(t, err, "failured, can't set the size of item data value , path=%s, err=%v", dbm.GetDBMFile(), err)
-
 	rv, err = dbm.SetStatTimeFunc(mdbm.ClockTSC)
 	assert.AssertNil(t, err, "failured, can't set stat time func, path=%s, rv=%d, err=%v", dbm.GetDBMFile(), rv, err)
 
 	rv, err = dbm.EnableStatOperations(mdbm.StatsBasic | mdbm.StatsTimed)
 	assert.AssertNil(t, err, "failured, can't enable stat operations, path=%s, rv=%d, err=%v", dbm.GetDBMFile(), rv, err)
+
 }
 
 func Test_mdbm_MutipleDataType_Store(t *testing.T) {
@@ -1494,4 +1473,106 @@ func Test_mdbm_EnableStatOperations(t *testing.T) {
 	rv, err = dbm.EnableStatOperations(mdbm.LargeObjects)
 	assert.AssertNotNil(t, err, "failured, can't check wrong option, path=%s, rv=%d, err=%v", dbm.GetDBMFile(), rv, err)
 
+}
+
+func Test_mdbm_Check(t *testing.T) {
+
+	var rv int
+	var err error
+
+	dbm := mdbm.NewMDBM()
+	for _, dbmpath := range gPathList {
+
+		err = dbm.EasyOpen(dbmpath, 0644)
+		assert.AssertNil(t, err, "failured, can't open the mdbm, path=%s, err=%v", dbm.GetDBMFile(), err)
+
+		rv, _, err = dbm.Check(10, false)
+		assert.AssertNil(t, err, "failured, can't check the mdbm, path=%s, rv=%d, err=%v", dbm.GetDBMFile(), rv, err)
+
+		rv, _, err = dbm.Check(10, true)
+		assert.AssertNil(t, err, "failured, can't check the mdbm, path=%s, rv=%d, err=%v", dbm.GetDBMFile(), rv, err)
+
+		rv, _, err = dbm.Check(99, true)
+		assert.AssertNotNil(t, err, "failured, can't check wrong option , path=%s, rv=%d, err=%v", dbm.GetDBMFile(), rv, err)
+
+		dbm.EasyClose()
+	}
+}
+
+func Test_mdbm_Protect(t *testing.T) {
+
+	var rv int
+	var err error
+
+	dbm := mdbm.NewMDBM()
+	for _, dbmpath := range gPathList {
+
+		err = dbm.EasyOpen(dbmpath, 0644)
+		assert.AssertNil(t, err, "failured, can't open the mdbm, path=%s, err=%v", dbm.GetDBMFile(), err)
+
+		rv, err = dbm.Protect(mdbm.ProtNone)
+		assert.AssertNil(t, err, "failured, can't set protect, path=%s, rv=%d, err=%v", dbm.GetDBMFile(), rv, err)
+
+		rv, err = dbm.Protect(mdbm.ProtRead)
+		assert.AssertNil(t, err, "failured, can't set protect, path=%s, rv=%d, err=%v", dbm.GetDBMFile(), rv, err)
+
+		rv, err = dbm.Protect(mdbm.ProtWrite)
+		assert.AssertNil(t, err, "failured, can't set protect, path=%s, rv=%d, err=%v", dbm.GetDBMFile(), rv, err)
+
+		rv, err = dbm.Protect(mdbm.ProtAccess)
+		assert.AssertNil(t, err, "failured, can't set protect, path=%s, rv=%d, err=%v", dbm.GetDBMFile(), rv, err)
+
+		rv, err = dbm.Protect(mdbm.ProtNoaccess)
+		assert.AssertNil(t, err, "failured, can't set protect, path=%s, rv=%d, err=%v", dbm.GetDBMFile(), rv, err)
+
+		rv, err = dbm.Protect(mdbm.LargeObjects)
+		assert.AssertNotNil(t, err, "failured, can't check wrong option, path=%s, rv=%d, err=%v", dbm.GetDBMFile(), rv, err)
+
+		dbm.EasyClose()
+	}
+}
+
+func Test_mdbm_DeleteStrAnyLock(t *testing.T) {
+
+	var rv int
+	var err error
+
+	dbm := mdbm.NewMDBM()
+	err = dbm.EasyOpen(pathTestDBMStrAnyLock, 0644)
+	defer dbm.EasyClose()
+	assert.AssertNil(t, err, "failured, can't open the mdbm, path=%s, err=%v", dbm.GetDBMFile(), err)
+
+	for i := 0; i <= loopLimit; i++ {
+
+		rv, err = dbm.DeleteStrWithLock(i)
+		assert.AssertNil(t, err, "failed, can't delete a record(key=%d) in the mdbm file(=%s)\nrv=%d, err=%v", i, dbm.GetDBMFile(), rv, err)
+
+		i++
+		rv, err = dbm.DeleteStrWithLockSmart(i, mdbm.Rdrw)
+		assert.AssertNil(t, err, "failed, can't delete a record(key=%d) in the mdbm file(=%s)\nrv=%d, err=%v", i, dbm.GetDBMFile(), rv, err)
+
+		i++
+		rv, err = dbm.DeleteStrWithLockShared(i)
+		assert.AssertNil(t, err, "failed, can't delete a record(key=%d) in the mdbm file(=%s)\nrv=%d, err=%v", i, dbm.GetDBMFile(), rv, err)
+
+		i++
+		rv, err = dbm.DeleteStrWithPlock(i, mdbm.Rdrw)
+		assert.AssertNil(t, err, "failed, can't delete a record(key=%d) in the mdbm file(=%s)\nrv=%d, err=%v", i, dbm.GetDBMFile(), rv, err)
+
+		i++
+		rv, err = dbm.DeleteStrWithTryLock(i)
+		assert.AssertNil(t, err, "failed, can't delete a record(key=%d) in the mdbm file(=%s)\nrv=%d, err=%v", i, dbm.GetDBMFile(), rv, err)
+
+		i++
+		rv, err = dbm.DeleteStrWithTryLockSmart(i, mdbm.Rdrw)
+		assert.AssertNil(t, err, "failed, can't delete a record(key=%d) in the mdbm file(=%s)\nrv=%d, err=%v", i, dbm.GetDBMFile(), rv, err)
+
+		i++
+		rv, err = dbm.DeleteStrWithTryLockShared(i)
+		assert.AssertNil(t, err, "failed, can't delete a record(key=%d) in the mdbm file(=%s)\nrv=%d, err=%v", i, dbm.GetDBMFile(), rv, err)
+
+		i++
+		rv, err = dbm.DeleteStrWithTryPlock(i, mdbm.Rdrw)
+		assert.AssertNil(t, err, "failed, can't delete a record(key=%d) in the mdbm file(=%s)\nrv=%d, err=%v", i, dbm.GetDBMFile(), rv, err)
+	}
 }

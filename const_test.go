@@ -21,3 +21,22 @@ const (
 	pathTestDBMStrAnyLock    = "/tmp/test_str_anylock.mdbm"
 	pathTestDBMReplace       = "/tmp/test_replaced.mdbm"
 )
+
+var gPathList = [...]string{
+	pathTestDBM1,
+	pathTestDBM2,
+	pathTestDBM3,
+	pathTestDBMLarge,
+	pathTestDBMHash,
+	pathTestDBMDup,
+	pathTestDBMCache,
+	pathTestDBMV2,
+	pathTestDBMLock1,
+	pathTestDBMDelete,
+	pathTestDBMLock2,
+	pathTestDBMAnyDataType1,
+	pathTestDBMAnyDataType2,
+	pathTestDBMStr,
+	pathTestDBMReplace,
+	pathTestDBMStrAnyLock,
+	pathTestDBMCacheNoneData}
