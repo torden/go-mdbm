@@ -39,8 +39,5 @@ var gPathList = [...]string{
 	pathTestDBMAnyDataType1,
 	pathTestDBMAnyDataType2,
 	pathTestDBMStr,
-	pathTestDBMReplace1,
-	pathTestDBMReplace2,
-	pathTestDBMReplace3,
 	pathTestDBMStrAnyLock,
 	pathTestDBMCacheNoneData}
