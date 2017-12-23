@@ -309,15 +309,7 @@ func Example_mdbm_MyLockReset() {
 func Example_mdbm_ReplaceFile() {
 
 	dbm := mdbm.NewMDBM()
-
-	//create a dummy
-	err := dbm.EasyOpen(pathTestDBMReplace1, 0644)
-	if err != nil {
-		log.Fatalf("failed mdbm.EasyOpen(), err=%v", err)
-	}
-	dbm.EasyClose()
-
-	err = dbm.ReplaceFile(pathTestDBMReplace1, pathTestDBMReplace2)
+	err := dbm.ReplaceFile(pathTestDBM1, pathTestDBMReplace2)
 	fmt.Println("ReplaceFile : ", err)
 	dbm.EasyClose()
 
@@ -668,29 +660,6 @@ func Example_mdbm_Protect() {
 	// Output:
 	// 0 <nil>
 	// 0 <nil>
-}
-
-func Example_mdbm_DumpAllPage() {
-
-	var rv string
-	dbm := mdbm.NewMDBM()
-	err := dbm.EasyOpen(pathTestDBM1, 0644)
-	if err != nil {
-		log.Fatalf("failed mdbm.EasyOpen(), err=%v", err)
-	}
-	defer dbm.EasyClose()
-
-	rv, err = dbm.DumpAllPage()
-	if err != nil {
-		log.Println(err)
-	}
-
-	if len(rv) > 0 {
-		fmt.Println("OK")
-	}
-
-	// Output:
-	// OK
 }
 
 func Example_mdbm_StoreWithLock() {
@@ -1444,6 +1413,31 @@ func Example_mdbm_DumpPage() {
 
 	// Output:
 	// <nil>
+}
+
+func Example_mdbm_DumpAllPage() {
+
+	var rv string
+	dbm := mdbm.NewMDBM()
+	err := dbm.EasyOpen(pathTestDBM1, 0644)
+	if err != nil {
+		log.Fatalf("failed mdbm.EasyOpen(), err=%v", err)
+	}
+	defer dbm.EasyClose()
+
+	rv, err = dbm.DumpAllPage()
+	if err != nil {
+		log.Println(err)
+	}
+
+	if len(rv) > 0 {
+		fmt.Println("OK")
+	} else {
+		fmt.Println(rv)
+	}
+
+	// Output:
+	// OK
 }
 
 func Example_mdbm_EnableStatOperations_ResetStatOperations() {
