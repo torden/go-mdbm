@@ -46,12 +46,106 @@ func Test_mdbm_EasyOpen_EasyClose(t *testing.T) {
 	assert.AssertNil(t, err, "failured, can't open the mdbm, path=%s, err=%v", dbm.GetDBMFile(), err)
 
 	rv, err = dbm.SetStatTimeFunc(mdbm.ClockTSC)
-	assert.AssertNil(t, err, "failured, can't set stat time func, path=%s, rv=%d, err=%v", dbm.GetDBMFile(), rv, err)
+	assert.AssertNil(t, err, "failured, can't set the stat time func, path=%s, rv=%d, err=%v", dbm.GetDBMFile(), rv, err)
 
 	rv, err = dbm.EnableStatOperations(mdbm.StatsBasic | mdbm.StatsTimed)
 	assert.AssertNil(t, err, "failured, can't enable stat operations, path=%s, rv=%d, err=%v", dbm.GetDBMFile(), rv, err)
+}
 
+func Test_mdbm_EasyOpen_EasyClose_CheckDMBPath(t *testing.T) {
+
+	var err error
+
+	dbm := mdbm.NewMDBM()
+	err = dbm.EasyOpen("\t\n ", 0644)
+	defer dbm.EasyClose()
+	assert.AssertNotNil(t, err, "failured, can't check the wrong mdbm file path, path=%s, err=%v", dbm.GetDBMFile(), err)
+
+	err = dbm.EasyOpen("/a/b/c/d/e/g/null", 0644)
+	assert.AssertNotNil(t, err, "failured, can't check the wrong mdbm file path, path=%s, err=%v", dbm.GetDBMFile(), err)
+}
+
+func Test_mdbm_SetAlignment_GetAlignment(t *testing.T) {
+
+	var rv int
+	var err error
+
+	dbm := mdbm.NewMDBM()
+	err = dbm.EasyOpen(pathTestDBM3, 0644)
+	defer dbm.EasyClose()
 	assert.AssertNil(t, err, "failured, can't open the mdbm, path=%s, err=%v", dbm.GetDBMFile(), err)
+
+	rv, err = dbm.SetAlignment(mdbm.Align8Bits)
+	assert.AssertNil(t, err, "failured, can't set the alignment, path=%s, rv=%d, err=%v", dbm.GetDBMFile(), rv, err)
+
+	rv, err = dbm.GetAlignment()
+	assert.AssertNil(t, err, "failured, can't obtain the alignment of the mdbm file, path=%s, rv=%d, err=%v", dbm.GetDBMFile(), rv, err)
+	assert.AssertEquals(t, rv, mdbm.Align8Bits, "failured, can't set the alignment, path=%s, rv=%d, err=%v", dbm.GetDBMFile(), rv, err)
+
+	rv, err = dbm.SetAlignment(mdbm.Align16Bits)
+	assert.AssertNil(t, err, "failured, can't set the alignment, path=%s, rv=%d, err=%v", dbm.GetDBMFile(), rv, err)
+
+	rv, err = dbm.GetAlignment()
+	assert.AssertNil(t, err, "failured, can't obtain the alignment of the mdbm file, path=%s, rv=%d, err=%v", dbm.GetDBMFile(), rv, err)
+	assert.AssertEquals(t, rv, mdbm.Align16Bits, "failured, can't set the alignment, path=%s, rv=%d, err=%v", dbm.GetDBMFile(), rv, err)
+
+	rv, err = dbm.SetAlignment(mdbm.Align32Bits)
+	assert.AssertNil(t, err, "failured, can't set the alignment, path=%s, rv=%d, err=%v", dbm.GetDBMFile(), rv, err)
+
+	rv, err = dbm.GetAlignment()
+	assert.AssertNil(t, err, "failured, can't obtain the alignment of the mdbm file, path=%s, rv=%d, err=%v", dbm.GetDBMFile(), rv, err)
+	assert.AssertEquals(t, rv, mdbm.Align32Bits, "failured, can't set the alignment, path=%s, rv=%d, err=%v", dbm.GetDBMFile(), rv, err)
+
+	rv, err = dbm.SetAlignment(mdbm.Align64Bits)
+	assert.AssertNil(t, err, "failured, can't set the alignment, path=%s, rv=%d, err=%v", dbm.GetDBMFile(), rv, err)
+
+	rv, err = dbm.GetAlignment()
+	assert.AssertNil(t, err, "failured, can't obtain the alignment of the mdbm file, path=%s, rv=%d, err=%v", dbm.GetDBMFile(), rv, err)
+	assert.AssertEquals(t, rv, mdbm.Align64Bits, "failured, can't set the alignment, path=%s, rv=%d, err=%v", dbm.GetDBMFile(), rv, err)
+
+	rv, err = dbm.SetAlignment(999999)
+	assert.AssertNotNil(t, err, "failured, can't check the wrong option, path=%s, rv=%d, err=%v", dbm.GetDBMFile(), rv, err)
+}
+
+func Example_mdbm_LimitDirSize(t *testing.T) {
+
+	var rv int
+	var err error
+
+	dbm := mdbm.NewMDBM()
+	err = dbm.EasyOpen(pathTestDBM3, 0644)
+	defer dbm.EasyClose()
+	assert.AssertNil(t, err, "failured, can't open the mdbm, path=%s, err=%v", dbm.GetDBMFile(), err)
+
+	rv, err = dbm.LimitDirSize(2)
+	assert.AssertNil(t, err, "failured, can't set the limit of size of dir, path=%s, rv=%d, err=%v", dbm.GetDBMFile(), rv, err)
+
+	rv, err = dbm.LimitDirSize(20)
+	assert.AssertNil(t, err, "failured, can't set the limit of size of dir, path=%s, rv=%d, err=%v", dbm.GetDBMFile(), rv, err)
+
+	rv, err = dbm.LimitDirSize(-1)
+	assert.AssertNotNil(t, err, "failured, can't check the wrong option, path=%s, rv=%d, err=%v", dbm.GetDBMFile(), rv, err)
+}
+
+func Test_mdbm_SetWindowSize(t *testing.T) {
+
+	var rv int
+	var err error
+
+	dbm := mdbm.NewMDBM()
+	err = dbm.EasyOpen(pathTestDBM3, 0644)
+	defer dbm.EasyClose()
+	assert.AssertNil(t, err, "failured, can't open the mdbm, path=%s, err=%v", dbm.GetDBMFile(), err)
+
+	rv, err = dbm.SetWindowSize(8192)
+	assert.AssertNil(t, err, "failured, can't set the size of window, path=%s, rv=%d, err=%v", dbm.GetDBMFile(), rv, err)
+
+	rv, err = dbm.SetWindowSize(8192 * 8)
+	assert.AssertNil(t, err, "failured, can't set the size of window, path=%s, rv=%d, err=%v", dbm.GetDBMFile(), rv, err)
+
+	rv, err = dbm.SetWindowSize(7)
+	assert.AssertNotNil(t, err, "failured, can't check the wrong option, path=%s, rv=%d, err=%v", dbm.GetDBMFile(), rv, err)
+
 }
 
 func Test_mdbm_SetCacheMode(t *testing.T) {
@@ -65,25 +159,25 @@ func Test_mdbm_SetCacheMode(t *testing.T) {
 	assert.AssertNil(t, err, "failured, can't open the mdbm, path=%s, err=%v", dbm.GetDBMFile(), err)
 
 	rv, err = dbm.SetStatTimeFunc(mdbm.ClockTSC)
-	assert.AssertNil(t, err, "failured, can't set stat time func, path=%s, rv=%d, err=%v", dbm.GetDBMFile(), rv, err)
+	assert.AssertNil(t, err, "failured, can't set the stat time func, path=%s, rv=%d, err=%v", dbm.GetDBMFile(), rv, err)
 
 	rv, err = dbm.EnableStatOperations(mdbm.StatsBasic | mdbm.StatsTimed)
 	assert.AssertNil(t, err, "failured, can't enable stat operations, path=%s, rv=%d, err=%v", dbm.GetDBMFile(), rv, err)
 
 	rv, err = dbm.SetCacheMode(mdbm.CacheModeNone)
-	assert.AssertNil(t, err, "failured, can't set cachemode(=mdbm.CacheModeNone), path=%s, rv=%d, err=%v", dbm.GetDBMFile(), rv, err)
+	assert.AssertNil(t, err, "failured, can't set the cachemode(=mdbm.CacheModeNone), path=%s, rv=%d, err=%v", dbm.GetDBMFile(), rv, err)
 
 	rv, err = dbm.SetCacheMode(mdbm.CacheModeLFU)
-	assert.AssertNil(t, err, "failured, can't set cachemode(=mdbm.CacheModeLfu), path=%s, rv=%d, err=%v", dbm.GetDBMFile(), rv, err)
+	assert.AssertNil(t, err, "failured, can't set the cachemode(=mdbm.CacheModeLfu), path=%s, rv=%d, err=%v", dbm.GetDBMFile(), rv, err)
 
 	rv, err = dbm.SetCacheMode(mdbm.CacheModeLRU)
-	assert.AssertNil(t, err, "failured, can't set cachemode(=%s), path=%s, rv=%d, err=%v", dbm.GetDBMFile(), rv, err)
+	assert.AssertNil(t, err, "failured, can't set the cachemode(=%s), path=%s, rv=%d, err=%v", dbm.GetDBMFile(), rv, err)
 
 	rv, err = dbm.SetCacheMode(mdbm.CacheModeGDSF)
-	assert.AssertNil(t, err, "failured, can't set cachemode(=%s), path=%s, rv=%d, err=%v", dbm.GetDBMFile(), rv, err)
+	assert.AssertNil(t, err, "failured, can't set the cachemode(=%s), path=%s, rv=%d, err=%v", dbm.GetDBMFile(), rv, err)
 
 	rv, err = dbm.SetCacheMode(mdbm.CacheModeMax)
-	assert.AssertNil(t, err, "failured, can't set cachemode(=%s), path=%s, rv=%d, err=%v", dbm.GetDBMFile(), rv, err)
+	assert.AssertNil(t, err, "failured, can't set the cachemode(=%s), path=%s, rv=%d, err=%v", dbm.GetDBMFile(), rv, err)
 
 	rv, err = dbm.SetCacheMode(mdbm.LargeObjects)
 	assert.AssertNotNil(t, err, "failured, can't cehck wrong cachemode, path=%s, rv=%d, err=%v", dbm.GetDBMFile(), rv, err)
@@ -146,7 +240,7 @@ func Test_mdbm_OrdinaryInsertData_Store1(t *testing.T) {
 	}
 
 	rv, err = dbm.Sync()
-	assert.AssertNil(t, err, "failured, execute to mdbm.Sync()\nrv=%d, err=%v", rv, err)
+	assert.AssertNil(t, err, "failured, execute to mdbm.Sync(), rv=%d, err=%v", rv, err)
 }
 
 func Test_mdbm_OrdinaryInsertData_Store2(t *testing.T) {
@@ -175,6 +269,10 @@ func Test_mdbm_OrdinaryInsertData_StoreWithLock(t *testing.T) {
 		rv, err := dbm.StoreWithLock(i, time.Now().UnixNano(), mdbm.Replace)
 		assert.AssertNil(t, err, "failured, return Value mismatch. value=%d, err=%v\n", rv, err)
 	}
+
+	rv, err := dbm.StoreWithLock([]string{"A", "B"}, time.Now().UnixNano(), mdbm.Replace)
+	assert.AssertNotNil(t, err, "failured, can't check the wrong data type into convertToArByte. value=%d, err=%v\n", rv, err)
+
 }
 
 func Test_mdbm_OrdinaryReaplceData_StoreWithLockSmart(t *testing.T) {
@@ -288,6 +386,10 @@ func Test_mdbm_OrdinaryFetchData_Fetch(t *testing.T) {
 		assert.AssertNil(t, err, "failured, return Value mismatch. value=%s, err=%v\n", val, err)
 		assert.AssertEquals(t, strconv.Itoa(i), val, "return Value mismatch.\nExpected: %v\nActual: %v", i, val)
 	}
+
+	rv, err := dbm.Fetch(map[int]int{0: 1})
+	assert.AssertNotNil(t, err, "failured, can't check the wrong data-tyep, rv=%d, err=%v\n", rv, err)
+
 }
 
 func Test_mdbm_OrdinaryFetchData_RandomFetch(t *testing.T) {
@@ -525,19 +627,21 @@ func Test_mdbm_LargeObject(t *testing.T) {
 	var err error
 
 	dbm := mdbm.NewMDBM()
-	err = dbm.Open(pathTestDBMLarge, mdbm.Create|mdbm.Rdrw|mdbm.LargeObjects, 0644, 0, 0)
+	err = dbm.Open(pathTestDBMLarge, mdbm.Create|mdbm.Rdrw|mdbm.LargeObjects|mdbm.DBSizeMB, 0644, 0, 0)
 	defer dbm.EasyClose()
 	assert.AssertNil(t, err, "failured, can't open the mdbm, path=%s, err=%v", dbm.GetDBMFile(), err)
 
 	rv, err = dbm.SetStatTimeFunc(mdbm.ClockTSC)
-	assert.AssertNil(t, err, "failured, can't set stat time func, path=%s, rv=%d, err=%v", dbm.GetDBMFile(), rv, err)
+	assert.AssertNil(t, err, "failured, can't set the stat time func, path=%s, rv=%d, err=%v", dbm.GetDBMFile(), rv, err)
 
 	rv, err = dbm.EnableStatOperations(mdbm.StatsBasic | mdbm.StatsTimed)
 	assert.AssertNil(t, err, "failured, can't enable stat operations, path=%s, rv=%d, err=%v", dbm.GetDBMFile(), rv, err)
 
-	//if you enabled Large object support(-L), fail
+	err = dbm.SetSpillSize(256)
+	assert.AssertNil(t, err, "failured, can't set the spill size, path=%s, err=%v", dbm.GetDBMFile(), rv, err)
+
 	err = dbm.SetSpillSize(8192)
-	assert.AssertNotNil(t, err, "failured, can't set spill size, path=%s, err=%v", dbm.GetDBMFile(), rv, err)
+	assert.AssertNotNil(t, err, "failured, can't check the error, path=%s, err=%v", dbm.GetDBMFile(), rv, err)
 
 }
 
@@ -552,10 +656,10 @@ func Test_mdbm_MutipleDataType_Store(t *testing.T) {
 	assert.AssertNil(t, err, "failured, can't open the mdbm, path=%s, err=%v", dbm.GetDBMFile(), err)
 
 	rv, err = dbm.SetStatTimeFunc(mdbm.ClockTSC)
-	assert.AssertNil(t, err, "failured, can't set stat time func, path=%s, rv=%d, err=%v", dbm.GetDBMFile(), rv, err)
+	assert.AssertNil(t, err, "failured, can't set the stat time func, path=%s, rv=%d, err=%v", dbm.GetDBMFile(), rv, err)
 
 	rv, err = dbm.EnableStatOperations(mdbm.StatsBasic | mdbm.StatsTimed)
-	assert.AssertNil(t, err, "failured, can't set stat time func, path=%s, rv=%d, err=%v", dbm.GetDBMFile(), rv, err)
+	assert.AssertNil(t, err, "failured, can't set the stat time func, path=%s, rv=%d, err=%v", dbm.GetDBMFile(), rv, err)
 
 	rv, err = dbm.PreLoad()
 	assert.AssertNil(t, err, "failured, can't pre-load the mdbm, path=%s, rv=%d, err=%v", dbm.GetDBMFile(), rv, err)
@@ -638,7 +742,7 @@ func Test_mdbm_LogMinLevel_WrongOption(t *testing.T) {
 	assert.AssertNil(t, err, "failured, can't open the mdbm, path=%s, err=%v", dbm.GetDBMFile(), err)
 
 	err = dbm.LogMinLevel(mdbm.LargeObjects)
-	assert.AssertNotNil(t, err, "oops!. mdbm.LogMinLevel can't check a argument=%d", int(mdbm.LargeObjects))
+	assert.AssertNotNil(t, err, "oops!. mdbm.LogMinLevel can't check the a argument=%d", int(mdbm.LargeObjects))
 }
 
 func Test_mdbm_LogPlugin(t *testing.T) {
@@ -649,19 +753,19 @@ func Test_mdbm_LogPlugin(t *testing.T) {
 	assert.AssertNil(t, err, "failured, can't open the mdbm, path=%s, err=%v", dbm.GetDBMFile(), err)
 
 	err = dbm.LogPlugin(mdbm.LogToFile)
-	assert.AssertNil(t, err, "failured, can't set logging to file, err=%v", err)
+	assert.AssertNil(t, err, "failured, can't set the logging to file, err=%v", err)
 
 	err = dbm.LogPlugin(mdbm.LogToSkip)
-	assert.AssertNil(t, err, "failured, can't set logging to /dev/null , err=%v", err)
+	assert.AssertNil(t, err, "failured, can't set the logging to /dev/null , err=%v", err)
 
 	err = dbm.LogPlugin(mdbm.LogToStdErr)
-	assert.AssertNil(t, err, "failured, can't set loging to /dev/stdout, err=%v", err)
+	assert.AssertNil(t, err, "failured, can't set the loging to /dev/stdout, err=%v", err)
 
 	err = dbm.LogPlugin(mdbm.LogToSysLog)
-	assert.AssertNil(t, err, "failured, can't set loging to syslog, err=%v", err)
+	assert.AssertNil(t, err, "failured, can't set the loging to syslog, err=%v", err)
 
 	err = dbm.LogPlugin(mdbm.LargeObjects)
-	assert.AssertNotNil(t, err, "oops!. mdbm.LogPlugin can't check a argument=%d", int(mdbm.LargeObjects))
+	assert.AssertNotNil(t, err, "oops!. mdbm.LogPlugin can't check the a argument=%d", int(mdbm.LargeObjects))
 
 }
 
@@ -673,10 +777,10 @@ func Test_mdbm_LogToAutoFile(t *testing.T) {
 	assert.AssertNil(t, err, "failured, can't open the mdbm, path=%s, err=%v", dbm.GetDBMFile(), err)
 
 	err = dbm.LogPlugin(mdbm.LogToFile)
-	assert.AssertNil(t, err, "failured, can't set logging to file, err=%v", err)
+	assert.AssertNil(t, err, "failured, can't set the logging to file, err=%v", err)
 
 	rv, err := dbm.LogToAutoFile()
-	assert.AssertNil(t, err, "failured, can't set logging to file, rv=%d, err=%v", rv, err)
+	assert.AssertNil(t, err, "failured, can't set the logging to file, rv=%d, err=%v", rv, err)
 }
 
 func Test_mdbm_AnyDataType_Store(t *testing.T) {
@@ -712,49 +816,55 @@ func Test_mdbm_AnyDataType_Store(t *testing.T) {
 	vcomplex128 := complex128(4)
 
 	rv, err = dbm.StoreWithLock(vbyte, vbyte, mdbm.Insert)
-	assert.AssertNil(t, err, "failed, can't data(byte) add to the mdbm file(=%s)\nrv=%d, err=%v", dbm.GetDBMFile(), rv, err)
+	assert.AssertNil(t, err, "failed, can't data(byte) add to the mdbm file(=%s), rv=%d, err=%v", dbm.GetDBMFile(), rv, err)
 
 	rv, err = dbm.StoreWithLock(varbyte, varbyte, mdbm.Insert)
-	assert.AssertNil(t, err, "failed, can't data([]byte) add to the mdbm file(=%s)\nrv=%d, err=%v", dbm.GetDBMFile(), rv, err)
+	assert.AssertNil(t, err, "failed, can't data([]byte) add to the mdbm file(=%s), rv=%d, err=%v", dbm.GetDBMFile(), rv, err)
 
 	rv, err = dbm.StoreWithLock(vstring, vstring, mdbm.Insert)
-	assert.AssertNil(t, err, "failed, can't data(string) add to the mdbm file(=%s)\nrv=%d, err=%v", dbm.GetDBMFile(), rv, err)
+	assert.AssertNil(t, err, "failed, can't data(string) add to the mdbm file(=%s), rv=%d, err=%v", dbm.GetDBMFile(), rv, err)
 
 	rv, err = dbm.StoreWithLock(vint, vint, mdbm.Insert)
-	assert.AssertNil(t, err, "failed, can't data(int) add to the mdbm file(=%s)\nrv=%d, err=%v", dbm.GetDBMFile(), rv, err)
+	assert.AssertNil(t, err, "failed, can't data(int) add to the mdbm file(=%s), rv=%d, err=%v", dbm.GetDBMFile(), rv, err)
 
 	rv, err = dbm.StoreWithLock(vint16, vint16, mdbm.Insert)
-	assert.AssertNil(t, err, "failed, can't data(int16) add to the mdbm file(=%s)\nrv=%d, err=%v", dbm.GetDBMFile(), rv, err)
+	assert.AssertNil(t, err, "failed, can't data(int16) add to the mdbm file(=%s), rv=%d, err=%v", dbm.GetDBMFile(), rv, err)
 
 	rv, err = dbm.StoreWithLock(vint32, vint32, mdbm.Insert)
-	assert.AssertNil(t, err, "failed, can't data(int32) add to the mdbm file(=%s)\nrv=%d, err=%v", dbm.GetDBMFile(), rv, err)
+	assert.AssertNil(t, err, "failed, can't data(int32) add to the mdbm file(=%s), rv=%d, err=%v", dbm.GetDBMFile(), rv, err)
 
 	rv, err = dbm.StoreWithLock(vint64, vint64, mdbm.Insert)
-	assert.AssertNil(t, err, "failed, can't data(int32) add to the mdbm file(=%s)\nrv=%d, err=%v", dbm.GetDBMFile(), rv, err)
+	assert.AssertNil(t, err, "failed, can't data(int32) add to the mdbm file(=%s), rv=%d, err=%v", dbm.GetDBMFile(), rv, err)
 
 	rv, err = dbm.StoreWithLock(vuint, vuint, mdbm.Insert)
-	assert.AssertNil(t, err, "failed, can't data(uint) add to the mdbm file(=%s)\nrv=%d, err=%v", dbm.GetDBMFile(), rv, err)
+	assert.AssertNil(t, err, "failed, can't data(uint) add to the mdbm file(=%s), rv=%d, err=%v", dbm.GetDBMFile(), rv, err)
 
 	rv, err = dbm.StoreWithLock(vuint16, vuint16, mdbm.Insert)
-	assert.AssertNil(t, err, "failed, can't data(uint16) add to the mdbm file(=%s)\nrv=%d, err=%v", dbm.GetDBMFile(), rv, err)
+	assert.AssertNil(t, err, "failed, can't data(uint16) add to the mdbm file(=%s), rv=%d, err=%v", dbm.GetDBMFile(), rv, err)
 
 	rv, err = dbm.StoreWithLock(vuint32, vuint32, mdbm.Insert)
-	assert.AssertNil(t, err, "failed, can't data(uint32) add to the mdbm file(=%s)\nrv=%d, err=%v", dbm.GetDBMFile(), rv, err)
+	assert.AssertNil(t, err, "failed, can't data(uint32) add to the mdbm file(=%s), rv=%d, err=%v", dbm.GetDBMFile(), rv, err)
 
 	rv, err = dbm.StoreWithLock(vuint64, vuint64, mdbm.Insert)
-	assert.AssertNil(t, err, "failed, can't data(uint32) add to the mdbm file(=%s)\nrv=%d, err=%v", dbm.GetDBMFile(), rv, err)
+	assert.AssertNil(t, err, "failed, can't data(uint32) add to the mdbm file(=%s), rv=%d, err=%v", dbm.GetDBMFile(), rv, err)
 
 	rv, err = dbm.StoreWithLock(vfloat32, vfloat32, mdbm.Insert)
-	assert.AssertNil(t, err, "failed, can't data(float32) add to the mdbm file(=%s)\nrv=%d, err=%v", dbm.GetDBMFile(), rv, err)
+	assert.AssertNil(t, err, "failed, can't data(float32) add to the mdbm file(=%s), rv=%d, err=%v", dbm.GetDBMFile(), rv, err)
 
 	rv, err = dbm.StoreWithLock(vfloat64, vfloat64, mdbm.Insert)
-	assert.AssertNil(t, err, "failed, can't data(float64) add to the mdbm file(=%s)\nrv=%d, err=%v", dbm.GetDBMFile(), rv, err)
+	assert.AssertNil(t, err, "failed, can't data(float64) add to the mdbm file(=%s), rv=%d, err=%v", dbm.GetDBMFile(), rv, err)
 
 	rv, err = dbm.StoreWithLock(vcomplex64, vcomplex64, mdbm.Insert)
-	assert.AssertNil(t, err, "failed, can't data(complex64) add to the mdbm file(=%s)\nrv=%d, err=%v", dbm.GetDBMFile(), rv, err)
+	assert.AssertNil(t, err, "failed, can't data(complex64) add to the mdbm file(=%s), rv=%d, err=%v", dbm.GetDBMFile(), rv, err)
 
 	rv, err = dbm.StoreWithLock(vcomplex128, vcomplex128, mdbm.Insert)
-	assert.AssertNil(t, err, "failed, can't data(complex128) add to the mdbm file(=%s)\nrv=%d, err=%v", dbm.GetDBMFile(), rv, err)
+	assert.AssertNil(t, err, "failed, can't data(complex128) add to the mdbm file(=%s), rv=%d, err=%v", dbm.GetDBMFile(), rv, err)
+
+	rv, err = dbm.StoreWithLock([]string{"A"}, vcomplex128, mdbm.Insert)
+	assert.AssertNotNil(t, err, "failed, can't cehck the wrong data-type,rv=%d, err=%v", dbm.GetDBMFile(), rv, err)
+
+	rv, err = dbm.StoreWithLock(vcomplex128, []string{"B"}, mdbm.Replace)
+	assert.AssertNotNil(t, err, "failed, can't cehck the wrong data-type,rv=%d, err=%v", dbm.GetDBMFile(), rv, err)
 
 	rv, err = dbm.Sync()
 	assert.AssertNil(t, err, "failured, can't sync database, path=%s, rv=%d, err=%v", dbm.GetDBMFile(), rv, err)
@@ -798,7 +908,7 @@ func Test_mdbm_AnyDataType_StoreStr(t *testing.T) {
 	vstring := "hello_world"
 
 	vint := int(1)
-	//vint8 := int8(12) //not support. because int8 and byte are same data type
+	vint8 := int8(12) //not support. because int8 and byte are same data type
 	vint16 := int16(3)
 	vint32 := int32(4)
 	vint64 := int64(5)
@@ -815,54 +925,60 @@ func Test_mdbm_AnyDataType_StoreStr(t *testing.T) {
 	vcomplex64 := complex64(3)
 	vcomplex128 := complex128(4)
 
+	rv, err = dbm.StoreStrWithLock(true, true, mdbm.Insert)
+	assert.AssertNil(t, err, "failed, can't data(byte) add to the mdbm file(=%s), rv=%d, err=%v", dbm.GetDBMFile(), rv, err)
+
 	rv, err = dbm.StoreStrWithLock(vbyte, vbyte, mdbm.Insert)
-	assert.AssertNil(t, err, "failed, can't data(byte) add to the mdbm file(=%s)\nrv=%d, err=%v", dbm.GetDBMFile(), rv, err)
+	assert.AssertNil(t, err, "failed, can't data(byte) add to the mdbm file(=%s), rv=%d, err=%v", dbm.GetDBMFile(), rv, err)
 
 	rv, err = dbm.StoreStrWithLock(varbyte, varbyte, mdbm.Insert)
-	assert.AssertNil(t, err, "failed, can't data([]byte) add to the mdbm file(=%s)\nrv=%d, err=%v", dbm.GetDBMFile(), rv, err)
+	assert.AssertNil(t, err, "failed, can't data([]byte) add to the mdbm file(=%s), rv=%d, err=%v", dbm.GetDBMFile(), rv, err)
 
 	rv, err = dbm.StoreStrWithLock(vstring, vstring, mdbm.Insert)
-	assert.AssertNil(t, err, "failed, can't data(string) add to the mdbm file(=%s)\nrv=%d, err=%v", dbm.GetDBMFile(), rv, err)
+	assert.AssertNil(t, err, "failed, can't data(string) add to the mdbm file(=%s), rv=%d, err=%v", dbm.GetDBMFile(), rv, err)
 
 	rv, err = dbm.StoreStrWithLock(vint, vint, mdbm.Insert)
-	assert.AssertNil(t, err, "failed, can't data(int) add to the mdbm file(=%s)\nrv=%d, err=%v", dbm.GetDBMFile(), rv, err)
+	assert.AssertNil(t, err, "failed, can't data(int) add to the mdbm file(=%s), rv=%d, err=%v", dbm.GetDBMFile(), rv, err)
+
+	rv, err = dbm.StoreStrWithLock(vint8, vint8, mdbm.Insert)
+	assert.AssertNil(t, err, "failed, can't data(int) add to the mdbm file(=%s), rv=%d, err=%v", dbm.GetDBMFile(), rv, err)
 
 	rv, err = dbm.StoreStrWithLock(vint16, vint16, mdbm.Insert)
-	assert.AssertNil(t, err, "failed, can't data(int16) add to the mdbm file(=%s)\nrv=%d, err=%v", dbm.GetDBMFile(), rv, err)
+	assert.AssertNil(t, err, "failed, can't data(int16) add to the mdbm file(=%s), rv=%d, err=%v", dbm.GetDBMFile(), rv, err)
 
 	rv, err = dbm.StoreStrWithLock(vint32, vint32, mdbm.Insert)
-	assert.AssertNil(t, err, "failed, can't data(int32) add to the mdbm file(=%s)\nrv=%d, err=%v", dbm.GetDBMFile(), rv, err)
+	assert.AssertNil(t, err, "failed, can't data(int32) add to the mdbm file(=%s), rv=%d, err=%v", dbm.GetDBMFile(), rv, err)
 
 	rv, err = dbm.StoreStrWithLock(vint64, vint64, mdbm.Insert)
-	assert.AssertNil(t, err, "failed, can't data(int32) add to the mdbm file(=%s)\nrv=%d, err=%v", dbm.GetDBMFile(), rv, err)
+	assert.AssertNil(t, err, "failed, can't data(int32) add to the mdbm file(=%s), rv=%d, err=%v", dbm.GetDBMFile(), rv, err)
 
 	rv, err = dbm.StoreStrWithLock(vuint, vuint, mdbm.Insert)
-	assert.AssertNil(t, err, "failed, can't data(uint) add to the mdbm file(=%s)\nrv=%d, err=%v", dbm.GetDBMFile(), rv, err)
+	assert.AssertNil(t, err, "failed, can't data(uint) add to the mdbm file(=%s), rv=%d, err=%v", dbm.GetDBMFile(), rv, err)
 
 	rv, err = dbm.StoreStrWithLock(vuint16, vuint16, mdbm.Insert)
-	assert.AssertNil(t, err, "failed, can't data(uint16) add to the mdbm file(=%s)\nrv=%d, err=%v", dbm.GetDBMFile(), rv, err)
+	assert.AssertNil(t, err, "failed, can't data(uint16) add to the mdbm file(=%s), rv=%d, err=%v", dbm.GetDBMFile(), rv, err)
 
 	rv, err = dbm.StoreStrWithLock(vuint32, vuint32, mdbm.Insert)
-	assert.AssertNil(t, err, "failed, can't data(uint32) add to the mdbm file(=%s)\nrv=%d, err=%v", dbm.GetDBMFile(), rv, err)
+	assert.AssertNil(t, err, "failed, can't data(uint32) add to the mdbm file(=%s), rv=%d, err=%v", dbm.GetDBMFile(), rv, err)
 
 	rv, err = dbm.StoreStrWithLock(vuint64, vuint64, mdbm.Insert)
-	assert.AssertNil(t, err, "failed, can't data(uint32) add to the mdbm file(=%s)\nrv=%d, err=%v", dbm.GetDBMFile(), rv, err)
+	assert.AssertNil(t, err, "failed, can't data(uint32) add to the mdbm file(=%s), rv=%d, err=%v", dbm.GetDBMFile(), rv, err)
 
 	rv, err = dbm.StoreStrWithLock(vfloat32, vfloat32, mdbm.Insert)
-	assert.AssertNil(t, err, "failed, can't data(float32) add to the mdbm file(=%s)\nrv=%d, err=%v", dbm.GetDBMFile(), rv, err)
+	assert.AssertNil(t, err, "failed, can't data(float32) add to the mdbm file(=%s), rv=%d, err=%v", dbm.GetDBMFile(), rv, err)
 
 	rv, err = dbm.StoreStrWithLock(vfloat64, vfloat64, mdbm.Insert)
-	assert.AssertNil(t, err, "failed, can't data(float64) add to the mdbm file(=%s)\nrv=%d, err=%v", dbm.GetDBMFile(), rv, err)
+	assert.AssertNil(t, err, "failed, can't data(float64) add to the mdbm file(=%s), rv=%d, err=%v", dbm.GetDBMFile(), rv, err)
 
 	rv, err = dbm.StoreStrWithLock(vcomplex64, vcomplex64, mdbm.Insert)
-	assert.AssertNil(t, err, "failed, can't data(complex64) add to the mdbm file(=%s)\nrv=%d, err=%v", dbm.GetDBMFile(), rv, err)
+	assert.AssertNil(t, err, "failed, can't data(complex64) add to the mdbm file(=%s), rv=%d, err=%v", dbm.GetDBMFile(), rv, err)
 
 	rv, err = dbm.StoreStrWithLock(vcomplex128, vcomplex128, mdbm.Insert)
-	assert.AssertNil(t, err, "failed, can't data(complex128) add to the mdbm file(=%s)\nrv=%d, err=%v", dbm.GetDBMFile(), rv, err)
+	assert.AssertNil(t, err, "failed, can't data(complex128) add to the mdbm file(=%s), rv=%d, err=%v", dbm.GetDBMFile(), rv, err)
 
 	wrongval := map[int]string{0: "hello"}
 	rv, err = dbm.StoreStrWithLock(wrongval, wrongval, mdbm.Insert)
-	assert.AssertNotNil(t, err, "failed, can't check wrong data type, the mdbm file(=%s)\nrv=%d, err=%v", dbm.GetDBMFile(), rv, err)
+	assert.AssertNotNil(t, err, "failed, can't check the wrong data type, the mdbm file(=%s), rv=%d, err=%v", dbm.GetDBMFile(), rv, err)
 
 	rv, err = dbm.Sync()
 	assert.AssertNil(t, err, "failured, can't sync database, path=%s, rv=%d, err=%v", dbm.GetDBMFile(), rv, err)
@@ -889,6 +1005,7 @@ func Test_mdbm_AnyDataType_StoreStr(t *testing.T) {
 	}
 
 	assert.AssertEquals(t, cnt, 15, "count of records value mismatch.\ngot=%d, want=%d", cnt, 15)
+
 }
 
 func Test_mdbm_TryLock_UnLock(t *testing.T) {
@@ -982,7 +1099,7 @@ func Test_mdbm_EasyGetNumOfRows(t *testing.T) {
 
 	dbm.EasyClose()
 	_, err = dbm.EasyGetNumOfRows()
-	assert.AssertNotNil(t, err, "failured, can't check the mdbm closed, err=%v\n", err)
+	assert.AssertNotNil(t, err, "failured, can't check the the mdbm closed, err=%v\n", err)
 
 }
 
@@ -999,7 +1116,7 @@ func Test_mdbm_EasyGetKeyList(t *testing.T) {
 
 	dbm.EasyClose()
 	_, err = dbm.EasyGetKeyList()
-	assert.AssertNotNil(t, err, "failured, can't check the mdbm closed, err=%v\n", err)
+	assert.AssertNotNil(t, err, "failured, can't check the the mdbm closed, err=%v\n", err)
 }
 
 func Test_mdbm_LockSmart_UnLockSmart(t *testing.T) {
@@ -1018,7 +1135,7 @@ func Test_mdbm_LockSmart_UnLockSmart(t *testing.T) {
 	assert.AssertNil(t, err, "failured, can't obtain TryLockSmart, rv=%d ,err=%v\n", rv, err)
 
 	rv, err = dbm.Store(vint, vint, mdbm.Replace)
-	assert.AssertNil(t, err, "failed, can't data(=%d) add to the mdbm file(=%s)\nrv=%d, err=%v", vint, dbm.GetDBMFile(), rv, err)
+	assert.AssertNil(t, err, "failed, can't data(=%d) add to the mdbm file(=%s), rv=%d, err=%v", vint, dbm.GetDBMFile(), rv, err)
 
 	rv, err = dbm.UnLockSmart(vint, mdbm.Rdrw)
 	assert.AssertNil(t, err, "failured, can't obtain TryLockSmart, rv=%d ,err=%v\n", rv, err)
@@ -1040,7 +1157,7 @@ func Test_mdbm_TryLockSmart_UnLockSmart(t *testing.T) {
 	assert.AssertNil(t, err, "failured, can't obtain TryLockSmart, rv=%d ,err=%v\n", rv, err)
 
 	rv, err = dbm.Store(vint, vint, mdbm.Replace)
-	assert.AssertNil(t, err, "failed, can't data(=%d) add to the mdbm file(=%s)\nrv=%d, err=%v", vint, dbm.GetDBMFile(), rv, err)
+	assert.AssertNil(t, err, "failed, can't data(=%d) add to the mdbm file(=%s), rv=%d, err=%v", vint, dbm.GetDBMFile(), rv, err)
 
 	rv, err = dbm.UnLockSmart(vint, mdbm.Rdrw)
 	assert.AssertNil(t, err, "failured, can't obtain TryLockSmart, rv=%d ,err=%v\n", rv, err)
@@ -1126,10 +1243,10 @@ func Test_mdbm_GetHashValue(t *testing.T) {
 	assert.AssertEquals(t, rv, uint32(1224750888), "return Value mismatch.\nExpected: %v\nActual: %v", rv, uint32(1224750888))
 
 	rv, err = dbm.GetHashValue(1, mdbm.DefaultHash)
-	assert.AssertNotEquals(t, rv, uint32(1), "return Value mismatch.\nrv=%d, err=%v", rv, err)
+	assert.AssertNotEquals(t, rv, uint32(1), "return Value mismatch., rv=%d, err=%v", rv, err)
 
 	_, err = dbm.GetHashValue(1, mdbm.LargeObjects)
-	assert.AssertNotNil(t, err, "failured, can't check hash type err=%v", err)
+	assert.AssertNotNil(t, err, "failured, can't check the hash type err=%v", err)
 }
 
 func Test_mdbm_StoreStr(t *testing.T) {
@@ -1143,11 +1260,11 @@ func Test_mdbm_StoreStr(t *testing.T) {
 	assert.AssertNil(t, err, "failured, can't open the mdbm, path=%s, err=%v", dbm.GetDBMFile(), err)
 
 	rv, err = dbm.SetCacheMode(mdbm.CacheModeMax)
-	assert.AssertNil(t, err, "failured, can't set cachemode(=%s), path=%s, rv=%d, err=%v", dbm.GetDBMFile(), rv, err)
+	assert.AssertNil(t, err, "failured, can't set the cachemode(=%s), path=%s, rv=%d, err=%v", dbm.GetDBMFile(), rv, err)
 
 	for i := 0; i <= loopLimit; i++ {
 		rv, err = dbm.StoreStr(i, i, mdbm.Insert)
-		assert.AssertNil(t, err, "failed, can't data(=%d) add to the mdbm file(=%s)\nrv=%d, err=%v", i, dbm.GetDBMFile(), rv, err)
+		assert.AssertNil(t, err, "failed, can't data(=%d) add to the mdbm file(=%s), rv=%d, err=%v", i, dbm.GetDBMFile(), rv, err)
 	}
 
 	key, val, err := dbm.First()
@@ -1179,42 +1296,75 @@ func Test_mdbm_StoreStrAnyLock(t *testing.T) {
 	assert.AssertNil(t, err, "failured, can't open the mdbm, path=%s, err=%v", dbm.GetDBMFile(), err)
 
 	rv, err = dbm.SetCacheMode(mdbm.CacheModeMax)
-	assert.AssertNil(t, err, "failured, can't set cachemode(=%s), path=%s, rv=%d, err=%v", dbm.GetDBMFile(), rv, err)
+	assert.AssertNil(t, err, "failured, can't set the cachemode(=%s), path=%s, rv=%d, err=%v", dbm.GetDBMFile(), rv, err)
 
 	for i := 0; i <= loopLimit; i++ {
 
 		rv, err = dbm.StoreStrWithLock(i, i, mdbm.Insert)
-		assert.AssertNil(t, err, "failed, can't data(=%d) add to the mdbm file(=%s)\nrv=%d, err=%v", i, dbm.GetDBMFile(), rv, err)
+		assert.AssertNil(t, err, "failed, can't data(=%d) add to the mdbm file(=%s), rv=%d, err=%v", i, dbm.GetDBMFile(), rv, err)
 
 		i++
+		if i > loopLimit {
+			break
+		}
 		rv, err = dbm.StoreStrWithLockSmart(i, i, mdbm.Insert, mdbm.Rdrw)
-		assert.AssertNil(t, err, "failed, can't data(=%d) add to the mdbm file(=%s)\nrv=%d, err=%v", i, dbm.GetDBMFile(), rv, err)
+		assert.AssertNil(t, err, "failed, can't data(=%d) add to the mdbm file(=%s), rv=%d, err=%v", i, dbm.GetDBMFile(), rv, err)
 
 		i++
+		if i > loopLimit {
+			break
+		}
+
 		rv, err = dbm.StoreStrWithLockShared(i, i, mdbm.Insert)
-		assert.AssertNil(t, err, "failed, can't data(=%d) add to the mdbm file(=%s)\nrv=%d, err=%v", i, dbm.GetDBMFile(), rv, err)
+		assert.AssertNil(t, err, "failed, can't data(=%d) add to the mdbm file(=%s), rv=%d, err=%v", i, dbm.GetDBMFile(), rv, err)
 
 		i++
+		if i > loopLimit {
+			break
+		}
+
 		rv, err = dbm.StoreStrWithPlock(i, i, mdbm.Insert, mdbm.Rdrw)
-		assert.AssertNil(t, err, "failed, can't data(=%d) add to the mdbm file(=%s)\nrv=%d, err=%v", i, dbm.GetDBMFile(), rv, err)
+		assert.AssertNil(t, err, "failed, can't data(=%d) add to the mdbm file(=%s), rv=%d, err=%v", i, dbm.GetDBMFile(), rv, err)
 
 		i++
+		if i > loopLimit {
+			break
+		}
+
 		rv, err = dbm.StoreStrWithTryLock(i, i, mdbm.Insert)
-		assert.AssertNil(t, err, "failed, can't data(=%d) add to the mdbm file(=%s)\nrv=%d, err=%v", i, dbm.GetDBMFile(), rv, err)
+		assert.AssertNil(t, err, "failed, can't data(=%d) add to the mdbm file(=%s), rv=%d, err=%v", i, dbm.GetDBMFile(), rv, err)
 
 		i++
+		if i > loopLimit {
+			break
+		}
+
 		rv, err = dbm.StoreStrWithTryLockSmart(i, i, mdbm.Insert, mdbm.Rdrw)
-		assert.AssertNil(t, err, "failed, can't data(=%d) add to the mdbm file(=%s)\nrv=%d, err=%v", i, dbm.GetDBMFile(), rv, err)
+		assert.AssertNil(t, err, "failed, can't data(=%d) add to the mdbm file(=%s), rv=%d, err=%v", i, dbm.GetDBMFile(), rv, err)
 
 		i++
+		if i > loopLimit {
+			break
+		}
+
 		rv, err = dbm.StoreStrWithTryLockShared(i, i, mdbm.Insert)
-		assert.AssertNil(t, err, "failed, can't data(=%d) add to the mdbm file(=%s)\nrv=%d, err=%v", i, dbm.GetDBMFile(), rv, err)
+		assert.AssertNil(t, err, "failed, can't data(=%d) add to the mdbm file(=%s), rv=%d, err=%v", i, dbm.GetDBMFile(), rv, err)
 
 		i++
+		if i > loopLimit {
+			break
+		}
+
 		rv, err = dbm.StoreStrWithTryPlock(i, i, mdbm.Insert, mdbm.Rdrw)
-		assert.AssertNil(t, err, "failed, can't data(=%d) add to the mdbm file(=%s)\nrv=%d, err=%v", i, dbm.GetDBMFile(), rv, err)
+		assert.AssertNil(t, err, "failed, can't data(=%d) add to the mdbm file(=%s), rv=%d, err=%v", i, dbm.GetDBMFile(), rv, err)
 
 	}
+
+	rv, err = dbm.StoreStrWithLock([]int{1, 2}, 0, mdbm.Replace)
+	assert.AssertNotNil(t, err, "failed, can't check the wrong data-tyep, rv=%d, err=%v", dbm.GetDBMFile(), rv, err)
+
+	rv, err = dbm.StoreStrWithLock(0, []int{1, 2, 3}, mdbm.Replace)
+	assert.AssertNotNil(t, err, "failed, can't check the wrong data-tyep, rv=%d, err=%v", dbm.GetDBMFile(), rv, err)
 
 	key, val, err := dbm.First()
 	assert.AssertNil(t, err, "failured, can't get first recods, path=%s, err=%v", dbm.GetDBMFile(), err)
@@ -1430,7 +1580,7 @@ func Test_mdbm_StoreDup(t *testing.T) {
 
 		for r := 0; r <= 10; r++ {
 			rv, err := dbm.Store(i, time.Now().UnixNano(), mdbm.InsertDup)
-			assert.AssertNil(t, err, "failed, can't data(=%d) add to the mdbm file(=%s)\nrv=%d, err=%v", i, dbm.GetDBMFile(), rv, err)
+			assert.AssertNil(t, err, "failed, can't data(=%d) add to the mdbm file(=%s), rv=%d, err=%v", i, dbm.GetDBMFile(), rv, err)
 		}
 	}
 }
@@ -1473,7 +1623,7 @@ func Test_mdbm_SetHash(t *testing.T) {
 	for _, hashtype := range hashlist {
 
 		err = dbm.SetHash(mdbm.HashOZ)
-		assert.AssertNil(t, err, "failured, can't set hash(=%d) to the mdbm, path=%s, err=%v", hashtype, dbm.GetDBMFile(), err)
+		assert.AssertNil(t, err, "failured, can't set the hash(=%d) to the mdbm, path=%s, err=%v", hashtype, dbm.GetDBMFile(), err)
 
 		rv, err = dbm.GetHash()
 		assert.AssertNil(t, err, "failured, can't get hash type of the mdbm, path=%s, err=%v", dbm.GetDBMFile(), err)
@@ -1481,7 +1631,7 @@ func Test_mdbm_SetHash(t *testing.T) {
 	}
 
 	err = dbm.SetHash(mdbm.LargeObjects)
-	assert.AssertNotNil(t, err, "failured, can't check wrong option, path=%s", pathTestDBMHash)
+	assert.AssertNotNil(t, err, "failured, can't check the wrong option, path=%s", pathTestDBMHash)
 }
 
 func Test_mdbm_ReplaceDB(t *testing.T) {
@@ -1512,7 +1662,7 @@ func Test_mdbm_GetDBStats(t *testing.T) {
 	assert.AssertNil(t, err, "failured, can't obtain a DBStats information, path=%s, rv=%d, err=%v", dbm.GetDBMFile(), rv, err)
 
 	rv, _, _, err = dbm.GetDBStats(mdbm.LargeObjects)
-	assert.AssertNotNil(t, err, "failured, can't check wrong option, path=%s, rv=%d, err=%v", dbm.GetDBMFile(), rv, err)
+	assert.AssertNotNil(t, err, "failured, can't check the wrong option, path=%s, rv=%d, err=%v", dbm.GetDBMFile(), rv, err)
 
 }
 
@@ -1533,7 +1683,7 @@ func Test_mdbm_SetStatTimeFunc(t *testing.T) {
 	assert.AssertNil(t, err, "failured, can't enables use of TSC (mdbm.ClockTSC), path=%s, rv=%d, err=%v", dbm.GetDBMFile(), rv, err)
 
 	rv, err = dbm.SetStatTimeFunc(mdbm.LargeObjects)
-	assert.AssertNotNil(t, err, "failured, can't check wrong option, path=%s, rv=%d, err=%v", dbm.GetDBMFile(), rv, err)
+	assert.AssertNotNil(t, err, "failured, can't check the wrong option, path=%s, rv=%d, err=%v", dbm.GetDBMFile(), rv, err)
 }
 
 func Test_mdbm_GetStatTime(t *testing.T) {
@@ -1559,7 +1709,7 @@ func Test_mdbm_GetStatTime(t *testing.T) {
 	assert.AssertNil(t, err, "failured, can't obtain stat time  (mdbm.StatTypeMax), path=%s, rv=%d, err=%v", dbm.GetDBMFile(), rv, err)
 
 	rv, _, err = dbm.GetStatTime(mdbm.LargeObjects)
-	assert.AssertNotNil(t, err, "failured, can't check wrong option, path=%s, rv=%d, err=%v", dbm.GetDBMFile(), rv, err)
+	assert.AssertNotNil(t, err, "failured, can't check the wrong option, path=%s, rv=%d, err=%v", dbm.GetDBMFile(), rv, err)
 }
 
 func Test_mdbm_GetStatCounter(t *testing.T) {
@@ -1585,7 +1735,7 @@ func Test_mdbm_GetStatCounter(t *testing.T) {
 	assert.AssertNil(t, err, "failured, can't obtain stat count (mdbm.StatTypeMax), path=%s, rv=%d, err=%v", dbm.GetDBMFile(), rv, err)
 
 	rv, _, err = dbm.GetStatCounter(mdbm.LargeObjects)
-	assert.AssertNotNil(t, err, "failured, can't check wrong option, path=%s, rv=%d, err=%v", dbm.GetDBMFile(), rv, err)
+	assert.AssertNotNil(t, err, "failured, can't check the wrong option, path=%s, rv=%d, err=%v", dbm.GetDBMFile(), rv, err)
 
 }
 
@@ -1609,7 +1759,7 @@ func Test_mdbm_EnableStatOperations(t *testing.T) {
 	assert.AssertNil(t, err, "failured, can't enable stat operations  (mdbm.StatsTimed|mdbm.StatsBasic), path=%s, rv=%d, err=%v", dbm.GetDBMFile(), rv, err)
 
 	rv, err = dbm.EnableStatOperations(mdbm.LargeObjects)
-	assert.AssertNotNil(t, err, "failured, can't check wrong option, path=%s, rv=%d, err=%v", dbm.GetDBMFile(), rv, err)
+	assert.AssertNotNil(t, err, "failured, can't check the wrong option, path=%s, rv=%d, err=%v", dbm.GetDBMFile(), rv, err)
 
 }
 
@@ -1625,13 +1775,13 @@ func Test_mdbm_Check(t *testing.T) {
 		assert.AssertNil(t, err, "failured, can't open the mdbm, path=%s, err=%v", dbm.GetDBMFile(), err)
 
 		rv, _, err = dbm.Check(10, false)
-		assert.AssertNil(t, err, "failured, can't check the mdbm, path=%s, rv=%d, err=%v", dbm.GetDBMFile(), rv, err)
+		assert.AssertNil(t, err, "failured, can't check the the mdbm, path=%s, rv=%d, err=%v", dbm.GetDBMFile(), rv, err)
 
 		rv, _, err = dbm.Check(10, true)
-		assert.AssertNil(t, err, "failured, can't check the mdbm, path=%s, rv=%d, err=%v", dbm.GetDBMFile(), rv, err)
+		assert.AssertNil(t, err, "failured, can't check the the mdbm, path=%s, rv=%d, err=%v", dbm.GetDBMFile(), rv, err)
 
 		rv, _, err = dbm.Check(99, true)
-		assert.AssertNotNil(t, err, "failured, can't check wrong option , path=%s, rv=%d, err=%v", dbm.GetDBMFile(), rv, err)
+		assert.AssertNotNil(t, err, "failured, can't check the wrong option , path=%s, rv=%d, err=%v", dbm.GetDBMFile(), rv, err)
 
 		dbm.EasyClose()
 	}
@@ -1649,22 +1799,22 @@ func Test_mdbm_Protect(t *testing.T) {
 		assert.AssertNil(t, err, "failured, can't open the mdbm, path=%s, err=%v", dbm.GetDBMFile(), err)
 
 		rv, err = dbm.Protect(mdbm.ProtNone)
-		assert.AssertNil(t, err, "failured, can't set protect, path=%s, rv=%d, err=%v", dbm.GetDBMFile(), rv, err)
+		assert.AssertNil(t, err, "failured, can't set the protect, path=%s, rv=%d, err=%v", dbm.GetDBMFile(), rv, err)
 
 		rv, err = dbm.Protect(mdbm.ProtRead)
-		assert.AssertNil(t, err, "failured, can't set protect, path=%s, rv=%d, err=%v", dbm.GetDBMFile(), rv, err)
+		assert.AssertNil(t, err, "failured, can't set the protect, path=%s, rv=%d, err=%v", dbm.GetDBMFile(), rv, err)
 
 		rv, err = dbm.Protect(mdbm.ProtWrite)
-		assert.AssertNil(t, err, "failured, can't set protect, path=%s, rv=%d, err=%v", dbm.GetDBMFile(), rv, err)
+		assert.AssertNil(t, err, "failured, can't set the protect, path=%s, rv=%d, err=%v", dbm.GetDBMFile(), rv, err)
 
 		rv, err = dbm.Protect(mdbm.ProtAccess)
-		assert.AssertNil(t, err, "failured, can't set protect, path=%s, rv=%d, err=%v", dbm.GetDBMFile(), rv, err)
+		assert.AssertNil(t, err, "failured, can't set the protect, path=%s, rv=%d, err=%v", dbm.GetDBMFile(), rv, err)
 
 		rv, err = dbm.Protect(mdbm.ProtNoaccess)
-		assert.AssertNil(t, err, "failured, can't set protect, path=%s, rv=%d, err=%v", dbm.GetDBMFile(), rv, err)
+		assert.AssertNil(t, err, "failured, can't set the protect, path=%s, rv=%d, err=%v", dbm.GetDBMFile(), rv, err)
 
 		rv, err = dbm.Protect(mdbm.LargeObjects)
-		assert.AssertNotNil(t, err, "failured, can't check wrong option, path=%s, rv=%d, err=%v", dbm.GetDBMFile(), rv, err)
+		assert.AssertNotNil(t, err, "failured, can't check the wrong option, path=%s, rv=%d, err=%v", dbm.GetDBMFile(), rv, err)
 
 		dbm.EasyClose()
 	}
@@ -1683,7 +1833,7 @@ func Test_mdbm_DeleteStrAnyLock(t *testing.T) {
 	for i := 0; i <= loopLimit; i++ {
 
 		rv, err = dbm.DeleteStr(i)
-		assert.AssertNil(t, err, "failed, can't delete a record(key=%d) in the mdbm file(=%s)\nrv=%d, err=%v", i, dbm.GetDBMFile(), rv, err)
+		assert.AssertNil(t, err, "failed, can't delete a record(key=%d) in the mdbm file(=%s), rv=%d, err=%v", i, dbm.GetDBMFile(), rv, err)
 
 		i++
 		if i > loopLimit {
@@ -1691,7 +1841,7 @@ func Test_mdbm_DeleteStrAnyLock(t *testing.T) {
 		}
 
 		rv, err = dbm.DeleteStrWithLock(i)
-		assert.AssertNil(t, err, "failed, can't delete a record(key=%d) in the mdbm file(=%s)\nrv=%d, err=%v", i, dbm.GetDBMFile(), rv, err)
+		assert.AssertNil(t, err, "failed, can't delete a record(key=%d) in the mdbm file(=%s), rv=%d, err=%v", i, dbm.GetDBMFile(), rv, err)
 
 		i++
 		if i > loopLimit {
@@ -1699,7 +1849,7 @@ func Test_mdbm_DeleteStrAnyLock(t *testing.T) {
 		}
 
 		rv, err = dbm.DeleteStrWithLockSmart(i, mdbm.Rdrw)
-		assert.AssertNil(t, err, "failed, can't delete a record(key=%d) in the mdbm file(=%s)\nrv=%d, err=%v", i, dbm.GetDBMFile(), rv, err)
+		assert.AssertNil(t, err, "failed, can't delete a record(key=%d) in the mdbm file(=%s), rv=%d, err=%v", i, dbm.GetDBMFile(), rv, err)
 
 		i++
 		if i > loopLimit {
@@ -1707,7 +1857,7 @@ func Test_mdbm_DeleteStrAnyLock(t *testing.T) {
 		}
 
 		rv, err = dbm.DeleteStrWithLockShared(i)
-		assert.AssertNil(t, err, "failed, can't delete a record(key=%d) in the mdbm file(=%s)\nrv=%d, err=%v", i, dbm.GetDBMFile(), rv, err)
+		assert.AssertNil(t, err, "failed, can't delete a record(key=%d) in the mdbm file(=%s), rv=%d, err=%v", i, dbm.GetDBMFile(), rv, err)
 
 		i++
 		if i > loopLimit {
@@ -1715,7 +1865,7 @@ func Test_mdbm_DeleteStrAnyLock(t *testing.T) {
 		}
 
 		rv, err = dbm.DeleteStrWithPlock(i, mdbm.Rdrw)
-		assert.AssertNil(t, err, "failed, can't delete a record(key=%d) in the mdbm file(=%s)\nrv=%d, err=%v", i, dbm.GetDBMFile(), rv, err)
+		assert.AssertNil(t, err, "failed, can't delete a record(key=%d) in the mdbm file(=%s), rv=%d, err=%v", i, dbm.GetDBMFile(), rv, err)
 
 		i++
 		if i > loopLimit {
@@ -1723,7 +1873,7 @@ func Test_mdbm_DeleteStrAnyLock(t *testing.T) {
 		}
 
 		rv, err = dbm.DeleteStrWithTryLock(i)
-		assert.AssertNil(t, err, "failed, can't delete a record(key=%d) in the mdbm file(=%s)\nrv=%d, err=%v", i, dbm.GetDBMFile(), rv, err)
+		assert.AssertNil(t, err, "failed, can't delete a record(key=%d) in the mdbm file(=%s), rv=%d, err=%v", i, dbm.GetDBMFile(), rv, err)
 
 		i++
 		if i > loopLimit {
@@ -1731,7 +1881,7 @@ func Test_mdbm_DeleteStrAnyLock(t *testing.T) {
 		}
 
 		rv, err = dbm.DeleteStrWithTryLockSmart(i, mdbm.Rdrw)
-		assert.AssertNil(t, err, "failed, can't delete a record(key=%d) in the mdbm file(=%s)\nrv=%d, err=%v", i, dbm.GetDBMFile(), rv, err)
+		assert.AssertNil(t, err, "failed, can't delete a record(key=%d) in the mdbm file(=%s), rv=%d, err=%v", i, dbm.GetDBMFile(), rv, err)
 
 		i++
 		if i > loopLimit {
@@ -1739,7 +1889,7 @@ func Test_mdbm_DeleteStrAnyLock(t *testing.T) {
 		}
 
 		rv, err = dbm.DeleteStrWithTryLockShared(i)
-		assert.AssertNil(t, err, "failed, can't delete a record(key=%d) in the mdbm file(=%s)\nrv=%d, err=%v", i, dbm.GetDBMFile(), rv, err)
+		assert.AssertNil(t, err, "failed, can't delete a record(key=%d) in the mdbm file(=%s), rv=%d, err=%v", i, dbm.GetDBMFile(), rv, err)
 
 		i++
 		if i > loopLimit {
@@ -1747,7 +1897,7 @@ func Test_mdbm_DeleteStrAnyLock(t *testing.T) {
 		}
 
 		rv, err = dbm.DeleteStrWithTryPlock(i, mdbm.Rdrw)
-		assert.AssertNil(t, err, "failed, can't delete a record(key=%d) in the mdbm file(=%s)\nrv=%d, err=%v", i, dbm.GetDBMFile(), rv, err)
+		assert.AssertNil(t, err, "failed, can't delete a record(key=%d) in the mdbm file(=%s), rv=%d, err=%v", i, dbm.GetDBMFile(), rv, err)
 	}
 }
 
@@ -1965,175 +2115,181 @@ func Test_mdbm_checkAvailable(t *testing.T) {
 	iter := dbm.GetNewIter()
 
 	_, err = dbm.DupHandle()
-	assert.AssertNotNil(t, err, "failured, can't check avaliable the mdbm handler, path=%s, err=%v", dbm.GetDBMFile(), err)
+	assert.AssertNotNil(t, err, "failured, can't check the avaliable the mdbm handler, path=%s, err=%v", dbm.GetDBMFile(), err)
 
 	_, err = dbm.GetErrNo()
-	assert.AssertNotNil(t, err, "failured, can't check avaliable the mdbm handler, path=%s, err=%v", dbm.GetDBMFile(), err)
+	assert.AssertNotNil(t, err, "failured, can't check the avaliable the mdbm handler, path=%s, err=%v", dbm.GetDBMFile(), err)
 	err = dbm.LogMinLevel(mdbm.LogOff)
-	assert.AssertNotNil(t, err, "failured, can't check avaliable the mdbm handler, path=%s, err=%v", dbm.GetDBMFile(), err)
+	assert.AssertNotNil(t, err, "failured, can't check the avaliable the mdbm handler, path=%s, err=%v", dbm.GetDBMFile(), err)
 	err = dbm.LogPlugin(0)
-	assert.AssertNotNil(t, err, "failured, can't check avaliable the mdbm handler, path=%s, err=%v", dbm.GetDBMFile(), err)
+	assert.AssertNotNil(t, err, "failured, can't check the avaliable the mdbm handler, path=%s, err=%v", dbm.GetDBMFile(), err)
 	_, err = dbm.LogToAutoFile()
-	assert.AssertNotNil(t, err, "failured, can't check avaliable the mdbm handler, path=%s, err=%v", dbm.GetDBMFile(), err)
+	assert.AssertNotNil(t, err, "failured, can't check the avaliable the mdbm handler, path=%s, err=%v", dbm.GetDBMFile(), err)
 	_, err = dbm.LogToFile("test")
-	assert.AssertNotNil(t, err, "failured, can't check avaliable the mdbm handler, path=%s, err=%v", dbm.GetDBMFile(), err)
+	assert.AssertNotNil(t, err, "failured, can't check the avaliable the mdbm handler, path=%s, err=%v", dbm.GetDBMFile(), err)
 	_, err = dbm.Sync()
-	assert.AssertNotNil(t, err, "failured, can't check avaliable the mdbm handler, path=%s, err=%v", dbm.GetDBMFile(), err)
+	assert.AssertNotNil(t, err, "failured, can't check the avaliable the mdbm handler, path=%s, err=%v", dbm.GetDBMFile(), err)
 	_, err = dbm.Fsync()
-	assert.AssertNotNil(t, err, "failured, can't check avaliable the mdbm handler, path=%s, err=%v", dbm.GetDBMFile(), err)
+	assert.AssertNotNil(t, err, "failured, can't check the avaliable the mdbm handler, path=%s, err=%v", dbm.GetDBMFile(), err)
 	err = dbm.CloseFD()
-	assert.AssertNotNil(t, err, "failured, can't check avaliable the mdbm handler, path=%s, err=%v", dbm.GetDBMFile(), err)
+	assert.AssertNotNil(t, err, "failured, can't check the avaliable the mdbm handler, path=%s, err=%v", dbm.GetDBMFile(), err)
 	_, err = dbm.Lock()
-	assert.AssertNotNil(t, err, "failured, can't check avaliable the mdbm handler, path=%s, err=%v", dbm.GetDBMFile(), err)
+	assert.AssertNotNil(t, err, "failured, can't check the avaliable the mdbm handler, path=%s, err=%v", dbm.GetDBMFile(), err)
 	_, err = dbm.Unlock()
-	assert.AssertNotNil(t, err, "failured, can't check avaliable the mdbm handler, path=%s, err=%v", dbm.GetDBMFile(), err)
+	assert.AssertNotNil(t, err, "failured, can't check the avaliable the mdbm handler, path=%s, err=%v", dbm.GetDBMFile(), err)
 	_, err = dbm.TryLock()
-	assert.AssertNotNil(t, err, "failured, can't check avaliable the mdbm handler, path=%s, err=%v", dbm.GetDBMFile(), err)
+	assert.AssertNotNil(t, err, "failured, can't check the avaliable the mdbm handler, path=%s, err=%v", dbm.GetDBMFile(), err)
 	_, err = dbm.IsLocked()
-	assert.AssertNotNil(t, err, "failured, can't check avaliable the mdbm handler, path=%s, err=%v", dbm.GetDBMFile(), err)
+	assert.AssertNotNil(t, err, "failured, can't check the avaliable the mdbm handler, path=%s, err=%v", dbm.GetDBMFile(), err)
 	_, err = dbm.LockShared()
-	assert.AssertNotNil(t, err, "failured, can't check avaliable the mdbm handler, path=%s, err=%v", dbm.GetDBMFile(), err)
+	assert.AssertNotNil(t, err, "failured, can't check the avaliable the mdbm handler, path=%s, err=%v", dbm.GetDBMFile(), err)
 	_, err = dbm.TryLockShared()
-	assert.AssertNotNil(t, err, "failured, can't check avaliable the mdbm handler, path=%s, err=%v", dbm.GetDBMFile(), err)
+	assert.AssertNotNil(t, err, "failured, can't check the avaliable the mdbm handler, path=%s, err=%v", dbm.GetDBMFile(), err)
 
 	err = dbm.ReplaceDB("test")
-	assert.AssertNotNil(t, err, "failured, can't check avaliable the mdbm handler, path=%s, err=%v", dbm.GetDBMFile(), err)
+	assert.AssertNotNil(t, err, "failured, can't check the avaliable the mdbm handler, path=%s, err=%v", dbm.GetDBMFile(), err)
 	_, err = dbm.GetHash()
-	assert.AssertNotNil(t, err, "failured, can't check avaliable the mdbm handler, path=%s, err=%v", dbm.GetDBMFile(), err)
+	assert.AssertNotNil(t, err, "failured, can't check the avaliable the mdbm handler, path=%s, err=%v", dbm.GetDBMFile(), err)
 	err = dbm.SetHash(0)
-	assert.AssertNotNil(t, err, "failured, can't check avaliable the mdbm handler, path=%s, err=%v", dbm.GetDBMFile(), err)
+	assert.AssertNotNil(t, err, "failured, can't check the avaliable the mdbm handler, path=%s, err=%v", dbm.GetDBMFile(), err)
 	err = dbm.SetSpillSize(0)
-	assert.AssertNotNil(t, err, "failured, can't check avaliable the mdbm handler, path=%s, err=%v", dbm.GetDBMFile(), err)
+	assert.AssertNotNil(t, err, "failured, can't check the avaliable the mdbm handler, path=%s, err=%v", dbm.GetDBMFile(), err)
 	_, err = dbm.GetAlignment()
-	assert.AssertNotNil(t, err, "failured, can't check avaliable the mdbm handler, path=%s, err=%v", dbm.GetDBMFile(), err)
-	_, err = dbm.SetAlignment(0)
-	assert.AssertNotNil(t, err, "failured, can't check avaliable the mdbm handler, path=%s, err=%v", dbm.GetDBMFile(), err)
+	assert.AssertNotNil(t, err, "failured, can't check the avaliable the mdbm handler, path=%s, err=%v", dbm.GetDBMFile(), err)
+	_, err = dbm.SetAlignment(-1)
+	assert.AssertNotNil(t, err, "failured, can't check the avaliable the mdbm handler, path=%s, err=%v", dbm.GetDBMFile(), err)
 	_, err = dbm.GetLimitSize()
-	assert.AssertNotNil(t, err, "failured, can't check avaliable the mdbm handler, path=%s, err=%v", dbm.GetDBMFile(), err)
-	err = dbm.LimitDirSize(0)
-	assert.AssertNotNil(t, err, "failured, can't check avaliable the mdbm handler, path=%s, err=%v", dbm.GetDBMFile(), err)
+	assert.AssertNotNil(t, err, "failured, can't check the avaliable the mdbm handler, path=%s, err=%v", dbm.GetDBMFile(), err)
+	_, err = dbm.LimitDirSize(0)
+	assert.AssertNotNil(t, err, "failured, can't check the avaliable the mdbm handler, path=%s, err=%v", dbm.GetDBMFile(), err)
 	_, err = dbm.GetVersion()
-	assert.AssertNotNil(t, err, "failured, can't check avaliable the mdbm handler, path=%s, err=%v", dbm.GetDBMFile(), err)
+	assert.AssertNotNil(t, err, "failured, can't check the avaliable the mdbm handler, path=%s, err=%v", dbm.GetDBMFile(), err)
 	_, err = dbm.GetSize()
-	assert.AssertNotNil(t, err, "failured, can't check avaliable the mdbm handler, path=%s, err=%v", dbm.GetDBMFile(), err)
+	assert.AssertNotNil(t, err, "failured, can't check the avaliable the mdbm handler, path=%s, err=%v", dbm.GetDBMFile(), err)
 	_, err = dbm.GetMagicNumber()
-	assert.AssertNotNil(t, err, "failured, can't check avaliable the mdbm handler, path=%s, err=%v", dbm.GetDBMFile(), err)
-	err = dbm.SetWindowSize(0)
-	assert.AssertNotNil(t, err, "failured, can't check avaliable the mdbm handler, path=%s, err=%v", dbm.GetDBMFile(), err)
+	assert.AssertNotNil(t, err, "failured, can't check the avaliable the mdbm handler, path=%s, err=%v", dbm.GetDBMFile(), err)
+	_, err = dbm.SetWindowSize(0)
+	assert.AssertNotNil(t, err, "failured, can't check the avaliable the mdbm handler, path=%s, err=%v", dbm.GetDBMFile(), err)
 	_, err = dbm.IsOwned()
-	assert.AssertNotNil(t, err, "failured, can't check avaliable the mdbm handler, path=%s, err=%v", dbm.GetDBMFile(), err)
+	assert.AssertNotNil(t, err, "failured, can't check the avaliable the mdbm handler, path=%s, err=%v", dbm.GetDBMFile(), err)
 	_, err = dbm.GetLockMode()
-	assert.AssertNotNil(t, err, "failured, can't check avaliable the mdbm handler, path=%s, err=%v", dbm.GetDBMFile(), err)
+	assert.AssertNotNil(t, err, "failured, can't check the avaliable the mdbm handler, path=%s, err=%v", dbm.GetDBMFile(), err)
 	err = dbm.CompressTree()
-	assert.AssertNotNil(t, err, "failured, can't check avaliable the mdbm handler, path=%s, err=%v", dbm.GetDBMFile(), err)
+	assert.AssertNotNil(t, err, "failured, can't check the avaliable the mdbm handler, path=%s, err=%v", dbm.GetDBMFile(), err)
 	err = dbm.Truncate()
-	assert.AssertNotNil(t, err, "failured, can't check avaliable the mdbm handler, path=%s, err=%v", dbm.GetDBMFile(), err)
+	assert.AssertNotNil(t, err, "failured, can't check the avaliable the mdbm handler, path=%s, err=%v", dbm.GetDBMFile(), err)
 	err = dbm.Purge()
-	assert.AssertNotNil(t, err, "failured, can't check avaliable the mdbm handler, path=%s, err=%v", dbm.GetDBMFile(), err)
+	assert.AssertNotNil(t, err, "failured, can't check the avaliable the mdbm handler, path=%s, err=%v", dbm.GetDBMFile(), err)
 	_, _, err = dbm.Check(0, true)
-	assert.AssertNotNil(t, err, "failured, can't check avaliable the mdbm handler, path=%s, err=%v", dbm.GetDBMFile(), err)
+	assert.AssertNotNil(t, err, "failured, can't check the avaliable the mdbm handler, path=%s, err=%v", dbm.GetDBMFile(), err)
 	_, err = dbm.CheckAllPage()
-	assert.AssertNotNil(t, err, "failured, can't check avaliable the mdbm handler, path=%s, err=%v", dbm.GetDBMFile(), err)
+	assert.AssertNotNil(t, err, "failured, can't check the avaliable the mdbm handler, path=%s, err=%v", dbm.GetDBMFile(), err)
 	_, err = dbm.Protect(0)
-	assert.AssertNotNil(t, err, "failured, can't check avaliable the mdbm handler, path=%s, err=%v", dbm.GetDBMFile(), err)
+	assert.AssertNotNil(t, err, "failured, can't check the avaliable the mdbm handler, path=%s, err=%v", dbm.GetDBMFile(), err)
 	_, err = dbm.DumpAllPage()
-	assert.AssertNotNil(t, err, "failured, can't check avaliable the mdbm handler, path=%s, err=%v", dbm.GetDBMFile(), err)
+	assert.AssertNotNil(t, err, "failured, can't check the avaliable the mdbm handler, path=%s, err=%v", dbm.GetDBMFile(), err)
 
 	_, err = dbm.Store(0, 0, 0)
-	assert.AssertNotNil(t, err, "failured, can't check avaliable the mdbm handler, path=%s, err=%v", dbm.GetDBMFile(), err)
+	assert.AssertNotNil(t, err, "failured, can't check the avaliable the mdbm handler, path=%s, err=%v", dbm.GetDBMFile(), err)
 	_, err = dbm.StoreStr(0, 0, 0)
-	assert.AssertNotNil(t, err, "failured, can't check avaliable the mdbm handler, path=%s, err=%v", dbm.GetDBMFile(), err)
+	assert.AssertNotNil(t, err, "failured, can't check the avaliable the mdbm handler, path=%s, err=%v", dbm.GetDBMFile(), err)
+	_, _, err = dbm.StoreR(0, 0, mdbm.Replace, &iter)
+	assert.AssertNotNil(t, err, "failured, can't check the avaliable the mdbm handler, path=%s, err=%v", dbm.GetDBMFile(), err)
+
+	_, err = dbm.Fetch(0)
+	assert.AssertNotNil(t, err, "failured, can't check the avaliable the mdbm handler, path=%s, err=%v", dbm.GetDBMFile(), err)
 	_, _, _, err = dbm.FetchR(0, &iter)
-	assert.AssertNotNil(t, err, "failured, can't check avaliable the mdbm handler, path=%s, err=%v", dbm.GetDBMFile(), err)
+	assert.AssertNotNil(t, err, "failured, can't check the avaliable the mdbm handler, path=%s, err=%v", dbm.GetDBMFile(), err)
 	_, _, _, _, err = dbm.FetchInfo(0, &strtest, &iter)
-	assert.AssertNotNil(t, err, "failured, can't check avaliable the mdbm handler, path=%s, err=%v", dbm.GetDBMFile(), err)
+	assert.AssertNotNil(t, err, "failured, can't check the avaliable the mdbm handler, path=%s, err=%v", dbm.GetDBMFile(), err)
 	_, err = dbm.Delete(0)
-	assert.AssertNotNil(t, err, "failured, can't check avaliable the mdbm handler, path=%s, err=%v", dbm.GetDBMFile(), err)
+	assert.AssertNotNil(t, err, "failured, can't check the avaliable the mdbm handler, path=%s, err=%v", dbm.GetDBMFile(), err)
 	_, _, err = dbm.DeleteR(0, &iter)
-	assert.AssertNotNil(t, err, "failured, can't check avaliable the mdbm handler, path=%s, err=%v", dbm.GetDBMFile(), err)
+	assert.AssertNotNil(t, err, "failured, can't check the avaliable the mdbm handler, path=%s, err=%v", dbm.GetDBMFile(), err)
 	_, _, err = dbm.First()
-	assert.AssertNotNil(t, err, "failured, can't check avaliable the mdbm handler, path=%s, err=%v", dbm.GetDBMFile(), err)
+	assert.AssertNotNil(t, err, "failured, can't check the avaliable the mdbm handler, path=%s, err=%v", dbm.GetDBMFile(), err)
 	_, _, err = dbm.Next()
-	assert.AssertNotNil(t, err, "failured, can't check avaliable the mdbm handler, path=%s, err=%v", dbm.GetDBMFile(), err)
+	assert.AssertNotNil(t, err, "failured, can't check the avaliable the mdbm handler, path=%s, err=%v", dbm.GetDBMFile(), err)
 	_, _, _, err = dbm.FirstR(&iter)
-	assert.AssertNotNil(t, err, "failured, can't check avaliable the mdbm handler, path=%s, err=%v", dbm.GetDBMFile(), err)
+	assert.AssertNotNil(t, err, "failured, can't check the avaliable the mdbm handler, path=%s, err=%v", dbm.GetDBMFile(), err)
 	_, _, _, err = dbm.NextR(&iter)
-	assert.AssertNotNil(t, err, "failured, can't check avaliable the mdbm handler, path=%s, err=%v", dbm.GetDBMFile(), err)
+	assert.AssertNotNil(t, err, "failured, can't check the avaliable the mdbm handler, path=%s, err=%v", dbm.GetDBMFile(), err)
 	_, err = dbm.FirstKey()
-	assert.AssertNotNil(t, err, "failured, can't check avaliable the mdbm handler, path=%s, err=%v", dbm.GetDBMFile(), err)
+	assert.AssertNotNil(t, err, "failured, can't check the avaliable the mdbm handler, path=%s, err=%v", dbm.GetDBMFile(), err)
 	_, err = dbm.NextKey()
-	assert.AssertNotNil(t, err, "failured, can't check avaliable the mdbm handler, path=%s, err=%v", dbm.GetDBMFile(), err)
+	assert.AssertNotNil(t, err, "failured, can't check the avaliable the mdbm handler, path=%s, err=%v", dbm.GetDBMFile(), err)
 	_, _, err = dbm.FirstKeyR(&iter)
-	assert.AssertNotNil(t, err, "failured, can't check avaliable the mdbm handler, path=%s, err=%v", dbm.GetDBMFile(), err)
+	assert.AssertNotNil(t, err, "failured, can't check the avaliable the mdbm handler, path=%s, err=%v", dbm.GetDBMFile(), err)
 	_, _, err = dbm.NextKeyR(&iter)
-	assert.AssertNotNil(t, err, "failured, can't check avaliable the mdbm handler, path=%s, err=%v", dbm.GetDBMFile(), err)
+	assert.AssertNotNil(t, err, "failured, can't check the avaliable the mdbm handler, path=%s, err=%v", dbm.GetDBMFile(), err)
 
 	_, err = dbm.GetCacheMode()
-	assert.AssertNotNil(t, err, "failured, can't check avaliable the mdbm handler, path=%s, err=%v", dbm.GetDBMFile(), err)
+	assert.AssertNotNil(t, err, "failured, can't check the avaliable the mdbm handler, path=%s, err=%v", dbm.GetDBMFile(), err)
 	_, err = dbm.SetCacheMode(0)
-	assert.AssertNotNil(t, err, "failured, can't check avaliable the mdbm handler, path=%s, err=%v", dbm.GetDBMFile(), err)
+	assert.AssertNotNil(t, err, "failured, can't check the avaliable the mdbm handler, path=%s, err=%v", dbm.GetDBMFile(), err)
 	_, err = dbm.GetCacheModeName(0)
-	assert.AssertNotNil(t, err, "failured, can't check avaliable the mdbm handler, path=%s, err=%v", dbm.GetDBMFile(), err)
+	assert.AssertNotNil(t, err, "failured, can't check the avaliable the mdbm handler, path=%s, err=%v", dbm.GetDBMFile(), err)
 	_, err = dbm.CountRecords()
-	assert.AssertNotNil(t, err, "failured, can't check avaliable the mdbm handler, path=%s, err=%v", dbm.GetDBMFile(), err)
+	assert.AssertNotNil(t, err, "failured, can't check the avaliable the mdbm handler, path=%s, err=%v", dbm.GetDBMFile(), err)
 	_, err = dbm.CountPages()
-	assert.AssertNotNil(t, err, "failured, can't check avaliable the mdbm handler, path=%s, err=%v", dbm.GetDBMFile(), err)
+	assert.AssertNotNil(t, err, "failured, can't check the avaliable the mdbm handler, path=%s, err=%v", dbm.GetDBMFile(), err)
 	_, err = dbm.GetPage(0)
-	assert.AssertNotNil(t, err, "failured, can't check avaliable the mdbm handler, path=%s, err=%v", dbm.GetDBMFile(), err)
+	assert.AssertNotNil(t, err, "failured, can't check the avaliable the mdbm handler, path=%s, err=%v", dbm.GetDBMFile(), err)
 	_, err = dbm.PreLoad()
-	assert.AssertNotNil(t, err, "failured, can't check avaliable the mdbm handler, path=%s, err=%v", dbm.GetDBMFile(), err)
+	assert.AssertNotNil(t, err, "failured, can't check the avaliable the mdbm handler, path=%s, err=%v", dbm.GetDBMFile(), err)
 	_, err = dbm.LockDump()
-	assert.AssertNotNil(t, err, "failured, can't check avaliable the mdbm handler, path=%s, err=%v", dbm.GetDBMFile(), err)
+	assert.AssertNotNil(t, err, "failured, can't check the avaliable the mdbm handler, path=%s, err=%v", dbm.GetDBMFile(), err)
 	_, err = dbm.LockPages()
-	assert.AssertNotNil(t, err, "failured, can't check avaliable the mdbm handler, path=%s, err=%v", dbm.GetDBMFile(), err)
+	assert.AssertNotNil(t, err, "failured, can't check the avaliable the mdbm handler, path=%s, err=%v", dbm.GetDBMFile(), err)
 	_, err = dbm.UnLockPages()
-	assert.AssertNotNil(t, err, "failured, can't check avaliable the mdbm handler, path=%s, err=%v", dbm.GetDBMFile(), err)
+	assert.AssertNotNil(t, err, "failured, can't check the avaliable the mdbm handler, path=%s, err=%v", dbm.GetDBMFile(), err)
 	_, _, err = dbm.ChkPage(0)
-	assert.AssertNotNil(t, err, "failured, can't check avaliable the mdbm handler, path=%s, err=%v", dbm.GetDBMFile(), err)
+	assert.AssertNotNil(t, err, "failured, can't check the avaliable the mdbm handler, path=%s, err=%v", dbm.GetDBMFile(), err)
 	err = dbm.ChkError(0, 0, 0)
-	assert.AssertNotNil(t, err, "failured, can't check avaliable the mdbm handler, path=%s, err=%v", dbm.GetDBMFile(), err)
+	assert.AssertNotNil(t, err, "failured, can't check the avaliable the mdbm handler, path=%s, err=%v", dbm.GetDBMFile(), err)
 	_, err = dbm.DumpPage(0)
-	assert.AssertNotNil(t, err, "failured, can't check avaliable the mdbm handler, path=%s, err=%v", dbm.GetDBMFile(), err)
+	assert.AssertNotNil(t, err, "failured, can't check the avaliable the mdbm handler, path=%s, err=%v", dbm.GetDBMFile(), err)
 	err = dbm.ResetStatOperations()
-	assert.AssertNotNil(t, err, "failured, can't check avaliable the mdbm handler, path=%s, err=%v", dbm.GetDBMFile(), err)
+	assert.AssertNotNil(t, err, "failured, can't check the avaliable the mdbm handler, path=%s, err=%v", dbm.GetDBMFile(), err)
 	_, err = dbm.EnableStatOperations(0)
-	assert.AssertNotNil(t, err, "failured, can't check avaliable the mdbm handler, path=%s, err=%v", dbm.GetDBMFile(), err)
+	assert.AssertNotNil(t, err, "failured, can't check the avaliable the mdbm handler, path=%s, err=%v", dbm.GetDBMFile(), err)
 	_, _, err = dbm.GetStatCounter(0)
-	assert.AssertNotNil(t, err, "failured, can't check avaliable the mdbm handler, path=%s, err=%v", dbm.GetDBMFile(), err)
+	assert.AssertNotNil(t, err, "failured, can't check the avaliable the mdbm handler, path=%s, err=%v", dbm.GetDBMFile(), err)
 	_, err = dbm.GetStatName(0)
-	assert.AssertNotNil(t, err, "failured, can't check avaliable the mdbm handler, path=%s, err=%v", dbm.GetDBMFile(), err)
+	assert.AssertNotNil(t, err, "failured, can't check the avaliable the mdbm handler, path=%s, err=%v", dbm.GetDBMFile(), err)
 	_, _, err = dbm.GetStatTime(0)
-	assert.AssertNotNil(t, err, "failured, can't check avaliable the mdbm handler, path=%s, err=%v", dbm.GetDBMFile(), err)
+	assert.AssertNotNil(t, err, "failured, can't check the avaliable the mdbm handler, path=%s, err=%v", dbm.GetDBMFile(), err)
 	_, err = dbm.SetStatTimeFunc(0)
-	assert.AssertNotNil(t, err, "failured, can't check avaliable the mdbm handler, path=%s, err=%v", dbm.GetDBMFile(), err)
+	assert.AssertNotNil(t, err, "failured, can't check the avaliable the mdbm handler, path=%s, err=%v", dbm.GetDBMFile(), err)
 	_, err = dbm.StatAllPage()
-	assert.AssertNotNil(t, err, "failured, can't check avaliable the mdbm handler, path=%s, err=%v", dbm.GetDBMFile(), err)
+	assert.AssertNotNil(t, err, "failured, can't check the avaliable the mdbm handler, path=%s, err=%v", dbm.GetDBMFile(), err)
 	_, _, err = dbm.GetStats()
-	assert.AssertNotNil(t, err, "failured, can't check avaliable the mdbm handler, path=%s, err=%v", dbm.GetDBMFile(), err)
+	assert.AssertNotNil(t, err, "failured, can't check the avaliable the mdbm handler, path=%s, err=%v", dbm.GetDBMFile(), err)
 	_, _, err = dbm.GetDBInfo()
-	assert.AssertNotNil(t, err, "failured, can't check avaliable the mdbm handler, path=%s, err=%v", dbm.GetDBMFile(), err)
+	assert.AssertNotNil(t, err, "failured, can't check the avaliable the mdbm handler, path=%s, err=%v", dbm.GetDBMFile(), err)
 	_, _, _, err = dbm.GetDBStats(0)
-	assert.AssertNotNil(t, err, "failured, can't check avaliable the mdbm handler, path=%s, err=%v", dbm.GetDBMFile(), err)
+	assert.AssertNotNil(t, err, "failured, can't check the avaliable the mdbm handler, path=%s, err=%v", dbm.GetDBMFile(), err)
 	_, _, err = dbm.GetWindowStats()
-	assert.AssertNotNil(t, err, "failured, can't check avaliable the mdbm handler, path=%s, err=%v", dbm.GetDBMFile(), err)
+	assert.AssertNotNil(t, err, "failured, can't check the avaliable the mdbm handler, path=%s, err=%v", dbm.GetDBMFile(), err)
 	_, err = dbm.GetHashValue(0, 0)
-	assert.AssertNotNil(t, err, "failured, can't check avaliable the mdbm handler, path=%s, err=%v", dbm.GetDBMFile(), err)
+	assert.AssertNotNil(t, err, "failured, can't check the avaliable the mdbm handler, path=%s, err=%v", dbm.GetDBMFile(), err)
 	_, err = dbm.Plock(0)
-	assert.AssertNotNil(t, err, "failured, can't check avaliable the mdbm handler, path=%s, err=%v", dbm.GetDBMFile(), err)
+	assert.AssertNotNil(t, err, "failured, can't check the avaliable the mdbm handler, path=%s, err=%v", dbm.GetDBMFile(), err)
 	_, err = dbm.Punlock(0)
-	assert.AssertNotNil(t, err, "failured, can't check avaliable the mdbm handler, path=%s, err=%v", dbm.GetDBMFile(), err)
+	assert.AssertNotNil(t, err, "failured, can't check the avaliable the mdbm handler, path=%s, err=%v", dbm.GetDBMFile(), err)
 	_, err = dbm.TryPlock(0)
-	assert.AssertNotNil(t, err, "failured, can't check avaliable the mdbm handler, path=%s, err=%v", dbm.GetDBMFile(), err)
+	assert.AssertNotNil(t, err, "failured, can't check the avaliable the mdbm handler, path=%s, err=%v", dbm.GetDBMFile(), err)
 	_, err = dbm.LockSmart(0, 0)
-	assert.AssertNotNil(t, err, "failured, can't check avaliable the mdbm handler, path=%s, err=%v", dbm.GetDBMFile(), err)
+	assert.AssertNotNil(t, err, "failured, can't check the avaliable the mdbm handler, path=%s, err=%v", dbm.GetDBMFile(), err)
 	_, err = dbm.UnLockSmart(0, 0)
-	assert.AssertNotNil(t, err, "failured, can't check avaliable the mdbm handler, path=%s, err=%v", dbm.GetDBMFile(), err)
+	assert.AssertNotNil(t, err, "failured, can't check the avaliable the mdbm handler, path=%s, err=%v", dbm.GetDBMFile(), err)
 	_, err = dbm.TryLockSmart(0, 0)
-	assert.AssertNotNil(t, err, "failured, can't check avaliable the mdbm handler, path=%s, err=%v", dbm.GetDBMFile(), err)
+	assert.AssertNotNil(t, err, "failured, can't check the avaliable the mdbm handler, path=%s, err=%v", dbm.GetDBMFile(), err)
 	_, _, _, err = dbm.CheckResidency()
-	assert.AssertNotNil(t, err, "failured, can't check avaliable the mdbm handler, path=%s, err=%v", dbm.GetDBMFile(), err)
+	assert.AssertNotNil(t, err, "failured, can't check the avaliable the mdbm handler, path=%s, err=%v", dbm.GetDBMFile(), err)
 	_, err = dbm.EasyGetNumOfRows()
-	assert.AssertNotNil(t, err, "failured, can't check avaliable the mdbm handler, path=%s, err=%v", dbm.GetDBMFile(), err)
+	assert.AssertNotNil(t, err, "failured, can't check the avaliable the mdbm handler, path=%s, err=%v", dbm.GetDBMFile(), err)
 	_, err = dbm.EasyGetKeyList()
-	assert.AssertNotNil(t, err, "failured, can't check avaliable the mdbm handler, path=%s, err=%v", dbm.GetDBMFile(), err)
+	assert.AssertNotNil(t, err, "failured, can't check the avaliable the mdbm handler, path=%s, err=%v", dbm.GetDBMFile(), err)
+	dbm.EasyClose()
 }

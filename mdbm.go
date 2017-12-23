@@ -17,6 +17,7 @@ import (
 	"reflect"
 	"runtime"
 	"strconv"
+	"strings"
 	"sync"
 	"unsafe"
 
@@ -806,7 +807,7 @@ func (db *MDBM) EasyOpen(dbmfile string, perms int) error {
 
 	var err error
 
-	if len(dbmfile) < 1 {
+	if len(strings.TrimSpace(dbmfile)) < 1 {
 		return errors.New("dbm file path is empty")
 	}
 
@@ -817,7 +818,7 @@ func (db *MDBM) EasyOpen(dbmfile string, perms int) error {
 
 	db.pdbmfile = C.CString(dbmfile)
 
-	_, _, err = db.cgoRun(func() (int, error) {
+	_, out, err := db.cgoRunCapture(func() (int, error) {
 		db.pmdbm, err = C.mdbm_open(db.pdbmfile, C.int(db.flags), C.int(db.perms), C.int(db.psize), C.int(db.dsize))
 		if db.pmdbm != nil {
 			return 0, nil
@@ -831,7 +832,7 @@ func (db *MDBM) EasyOpen(dbmfile string, perms int) error {
 		db.isopened = true
 		db.mutex.Unlock()
 	} else {
-		return err
+		return errors.Wrapf(err, out)
 	}
 
 	err = db.LogMinLevel(LogOff)
@@ -1271,23 +1272,23 @@ func (db *MDBM) GetLimitSize() (uint64, error) {
 
 // LimitDirSize sets limit the internal page directory size to a number of pages.
 // The number of pages is rounded up to a power of 2.
-func (db *MDBM) LimitDirSize(pages int) error {
+func (db *MDBM) LimitDirSize(pages int) (int, error) {
 
 	err := db.checkAvaliable()
 	if err != nil {
-		return err
+		return -1, err
 	}
 
 	if pages < 1 {
-		return fmt.Errorf("the internal page directory size must be at least 1, pages=%d", pages)
+		return -1, fmt.Errorf("the internal page directory size must be at least 1, pages=%d", pages)
 	}
 
-	_, _, err = db.cgoRun(func() (int, error) {
+	rv, _, err := db.cgoRun(func() (int, error) {
 		rv, err := C.mdbm_limit_dir_size(db.pmdbm, C.int(pages))
 		return int(rv), err
 	})
 
-	return err
+	return rv, err
 }
 
 // GetVersion returns the on-disk format version number of the MDBM.
@@ -1367,23 +1368,23 @@ func (db *MDBM) GetMagicNumber() (uint32, error) {
 // SetWindowSize sets the window size for the MDBM.
 // Windowing is typically used for a very large data store where only part of it will be mapped to memory.
 // In windowing mode, pages are accessed through a "window" to the database.
-func (db *MDBM) SetWindowSize(wsize uint) error {
+func (db *MDBM) SetWindowSize(wsize uint) (int, error) {
 
 	err := db.checkAvaliable()
 	if err != nil {
-		return err
+		return -1, err
 	}
 
 	if wsize < db.minpagesize {
-		return fmt.Errorf("wsize should be at least 2 pages, SC_PAGESIZE=%d, wsize=%d", db.minpagesize, wsize)
+		return -1, fmt.Errorf("wsize should be at least 2 pages, SC_PAGESIZE=%d, wsize=%d", db.minpagesize, wsize)
 	}
 
-	_, _, err = db.cgoRun(func() (int, error) {
+	rv, _, err := db.cgoRun(func() (int, error) {
 		_, err := C.mdbm_set_window_size(db.pmdbm, C.size_t(wsize))
 		return 0, err
 	})
 
-	return err
+	return rv, err
 }
 
 // IsOwned returns whether or not MDBM is currently locked (owned) by the calling process.
