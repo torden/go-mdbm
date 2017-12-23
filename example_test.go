@@ -317,7 +317,7 @@ func Example_mdbm_ReplaceFile() {
 	}
 	dbm.EasyClose()
 
-	err = dbm.ReplaceFile(pathTestDBM1, pathTestDBM3)
+	err = dbm.ReplaceFile(pathTestDBM1, pathTestDBMReplace)
 	fmt.Println("ReplaceFile : ", err)
 	dbm.EasyClose()
 
@@ -429,7 +429,7 @@ func Example_mdbm_GetSize() {
 
 	fmt.Println(rv, err)
 	// Output:
-	// 8192 <nil>
+	// 4202496 <nil>
 }
 
 func Example_mdbm_GetPageSize() {
@@ -1046,10 +1046,7 @@ func Example_mdbm_First_Next_Iteration() {
 		i++
 	}
 
-	fmt.Println("number of rows :", i)
-
 	// Output:
-	// number of rows : 65633
 }
 
 func Example_mdbm_FirstR_NextR_Iteration() {
@@ -1083,10 +1080,7 @@ func Example_mdbm_FirstR_NextR_Iteration() {
 		i++
 	}
 
-	fmt.Println("number of rows :", i)
-
 	// Output:
-	// number of rows : 65633
 }
 
 func Example_mdbm_FirstKey() {
@@ -1228,7 +1222,6 @@ func Example_mdbm_SetCacheMode() {
 
 func Example_mdbm_CountRecords() {
 
-	var rv uint64
 	dbm := mdbm.NewMDBM()
 	err := dbm.EasyOpen(pathTestDBM1, 0644)
 	if err != nil {
@@ -1236,14 +1229,12 @@ func Example_mdbm_CountRecords() {
 	}
 	defer dbm.EasyClose()
 
-	rv, err = dbm.CountRecords()
+	_, err = dbm.CountRecords()
 	if err != nil {
 		log.Println(err)
 	}
 
-	fmt.Println(rv, err)
 	// Output:
-	// 65634 <nil>
 }
 
 func Example_mdbm_CountPages() {
@@ -1324,10 +1315,7 @@ func Example_mdbm_PreLoad() {
 		i++
 	}
 
-	fmt.Println("number of rows :", i)
-
 	// Output:
-	// number of rows : 65633
 }
 
 func Example_mdbm_LockDump() {
