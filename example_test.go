@@ -311,13 +311,13 @@ func Example_mdbm_ReplaceFile() {
 	dbm := mdbm.NewMDBM()
 
 	//create a dummy
-	err := dbm.EasyOpen(pathTestDBM1, 0644)
+	err := dbm.EasyOpen(pathTestDBMReplace1, 0644)
 	if err != nil {
 		log.Fatalf("failed mdbm.EasyOpen(), err=%v", err)
 	}
 	dbm.EasyClose()
 
-	err = dbm.ReplaceFile(pathTestDBM1, pathTestDBMReplace)
+	err = dbm.ReplaceFile(pathTestDBMReplace1, pathTestDBMReplace2)
 	fmt.Println("ReplaceFile : ", err)
 	dbm.EasyClose()
 

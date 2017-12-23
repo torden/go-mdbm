@@ -1637,12 +1637,12 @@ func Test_mdbm_SetHash(t *testing.T) {
 func Test_mdbm_ReplaceDB(t *testing.T) {
 
 	dbm := mdbm.NewMDBM()
-	err := dbm.EasyOpen(pathTestDBMReplace, 0644)
+	err := dbm.EasyOpen(pathTestDBMReplace3, 0644)
 	assert.AssertNil(t, err, "failured, can't open the mdbm, path=%s, err=%v", dbm.GetDBMFile(), err)
 	defer dbm.EasyClose()
 
 	err = dbm.ReplaceDB(pathTestDBMLarge)
-	assert.AssertNil(t, err, "failured, can't replace %s to %s, err=%v", pathTestDBMLarge, pathTestDBMReplace, err)
+	assert.AssertNil(t, err, "failured, can't replace %s to %s, err=%v", pathTestDBMLarge, pathTestDBMReplace3, err)
 }
 
 func Test_mdbm_GetDBStats(t *testing.T) {
