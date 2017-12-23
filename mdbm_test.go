@@ -1419,6 +1419,22 @@ func Test_mdbm_FirstKeyRNextKeyR(t *testing.T) {
 	}
 }
 
+func Test_mdbm_StoreDup(t *testing.T) {
+
+	dbm := mdbm.NewMDBM()
+	err := dbm.Open(pathTestDBMDup, mdbm.Create|mdbm.Rdrw|mdbm.LargeObjects|mdbm.InsertDup, 0644, 0, 0)
+	defer dbm.EasyClose()
+	assert.AssertNil(t, err, "failured, can't open the mdbm, path=%s, err=%v", dbm.GetDBMFile(), err)
+
+	for i := 0; i <= loopLimit; i++ {
+
+		for r := 0; r <= 10; r++ {
+			rv, err := dbm.Store(i, time.Now().UnixNano(), mdbm.InsertDup)
+			assert.AssertNil(t, err, "failed, can't data(=%d) add to the mdbm file(=%s)\nrv=%d, err=%v", i, dbm.GetDBMFile(), rv, err)
+		}
+	}
+}
+
 func Test_mdbm_Double_Close(t *testing.T) {
 
 	dbm := mdbm.NewMDBM()
