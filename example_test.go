@@ -306,25 +306,6 @@ func Example_mdbm_MyLockReset() {
 	// Unlock :  operation not permitted
 }
 
-func Example_mdbm_ReplaceFile() {
-
-	dbm := mdbm.NewMDBM()
-
-	//create a dummy
-	err := dbm.EasyOpen(pathTestDBM1, 0644)
-	if err != nil {
-		log.Fatalf("failed mdbm.EasyOpen(), err=%v", err)
-	}
-	dbm.EasyClose()
-
-	err = dbm.ReplaceFile(pathTestDBM1, pathTestDBM3)
-	fmt.Println("ReplaceFile : ", err)
-	dbm.EasyClose()
-
-	// Output:
-	// ReplaceFile :  <nil>
-}
-
 func Example_mdbm_GetHash() {
 
 	dbm := mdbm.NewMDBM()
@@ -372,49 +353,6 @@ func Example_mdbm_SetHash() {
 	// Setted : mdbm.HashOZ
 }
 
-func Example_mdbm_GetAlignment() {
-
-	var rv int
-	dbm := mdbm.NewMDBM()
-	err := dbm.EasyOpen(pathTestDBM1, 0644)
-	if err != nil {
-		log.Fatalf("failed mdbm.EasyOpen(), err=%v", err)
-	}
-	defer dbm.EasyClose()
-
-	rv, err = dbm.GetAlignment()
-	if err != nil {
-		log.Println(err)
-	}
-
-	fmt.Println(rv)
-	// Output:
-	// 0
-}
-
-func Example_mdbm_SetAlignment() {
-
-	var rv int
-	dbm := mdbm.NewMDBM()
-	err := dbm.EasyOpen(pathTestDBM3, 0644)
-	if err != nil {
-		log.Fatalf("failed mdbm.EasyOpen(), err=%v", err)
-	}
-	defer dbm.EasyClose()
-
-	rv, err = dbm.SetAlignment(0)
-	if err != nil {
-		log.Println(err)
-	}
-
-	if rv == mdbm.Align8Bits {
-		fmt.Println("Default :: 8-bit alignment.")
-	}
-
-	// Output:
-	// Default :: 8-bit alignment.
-}
-
 func Example_mdbm_GetLimitSize() {
 
 	var rv uint64
@@ -433,21 +371,6 @@ func Example_mdbm_GetLimitSize() {
 	fmt.Println(rv)
 	// Output:
 	// 0
-}
-
-func Example_mdbm_LimitDirSize() {
-
-	dbm := mdbm.NewMDBM()
-	err := dbm.EasyOpen(pathTestDBM3, 0644)
-	if err != nil {
-		log.Fatalf("failed mdbm.EasyOpen(), err=%v", err)
-	}
-	defer dbm.EasyClose()
-
-	err = dbm.LimitDirSize(2)
-	fmt.Println(err)
-	// Output:
-	// <nil>
 }
 
 func Example_mdbm_GetVersion() {
@@ -487,7 +410,7 @@ func Example_mdbm_GetSize() {
 
 	fmt.Println(rv, err)
 	// Output:
-	// 8192 <nil>
+	// 4202496 <nil>
 }
 
 func Example_mdbm_GetPageSize() {
@@ -539,7 +462,7 @@ func Example_mdbm_SetWindowSize() {
 	}
 	defer dbm.EasyClose()
 
-	err = dbm.SetWindowSize(9216)
+	_, err = dbm.SetWindowSize(9216)
 	if err != nil {
 		log.Println(err)
 	}
@@ -726,29 +649,6 @@ func Example_mdbm_Protect() {
 	// Output:
 	// 0 <nil>
 	// 0 <nil>
-}
-
-func Example_mdbm_DumpAllPage() {
-
-	var rv string
-	dbm := mdbm.NewMDBM()
-	err := dbm.EasyOpen(pathTestDBM1, 0644)
-	if err != nil {
-		log.Fatalf("failed mdbm.EasyOpen(), err=%v", err)
-	}
-	defer dbm.EasyClose()
-
-	rv, err = dbm.DumpAllPage()
-	if err != nil {
-		log.Println(err)
-	}
-
-	if len(rv) > 0 {
-		fmt.Println("OK")
-	}
-
-	// Output:
-	// OK
 }
 
 func Example_mdbm_StoreWithLock() {
@@ -1104,10 +1004,7 @@ func Example_mdbm_First_Next_Iteration() {
 		i++
 	}
 
-	fmt.Println("number of rows :", i)
-
 	// Output:
-	// number of rows : 65633
 }
 
 func Example_mdbm_FirstR_NextR_Iteration() {
@@ -1141,10 +1038,7 @@ func Example_mdbm_FirstR_NextR_Iteration() {
 		i++
 	}
 
-	fmt.Println("number of rows :", i)
-
 	// Output:
-	// number of rows : 65633
 }
 
 func Example_mdbm_FirstKey() {
@@ -1286,7 +1180,6 @@ func Example_mdbm_SetCacheMode() {
 
 func Example_mdbm_CountRecords() {
 
-	var rv uint64
 	dbm := mdbm.NewMDBM()
 	err := dbm.EasyOpen(pathTestDBM1, 0644)
 	if err != nil {
@@ -1294,14 +1187,12 @@ func Example_mdbm_CountRecords() {
 	}
 	defer dbm.EasyClose()
 
-	rv, err = dbm.CountRecords()
+	_, err = dbm.CountRecords()
 	if err != nil {
 		log.Println(err)
 	}
 
-	fmt.Println(rv, err)
 	// Output:
-	// 65634 <nil>
 }
 
 func Example_mdbm_CountPages() {
@@ -1382,10 +1273,7 @@ func Example_mdbm_PreLoad() {
 		i++
 	}
 
-	fmt.Println("number of rows :", i)
-
 	// Output:
-	// number of rows : 65633
 }
 
 func Example_mdbm_LockDump() {
@@ -1514,6 +1402,31 @@ func Example_mdbm_DumpPage() {
 
 	// Output:
 	// <nil>
+}
+
+func Example_mdbm_DumpAllPage() {
+
+	var rv string
+	dbm := mdbm.NewMDBM()
+	err := dbm.EasyOpen(pathTestDBM1, 0644)
+	if err != nil {
+		log.Fatalf("failed mdbm.EasyOpen(), err=%v", err)
+	}
+	defer dbm.EasyClose()
+
+	rv, err = dbm.DumpAllPage()
+	if err != nil {
+		log.Println(err)
+	}
+
+	if len(rv) > 0 {
+		fmt.Println("OK")
+	} else {
+		fmt.Println(rv)
+	}
+
+	// Output:
+	// OK
 }
 
 func Example_mdbm_EnableStatOperations_ResetStatOperations() {
@@ -2048,7 +1961,7 @@ func Example_mdbm_LockSmart_Fetch_UnLockSmart() {
 func Example_mdbm_StoreRWithAnyLock() {
 
 	dbm := mdbm.NewMDBM()
-	err := dbm.EasyOpen(pathTestDBMLarge, 0644)
+	err := dbm.Open(pathTestDBMLarge, mdbm.Create|mdbm.Rdrw|mdbm.LargeObjects|mdbm.DBSizeMB, 0644, 0, 0)
 	if err != nil {
 		log.Fatalf("failed mdbm.EasyOpen(), err=%v", err)
 	}
@@ -2141,7 +2054,7 @@ func Example_mdbm_FetchWithAnyLock() {
 	var err error
 
 	dbm := mdbm.NewMDBM()
-	err = dbm.EasyOpen(pathTestDBMLarge, 0644)
+	err = dbm.Open(pathTestDBMLarge, mdbm.Create|mdbm.Rdrw|mdbm.LargeObjects|mdbm.DBSizeMB, 0644, 0, 0)
 	if err != nil {
 		log.Fatalf("failed mdbm.EasyOpen(), err=%v", err)
 	}
@@ -2229,7 +2142,7 @@ func Example_mdbm_FetchRWithAnyLock() {
 	var err error
 
 	dbm := mdbm.NewMDBM()
-	err = dbm.EasyOpen(pathTestDBMLarge, 0644)
+	err = dbm.Open(pathTestDBMLarge, mdbm.Create|mdbm.Rdrw|mdbm.LargeObjects|mdbm.DBSizeMB, 0644, 0, 0)
 	if err != nil {
 		log.Fatalf("failed mdbm.EasyOpen(), err=%v", err)
 	}
@@ -2315,7 +2228,7 @@ func Example_mdbm_DeleteWithAnyLock() {
 	var err error
 
 	dbm := mdbm.NewMDBM()
-	err = dbm.EasyOpen(pathTestDBMLarge, 0644)
+	err = dbm.Open(pathTestDBMLarge, mdbm.Create|mdbm.Rdrw|mdbm.LargeObjects|mdbm.DBSizeMB, 0644, 0, 0)
 	if err != nil {
 		log.Fatalf("failed mdbm.EasyOpen(), err=%v", err)
 	}
