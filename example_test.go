@@ -306,17 +306,6 @@ func Example_mdbm_MyLockReset() {
 	// Unlock :  operation not permitted
 }
 
-func Example_mdbm_ReplaceFile() {
-
-	dbm := mdbm.NewMDBM()
-	err := dbm.ReplaceFile(pathTestDBM1, pathTestDBMReplace2)
-	fmt.Println("ReplaceFile : ", err)
-	dbm.EasyClose()
-
-	// Output:
-	// ReplaceFile :  <nil>
-}
-
 func Example_mdbm_GetHash() {
 
 	dbm := mdbm.NewMDBM()
@@ -2315,4 +2304,15 @@ func Example_mdbm_CheckResidency() {
 
 	// Output:
 	// 0 <nil>
+}
+
+func Example_mdbm_ReplaceFile() {
+
+	dbm := mdbm.NewMDBM()
+	err := dbm.ReplaceFile(pathTestDBM1, pathTestDBMReplace2)
+	fmt.Println("ReplaceFile : ", err)
+	dbm.EasyClose()
+
+	// Output:
+	// ReplaceFile :  <nil>
 }
