@@ -2305,19 +2305,3 @@ func Example_mdbm_CheckResidency() {
 	// Output:
 	// 0 <nil>
 }
-
-func Example_mdbm_ReplaceFile() {
-
-	dbm := mdbm.NewMDBM()
-	err := dbm.EasyOpen(pathTestDBMReplace1, 0644)
-	if err != nil {
-		log.Fatalf("failed mdbm.EasyOpen(), err=%v", err)
-	}
-	dbm.EasyClose()
-
-	err = dbm.ReplaceFile(pathTestDBM1, pathTestDBMReplace1)
-	fmt.Println("ReplaceFile : ", err)
-
-	// Output:
-	// ReplaceFile :  <nil>
-}
