@@ -323,6 +323,7 @@ func Test_mdbm_OrdinaryReaplceData_StoreWithPlock(t *testing.T) {
 		rv, err := dbm.StoreWithPlock(i, i, mdbm.Replace, mdbm.Rdrw)
 		assert.AssertNil(t, err, "failured, return Value mismatch. value=%d, err=%v\n", rv, err)
 	}
+
 }
 
 func Test_mdbm_OrdinaryReaplceData_StoreWithTryLock(t *testing.T) {
@@ -1148,7 +1149,12 @@ func Test_mdbm_AnyDataType_StoreR(t *testing.T) {
 	assert.AssertLessThanEqualTo(t, goiter.Next, intzero, "failured, return Value mismatch.\nExpected: %d\nActual: %d", goiter.Next, intzero)
 
 	wrongval := map[int]string{0: "hello"}
-	rv, goiter, err = dbm.StoreRWithLock(wrongval, wrongval, mdbm.Insert, &iter)
+	rv, goiter, err = dbm.StoreRWithLock(wrongval, 1, mdbm.Insert, &iter)
+	assert.AssertNotNil(t, err, "failed, can't check the wrong data type, the mdbm file(=%s), rv=%d, err=%v", dbm.GetDBMFile(), rv, goiter, err)
+	assert.AssertEquals(t, goiter.PageNo, uint32zero, "failured, return Value mismatch.\nExpected: %d\nActual: %d", goiter.PageNo, uint32zero)
+	assert.AssertLessThanEqualTo(t, goiter.Next, intzero, "failured, return Value mismatch.\nExpected: %d\nActual: %d", goiter.Next, intzero)
+
+	rv, goiter, err = dbm.StoreRWithLock(1, wrongval, mdbm.Insert, &iter)
 	assert.AssertNotNil(t, err, "failed, can't check the wrong data type, the mdbm file(=%s), rv=%d, err=%v", dbm.GetDBMFile(), rv, goiter, err)
 	assert.AssertEquals(t, goiter.PageNo, uint32zero, "failured, return Value mismatch.\nExpected: %d\nActual: %d", goiter.PageNo, uint32zero)
 	assert.AssertLessThanEqualTo(t, goiter.Next, intzero, "failured, return Value mismatch.\nExpected: %d\nActual: %d", goiter.Next, intzero)
@@ -1181,6 +1187,133 @@ func Test_mdbm_AnyDataType_StoreR(t *testing.T) {
 
 }
 
+func Test_mdbm_FetchWithAnyLock(t *testing.T) {
+
+	var val string
+	var err error
+
+	dbm := mdbm.NewMDBM()
+	err = dbm.Open(pathTestDBMLarge, mdbm.Create|mdbm.Rdrw|mdbm.LargeObjects|mdbm.DBSizeMB, 0644, 0, 0)
+	assert.AssertNil(t, err, "failured, can't open the mdbm, path=%s, err=%v", dbm.GetDBMFile(), err)
+	defer dbm.EasyClose()
+
+	for i := 0; i <= loopLimit; i++ {
+
+		val, err = dbm.FetchWithLock(i)
+		assert.AssertNil(t, err, "failured, return Value mismatch. value=%s, err=%v\n", val, err)
+		assert.AssertEquals(t, strconv.Itoa(i), val, "return Value mismatch.\nExpected: %v\nActual: %v", i, val)
+
+		val, err = dbm.FetchWithLockSmart(i, mdbm.Rdonly)
+		assert.AssertNil(t, err, "failured, return Value mismatch. value=%s, err=%v\n", val, err)
+		assert.AssertEquals(t, strconv.Itoa(i), val, "return Value mismatch.\nExpected: %v\nActual: %v", i, val)
+
+		val, err = dbm.FetchWithLockShared(i)
+		assert.AssertNil(t, err, "failured, return Value mismatch. value=%s, err=%v\n", val, err)
+		assert.AssertEquals(t, strconv.Itoa(i), val, "return Value mismatch.\nExpected: %v\nActual: %v", i, val)
+
+		val, err = dbm.FetchWithPlock(i, mdbm.Rdonly)
+		assert.AssertNil(t, err, "failured, return Value mismatch. value=%s, err=%v\n", val, err)
+		assert.AssertEquals(t, strconv.Itoa(i), val, "return Value mismatch.\nExpected: %v\nActual: %v", i, val)
+
+		val, err = dbm.FetchWithTryLock(i)
+		assert.AssertNil(t, err, "failured, return Value mismatch. value=%s, err=%v\n", val, err)
+		assert.AssertEquals(t, strconv.Itoa(i), val, "return Value mismatch.\nExpected: %v\nActual: %v", i, val)
+
+		val, err = dbm.FetchWithTryLockSmart(i, mdbm.Rdonly)
+		assert.AssertNil(t, err, "failured, return Value mismatch. value=%s, err=%v\n", val, err)
+		assert.AssertEquals(t, strconv.Itoa(i), val, "return Value mismatch.\nExpected: %v\nActual: %v", i, val)
+
+		val, err = dbm.FetchWithTryLockShared(i)
+		assert.AssertNil(t, err, "failured, return Value mismatch. value=%s, err=%v\n", val, err)
+		assert.AssertEquals(t, strconv.Itoa(i), val, "return Value mismatch.\nExpected: %v\nActual: %v", i, val)
+
+		val, err = dbm.FetchWithTryPlock(i, mdbm.Rdonly)
+		assert.AssertNil(t, err, "failured, return Value mismatch. value=%s, err=%v\n", val, err)
+		assert.AssertEquals(t, strconv.Itoa(i), val, "return Value mismatch.\nExpected: %v\nActual: %v", i, val)
+	}
+
+	_, err = dbm.FetchWithTryPlock([]string{"1"}, mdbm.Rdonly)
+	assert.AssertNotNil(t, err, "failured, can't check the wrong data-type, value=%s, err=%v\n", val, err)
+
+	// Output:
+}
+
+func Test_mdbm_FetchRWithAnyLock(t *testing.T) {
+
+	var rv int
+	var val string
+	var err error
+	var goiter mdbm.Iter
+	uint32zero := uint32(0)
+	intzero := int(0)
+
+	dbm := mdbm.NewMDBM()
+	err = dbm.Open(pathTestDBMLarge, mdbm.Create|mdbm.Rdrw|mdbm.LargeObjects|mdbm.DBSizeMB, 0644, 0, 0)
+	assert.AssertNil(t, err, "failured, can't open the mdbm, path=%s, err=%v", dbm.GetDBMFile(), err)
+	defer dbm.EasyClose()
+
+	iter := dbm.GetNewIter()
+
+	for i := 0; i <= loopLimit; i++ {
+
+		rv, val, goiter, err = dbm.FetchRWithLock(i, &iter)
+		assert.AssertNil(t, err, "failured, return Value mismatch. rv=%d, value=%s, err=%v\n", rv, val, err)
+		assert.AssertEquals(t, strconv.Itoa(i), val, "return Value mismatch.\nExpected: %v\nActual: %v", i, val)
+		assert.AssertEquals(t, goiter.PageNo, uint32zero, "failured, return Value mismatch.\nExpected: %d\nActual: %d", goiter.PageNo, uint32zero)
+		assert.AssertLessThanEqualTo(t, goiter.Next, intzero, "failured, return Value mismatch.\nExpected: %d\nActual: %d", goiter.Next, intzero)
+
+		rv, val, goiter, err = dbm.FetchRWithLockSmart(i, &iter, mdbm.Rdrw)
+		assert.AssertNil(t, err, "failured, return Value mismatch. rv=%d, value=%s, err=%v\n", rv, val, err)
+		assert.AssertEquals(t, strconv.Itoa(i), val, "return Value mismatch.\nExpected: %v\nActual: %v", i, val)
+		assert.AssertEquals(t, goiter.PageNo, uint32zero, "failured, return Value mismatch.\nExpected: %d\nActual: %d", goiter.PageNo, uint32zero)
+		assert.AssertLessThanEqualTo(t, goiter.Next, intzero, "failured, return Value mismatch.\nExpected: %d\nActual: %d", goiter.Next, intzero)
+
+		rv, val, goiter, err = dbm.FetchRWithLockShared(i, &iter)
+		assert.AssertNil(t, err, "failured, return Value mismatch. rv=%d, value=%s, err=%v\n", rv, val, err)
+		assert.AssertEquals(t, strconv.Itoa(i), val, "return Value mismatch.\nExpected: %v\nActual: %v", i, val)
+		assert.AssertEquals(t, goiter.PageNo, uint32zero, "failured, return Value mismatch.\nExpected: %d\nActual: %d", goiter.PageNo, uint32zero)
+		assert.AssertLessThanEqualTo(t, goiter.Next, intzero, "failured, return Value mismatch.\nExpected: %d\nActual: %d", goiter.Next, intzero)
+
+		rv, val, goiter, err = dbm.FetchRWithPlock(i, &iter, mdbm.Rdrw)
+		assert.AssertNil(t, err, "failured, return Value mismatch. rv=%d, value=%s, err=%v\n", rv, val, err)
+		assert.AssertEquals(t, strconv.Itoa(i), val, "return Value mismatch.\nExpected: %v\nActual: %v", i, val)
+		assert.AssertEquals(t, goiter.PageNo, uint32zero, "failured, return Value mismatch.\nExpected: %d\nActual: %d", goiter.PageNo, uint32zero)
+		assert.AssertLessThanEqualTo(t, goiter.Next, intzero, "failured, return Value mismatch.\nExpected: %d\nActual: %d", goiter.Next, intzero)
+
+		rv, val, goiter, err = dbm.FetchRWithTryLock(i, &iter)
+		assert.AssertNil(t, err, "failured, return Value mismatch. rv=%d, value=%s, err=%v\n", rv, val, err)
+		assert.AssertEquals(t, strconv.Itoa(i), val, "return Value mismatch.\nExpected: %v\nActual: %v", i, val)
+		assert.AssertEquals(t, goiter.PageNo, uint32zero, "failured, return Value mismatch.\nExpected: %d\nActual: %d", goiter.PageNo, uint32zero)
+		assert.AssertLessThanEqualTo(t, goiter.Next, intzero, "failured, return Value mismatch.\nExpected: %d\nActual: %d", goiter.Next, intzero)
+
+		rv, val, goiter, err = dbm.FetchRWithTryLockSmart(i, &iter, mdbm.Rdrw)
+		assert.AssertNil(t, err, "failured, return Value mismatch. rv=%d, value=%s, err=%v\n", rv, val, err)
+		assert.AssertEquals(t, strconv.Itoa(i), val, "return Value mismatch.\nExpected: %v\nActual: %v", i, val)
+		assert.AssertEquals(t, goiter.PageNo, uint32zero, "failured, return Value mismatch.\nExpected: %d\nActual: %d", goiter.PageNo, uint32zero)
+		assert.AssertLessThanEqualTo(t, goiter.Next, intzero, "failured, return Value mismatch.\nExpected: %d\nActual: %d", goiter.Next, intzero)
+
+		rv, val, goiter, err = dbm.FetchRWithTryLockShared(i, &iter)
+		assert.AssertNil(t, err, "failured, return Value mismatch. rv=%d, value=%s, err=%v\n", rv, val, err)
+		assert.AssertEquals(t, strconv.Itoa(i), val, "return Value mismatch.\nExpected: %v\nActual: %v", i, val)
+		assert.AssertEquals(t, goiter.PageNo, uint32zero, "failured, return Value mismatch.\nExpected: %d\nActual: %d", goiter.PageNo, uint32zero)
+		assert.AssertLessThanEqualTo(t, goiter.Next, intzero, "failured, return Value mismatch.\nExpected: %d\nActual: %d", goiter.Next, intzero)
+
+		rv, val, goiter, err = dbm.FetchRWithTryPlock(i, &iter, mdbm.Rdrw)
+		assert.AssertNil(t, err, "failured, return Value mismatch. rv=%d, value=%s, err=%v\n", rv, val, err)
+		assert.AssertEquals(t, strconv.Itoa(i), val, "return Value mismatch.\nExpected: %v\nActual: %v", i, val)
+		assert.AssertEquals(t, goiter.PageNo, uint32zero, "failured, return Value mismatch.\nExpected: %d\nActual: %d", goiter.PageNo, uint32zero)
+		assert.AssertLessThanEqualTo(t, goiter.Next, intzero, "failured, return Value mismatch.\nExpected: %d\nActual: %d", goiter.Next, intzero)
+
+	}
+
+	rv, val, goiter, err = dbm.FetchRWithTryPlock([]string{"1"}, &iter, mdbm.Rdrw)
+	assert.AssertNotNil(t, err, "failured, can't check the wrong data-type, rv=%d, value=%s, err=%v", rv, val, err)
+	assert.AssertEquals(t, goiter.PageNo, uint32zero, "failured, return Value mismatch.\nExpected: %d\nActual: %d", goiter.PageNo, uint32zero)
+	assert.AssertLessThanEqualTo(t, goiter.Next, intzero, "failured, return Value mismatch.\nExpected: %d\nActual: %d", goiter.Next, intzero)
+
+	// Output:
+}
+
 func Test_mdbm_TryLock_UnLock(t *testing.T) {
 
 	dbm := mdbm.NewMDBM()
@@ -1209,9 +1342,9 @@ func Test_mdbm_FetchInfo(t *testing.T) {
 	uint32zero := uint32(0)
 	intzero := int(0)
 
-	for i := 0; i <= 1; i++ {
+	var retval string
 
-		var retval string
+	for i := 0; i <= loopLimit; i++ {
 
 		rv, copiedval, info, goiter, err := dbm.FetchInfo(i, &retval, &iter)
 		assert.AssertNil(t, err, "failured, can't get fetch infor, path=%s, rv=%d, err=%v", dbm.GetDBMFile(), rv, err)
@@ -1221,9 +1354,19 @@ func Test_mdbm_FetchInfo(t *testing.T) {
 		assert.AssertEquals(t, info.CacheNumAccesses, uint32zero, "failured, return Value mismatch.\nExpected: %v\nActual: %v", info.CacheNumAccesses, uint32zero)
 		assert.AssertEquals(t, info.CacheAccessTime, uint32zero, "failured, return Value mismatch.\nExpected: %v\nActual: %v", info.CacheAccessTime, uint32zero)
 
-		assert.AssertNotEquals(t, goiter.PageNo, uint32zero, "failured, return Value mismatch.\nExpected: %d\nActual: %d", goiter.PageNo, uint32zero)
-		assert.AssertNotEquals(t, goiter.Next, intzero, "failured, return Value mismatch.\nExpected: %d\nActual: %d", goiter.Next, intzero)
+		assert.AssertGreaterThanEqualTo(t, goiter.PageNo, uint32zero, "failured, return Value mismatch.\nExpected: %d\nActual: %d", goiter.PageNo, uint32zero)
+		assert.AssertLessThanEqualTo(t, goiter.Next, intzero, "failured, return Value mismatch.\nExpected: %d\nActual: %d", goiter.Next, intzero)
 	}
+
+	rv, copiedval, info, goiter, err := dbm.FetchInfo(map[int]int{0: 0}, &retval, &iter)
+	assert.AssertNotNil(t, err, "failured, can't check the wrong data-type, rv=%d, value=%s, err=%v", rv, copiedval, err)
+	assert.AssertGreaterThanEqualTo(t, goiter.PageNo, uint32zero, "failured, return Value mismatch.\nExpected: %d\nActual: %d", goiter.PageNo, uint32zero)
+	assert.AssertLessThanEqualTo(t, goiter.Next, intzero, "failured, return Value mismatch.\nExpected: %d\nActual: %d", goiter.Next, intzero)
+
+	assert.AssertEquals(t, info.Flags, uint32zero, "failured, return Value mismatch.\nExpected: %v\nActual: %v", info.Flags, uint32zero)
+	assert.AssertEquals(t, info.CacheNumAccesses, uint32zero, "failured, return Value mismatch.\nExpected: %v\nActual: %v", info.CacheNumAccesses, uint32zero)
+	assert.AssertEquals(t, info.CacheAccessTime, uint32zero, "failured, return Value mismatch.\nExpected: %v\nActual: %v", info.CacheAccessTime, uint32zero)
+
 }
 
 func Test_mdbm_DeleteWithLock(t *testing.T) {
@@ -1421,8 +1564,12 @@ func Test_mdbm_GetHashValue(t *testing.T) {
 	rv, err = dbm.GetHashValue(1, mdbm.DefaultHash)
 	assert.AssertNotEquals(t, rv, uint32(1), "return Value mismatch., rv=%d, err=%v", rv, err)
 
-	_, err = dbm.GetHashValue(1, mdbm.LargeObjects)
+	_, err = dbm.GetHashValue(1, -1234)
 	assert.AssertNotNil(t, err, "failured, can't check the hash type err=%v", err)
+
+	_, err = dbm.GetHashValue([]int{mdbm.MaxHash}, 9999999)
+	assert.AssertNotNil(t, err, "failured, can't check the hash type err=%v", err)
+
 }
 
 func Test_mdbm_StoreStr(t *testing.T) {
@@ -1625,6 +1772,24 @@ func Test_mdbm_FetchStrAnyLock(t *testing.T) {
 		assert.AssertEquals(t, strconv.Itoa(i), val, "failured, key and value mismatch, key=%d, val=%s", i, val)
 		assert.AssertNil(t, err, "failured, can't obtain value, path=%s, err=%v", dbm.GetDBMFile(), err)
 	}
+}
+
+func Test_mdbm_GetPage(t *testing.T) {
+
+	var rv uint32
+	var err error
+
+	dbm := mdbm.NewMDBM()
+	err = dbm.EasyOpen(pathTestDBMStrAnyLock, 0644)
+	defer dbm.EasyClose()
+	assert.AssertNil(t, err, "failured, can't open the mdbm, path=%s, err=%v", dbm.GetDBMFile(), err)
+
+	rv, err = dbm.GetPage(65500)
+	assert.AssertNil(t, err, "failured, can't obtain page, path=%s, rv=%d, err=%v", dbm.GetDBMFile(), rv, err)
+
+	rv, err = dbm.GetPage([]int{1, 2, 3})
+	assert.AssertNotNil(t, err, "failured, can't check the wrong data-type, path=%s, rv=%d, err=%v", dbm.GetDBMFile(), rv, err)
+
 }
 
 func Test_mdbm_FirstNext(t *testing.T) {
@@ -2417,6 +2582,8 @@ func Test_mdbm_checkAvailable(t *testing.T) {
 	_, _, _, _, err = dbm.FetchInfo(0, &strtest, &iter)
 	assert.AssertNotNil(t, err, "failured, can't check the available the mdbm handler, path=%s, err=%v", dbm.GetDBMFile(), err)
 	_, err = dbm.Delete(0)
+	assert.AssertNotNil(t, err, "failured, can't check the available the mdbm handler, path=%s, err=%v", dbm.GetDBMFile(), err)
+	_, err = dbm.DeleteStr(0)
 	assert.AssertNotNil(t, err, "failured, can't check the available the mdbm handler, path=%s, err=%v", dbm.GetDBMFile(), err)
 	_, _, err = dbm.DeleteR(0, &iter)
 	assert.AssertNotNil(t, err, "failured, can't check the available the mdbm handler, path=%s, err=%v", dbm.GetDBMFile(), err)
