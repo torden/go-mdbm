@@ -1,16 +1,44 @@
 package mdbm
 
 import (
+	"log"
+	"os"
 	"testing"
 
 	"github.com/torden/go-strutil"
 )
+
+const pathTestDBMUnexport = "/tmp/test_unexport.mdbm"
 
 var assert = strutils.NewAssert()
 
 var intzero = int(0)
 var uint32zero = uint32(0)
 var uint64zero = uint64(0)
+
+var gPathList = [...]string{pathTestDBMUnexport}
+
+func TestMain(t *testing.T) {
+
+	dbm := NewMDBM()
+
+	for _, path := range gPathList {
+
+		_, err := dbm.DeleteLockFiles(path)
+		if err == nil {
+			log.Printf("delete lock files of %s", path)
+		}
+
+		err = os.Remove(path)
+		if err != nil {
+			log.Printf("not exists the `%s` file", path)
+		} else {
+			log.Printf("remove the `%s` file", path)
+		}
+
+	}
+
+}
 
 func Test_mdbm_unexport_convertIterToC(t *testing.T) {
 
@@ -163,4 +191,25 @@ func Test_mdbm_unexport_convertWindowStat(t *testing.T) {
 	assert.AssertEquals(t, goWStats.WnumRemapped, uint64zero, "failured, converted value mismatch, goWStats.WnumRemapped=%+v", goWStats.WnumRemapped)
 	assert.AssertEquals(t, goWStats.WwindowSize, uint32zero, "failured, converted value mismatch, goWStats.WwindowSize=%+v", goWStats.WwindowSize)
 	assert.AssertEquals(t, goWStats.WmaxWindowUsed, uint32zero, "failured, converted value mismatch, goWStats.WmaxWindowUsed=%+v", goWStats.WmaxWindowUsed)
+}
+
+func Test_mdbm_unexport_checkAvailable(t *testing.T) {
+
+	dbm := NewMDBM()
+	err := dbm.EasyOpen(pathTestDBMUnexport, 0644)
+	assert.AssertNil(t, err, "failured, can't open the mdbm, path=%s, err=%v", dbm.GetDBMFile(), err)
+
+	err = dbm.isVersion2()
+	assert.AssertNotNil(t, err, "failured, can't check the mdbm version, path=%s, err=%v", dbm.GetDBMFile(), err)
+
+	err = dbm.isVersion3Above()
+	assert.AssertNil(t, err, "failured, can't check the mdbm version, path=%s, err=%v", dbm.GetDBMFile(), err)
+
+	dbm.EasyClose()
+	err = dbm.isVersion2()
+	assert.AssertNotNil(t, err, "failured, can't check the mdbm version, path=%s, err=%v", dbm.GetDBMFile(), err)
+
+	err = dbm.isVersion3Above()
+	assert.AssertNotNil(t, err, "failured, can't check the mdbm version, path=%s, err=%v", dbm.GetDBMFile(), err)
+
 }

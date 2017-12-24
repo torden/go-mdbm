@@ -18,6 +18,7 @@ const (
 	pathTestDBMAnyDataType1  = "/tmp/test_anydatatype1.mdbm"
 	pathTestDBMAnyDataType2  = "/tmp/test_anydatatype2.mdbm"
 	pathTestDBMStr           = "/tmp/test_str.mdbm"
+	pathTestDBMR             = "/tmp/test_r.mdbm"
 	pathTestDBMStrAnyLock    = "/tmp/test_str_anylock.mdbm"
 	pathTestDBMReplace1      = "/tmp/test_replace1.mdbm"
 	pathTestDBMReplace2      = "/tmp/test_replace2.mdbm"
@@ -39,5 +40,6 @@ var gPathList = [...]string{
 	pathTestDBMAnyDataType1,
 	pathTestDBMAnyDataType2,
 	pathTestDBMStr,
+	pathTestDBMR,
 	pathTestDBMStrAnyLock,
 	pathTestDBMCacheNoneData}
