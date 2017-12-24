@@ -125,6 +125,10 @@ func Test_mdbm_LimitDirSize(t *testing.T) {
 
 	rv, err = dbm.LimitDirSize(0)
 	assert.AssertNotNil(t, err, "failured, can't check the wrong option, path=%s, rv=%d, err=%v", dbm.GetDBMFile(), rv, err)
+
+	rv, err = dbm.LimitDirSize(81920)
+	assert.AssertNil(t, err, "failured, can't set the limit of size of dir, path=%s, rv=%d, err=%v", dbm.GetDBMFile(), rv, err)
+
 }
 
 func Test_mdbm_SetWindowSize(t *testing.T) {
