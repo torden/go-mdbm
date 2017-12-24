@@ -1,6 +1,6 @@
 # Go-mdbm
 
-*Not ready for use on production servers, go-mdbm tests complete as soon...*
+*Unfortunately, Not ready for use on production, but go-mdbm tests complete as soon...*
 
 - Go-mdbm is a Go bind to Yahoo! MDBM C API.
 - MDBM is a super-fast memory-mapped key/value store.
@@ -14,7 +14,7 @@
 [![GitHub version](https://badge.fury.io/gh/torden%2Fgo-mdbm.svg)](https://badge.fury.io/gh/torden%2Fgo-mdbm)
 
 ```
-On Now, Almost MDBM APIs supported
+Allmost MDBM APIs supported
 ```
 
 ## Install from Source Code
@@ -46,7 +46,7 @@ cd mdbm
 PREFIX=/usr/local/mdbm make install
 ```
 
-## Install from Pre-build Package
+## Install from Pre-build Packages
 
 - [Ubuntu Package by Version](https://github.com/torden/go-mdbm/tree/master/pkg/ubuntu)
 - RedHat Package by Version (as soon)
@@ -81,7 +81,9 @@ go-mdbm/mdbm.go:13:10: fatal error: mdbm.h: No such file or directory
 compilation terminated.
 ```
 
-#### Change the mdbm installed path
+#### Change the mdbm installed path 
+
+if you did change any other installation path, you must following below
 
 ```shell
 cd $GOPATH/src/github.com/torden/go-mdbm/
@@ -98,16 +100,24 @@ vi mdbm.go
 
 |*Branch*|*Support*|*test*|
 |---|---|---|
-|master|yes|always automatic testing|
+|master|yes|always|
 |release 4.3.x|yes|tested|
 
 ## On Now, Not Support APIs
 
+
+### Deprecatred APIs
+
+|*API*|*STATUS*|*COMMENT*|
+|---|---|---|
+|mdbm_save|DEPRECATED|mdbm_save is only supported for V2 MDBMs.|
+|mdbm_restore|DEPRECATED|mdbm_restore is only supported for V2 MDBMs.|
+|mdbm_sethash|DEPRECATED|Legacy version of mdbm_set_hash() This function has inconsistent naming, and error return value. It will be removed in a future version.|
+
+### As soon
+
 |*API*|*STATUS*|
 |---|---|
-|mdbm_save|DEPRECATED|
-|mdbm_restore|DEPRECATED|
-|mdbm_sethash|DEPRECATED|
 |mdbm_stat_all_page|as soon|
 |mdbm_stat_header|as soon|
 |mdbm_cdbdump_add_record|as soon|
@@ -126,7 +136,7 @@ vi mdbm.go
 |mdbm_set_stats_func|as soon|
 |mdbm_chunk_iterate|as soon|
 |mdbm_sparsify_file|as soon|
-|mdbm_fetch_buf|similar Fetch() api|
+|mdbm_fetch_buf|similar FetchXXX() api|
 
 # Example
 
@@ -139,7 +149,7 @@ vi mdbm.go
 * Binding All APIs without deprecated apis
 * Testing on another platform (osx, bsd...)
 * Pre-compiled mdbm library by OS
-* Stabilization
+* Stabilization & Clear
 
 ---
 Please feel free.
