@@ -123,7 +123,7 @@ func Example_mdbm_LimitDirSize(t *testing.T) {
 	rv, err = dbm.LimitDirSize(20)
 	assert.AssertNil(t, err, "failured, can't set the limit of size of dir, path=%s, rv=%d, err=%v", dbm.GetDBMFile(), rv, err)
 
-	rv, err = dbm.LimitDirSize(-1)
+	rv, err = dbm.LimitDirSize(0)
 	assert.AssertNotNil(t, err, "failured, can't check the wrong option, path=%s, rv=%d, err=%v", dbm.GetDBMFile(), rv, err)
 }
 
@@ -926,6 +926,9 @@ func Test_mdbm_AnyDataType_StoreStr(t *testing.T) {
 	vcomplex128 := complex128(4)
 
 	rv, err = dbm.StoreStrWithLock(true, true, mdbm.Insert)
+	assert.AssertNil(t, err, "failed, can't data(byte) add to the mdbm file(=%s), rv=%d, err=%v", dbm.GetDBMFile(), rv, err)
+
+	rv, err = dbm.StoreStrWithLock(false, false, mdbm.Insert)
 	assert.AssertNil(t, err, "failed, can't data(byte) add to the mdbm file(=%s), rv=%d, err=%v", dbm.GetDBMFile(), rv, err)
 
 	rv, err = dbm.StoreStrWithLock(vbyte, vbyte, mdbm.Insert)
@@ -2292,4 +2295,5 @@ func Test_mdbm_checkAvailable(t *testing.T) {
 	_, err = dbm.EasyGetKeyList()
 	assert.AssertNotNil(t, err, "failured, can't check the avaliable the mdbm handler, path=%s, err=%v", dbm.GetDBMFile(), err)
 	dbm.EasyClose()
+	dbm.Close()
 }
