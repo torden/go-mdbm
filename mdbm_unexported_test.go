@@ -211,5 +211,4 @@ func Test_mdbm_unexport_checkAvailable(t *testing.T) {
 
 	err = dbm.isVersion3Above()
 	assert.AssertNotNil(t, err, "failured, can't check the mdbm version, path=%s, err=%v", dbm.GetDBMFile(), err)
-
 }

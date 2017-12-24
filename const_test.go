@@ -23,6 +23,7 @@ const (
 	pathTestDBMReplace1      = "/tmp/test_replace1.mdbm"
 	pathTestDBMReplace2      = "/tmp/test_replace2.mdbm"
 	pathTestDBMReplace3      = "/tmp/test_replace3.mdbm"
+	pathTestDBMRemove        = "/tmp/test_remove.mdbm"
 )
 
 var gPathList = [...]string{
@@ -42,4 +43,5 @@ var gPathList = [...]string{
 	pathTestDBMStr,
 	pathTestDBMR,
 	pathTestDBMStrAnyLock,
-	pathTestDBMCacheNoneData}
+	pathTestDBMCacheNoneData,
+	pathTestDBMRemove}

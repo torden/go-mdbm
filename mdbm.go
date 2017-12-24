@@ -1115,6 +1115,9 @@ func (db *MDBM) ReplaceDB(newfile string) error {
 		return err
 	}
 
+	db.mutex.Lock()
+	defer db.mutex.Unlock()
+
 	newmdbmfn := C.CString(newfile)
 	defer C.free(unsafe.Pointer(newmdbmfn))
 
@@ -1129,6 +1132,9 @@ func (db *MDBM) ReplaceDB(newfile string) error {
 // ReplaceFile replaces an old database in oldfile With new database in newfile.
 // oldfile is deleted, and a newfile is renamed to a oldfile.
 func (db *MDBM) ReplaceFile(oldfile, newfile string) error {
+
+	db.mutex.Lock()
+	defer db.mutex.Unlock()
 
 	oldmdbmfn := C.CString(oldfile)
 	defer C.free(unsafe.Pointer(oldmdbmfn))

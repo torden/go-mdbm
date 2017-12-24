@@ -2302,6 +2302,24 @@ func Test_mdbm_DeleteRWithAnyLock(t *testing.T) {
 
 }
 
+func Test_mdbm_ReplaceFile(t *testing.T) {
+
+	dbm := mdbm.NewMDBM()
+	err := dbm.ReplaceFile(pathTestDBMDelete, pathTestDBMReplace3)
+	assert.AssertNil(t, err, "failured, can't replace %s to %s, path=%s, err=%v", pathTestDBMDelete, pathTestDBMReplace3, err)
+}
+
+func Test_mdbm_EasyClose(t *testing.T) {
+
+	dbm := mdbm.NewMDBM()
+	err := dbm.EasyOpen(pathTestDBMRemove, 0644)
+	assert.AssertNil(t, err, "failured, can't open the mdbm, path=%s, err=%v", dbm.GetDBMFile(), err)
+
+	err = os.Remove(pathTestDBMRemove)
+	assert.AssertNil(t, err, "failured, can't remove the mdbm, path=%s, err=%v", dbm.GetDBMFile(), err)
+	dbm.EasyClose()
+}
+
 func Test_mdbm_checkAvailable(t *testing.T) {
 
 	var err error
