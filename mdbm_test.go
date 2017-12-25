@@ -14,6 +14,22 @@ import (
 
 var assert = strutils.NewAssert()
 
+func getRandomNumber(limit int) int {
+
+	var key int
+
+	r := rand.New(rand.NewSource(time.Now().UnixNano()))
+
+	for {
+		key = r.Intn(loopLimit)
+		if key >= 0 {
+			break
+		}
+	}
+
+	return key
+}
+
 func TestMain(t *testing.T) {
 
 	dbm := mdbm.NewMDBM()
@@ -409,11 +425,9 @@ func Test_mdbm_OrdinaryFetchData_RandomFetch(t *testing.T) {
 
 	assert.AssertNil(t, err, "failured, can't open the mdbm, path=%s, err=%v", dbm.GetDBMFile(), err)
 
-	r1 := rand.New(rand.NewSource(time.Now().UnixNano()))
-
 	for i := 0; i <= loopLimit; i++ {
 
-		val, err := dbm.Fetch(r1.Intn(loopLimit))
+		val, err := dbm.Fetch(getRandomNumber(loopLimit))
 		assert.AssertNil(t, err, "failured, return Value mismatch. value=%s, err=%v\n", val, err)
 		assert.AssertEquals(t, strconv.Itoa(i), val, "return Value mismatch.\nExpected: %v\nActual: %v", i, val)
 	}
@@ -487,11 +501,9 @@ func Test_mdbm_OrdinaryFetchData_Random_NonePreLoad_Fetch(t *testing.T) {
 
 	assert.AssertNil(t, err, "failured, can't open the mdbm, path=%s, err=%v", dbm.GetDBMFile(), err)
 
-	r := rand.New(rand.NewSource(time.Now().UnixNano()))
-
 	for i := 0; i <= loopLimit; i++ {
 
-		val, err := dbm.Fetch(r.Intn(loopLimit))
+		val, err := dbm.Fetch(getRandomNumber(loopLimit))
 		assert.AssertNil(t, err, "failured, return Value mismatch. value=%s, err=%v\n", val, err)
 		assert.AssertEquals(t, strconv.Itoa(i), val, "return Value mismatch.\nExpected: %v\nActual: %v", i, val)
 	}
@@ -507,11 +519,9 @@ func Test_mdbm_OrdinaryFetchData_Random_PreLoad_Fetch(t *testing.T) {
 	rv, err := dbm.PreLoad()
 	assert.AssertNil(t, err, "failured, can't pre-load the mdbm, path=%s, rv=%d, err=%v", dbm.GetDBMFile(), rv, err)
 
-	r := rand.New(rand.NewSource(time.Now().UnixNano()))
-
 	for i := 0; i <= loopLimit; i++ {
 
-		val, err := dbm.Fetch(r.Intn(loopLimit))
+		val, err := dbm.Fetch(getRandomNumber(loopLimit))
 		assert.AssertNil(t, err, "failured, return Value mismatch. value=%s, err=%v\n", val, err)
 		assert.AssertEquals(t, strconv.Itoa(i), val, "return Value mismatch.\nExpected: %v\nActual: %v", i, val)
 	}
@@ -525,11 +535,9 @@ func Test_mdbm_OrdinaryFetchData_Random_NonePreLoad_FetchWithLock(t *testing.T) 
 
 	assert.AssertNil(t, err, "failured, can't open the mdbm, path=%s, err=%v", dbm.GetDBMFile(), err)
 
-	r := rand.New(rand.NewSource(time.Now().UnixNano()))
-
 	for i := 0; i <= loopLimit; i++ {
 
-		val, err := dbm.FetchWithLock(r.Intn(loopLimit))
+		val, err := dbm.FetchWithLock(getRandomNumber(loopLimit))
 		assert.AssertNil(t, err, "failured, return Value mismatch. value=%d, err=%v\n", val, err)
 		assert.AssertEquals(t, strconv.Itoa(i), val, "return Value mismatch.\nExpected: %v\nActual: %v", i, val)
 	}
@@ -545,11 +553,9 @@ func Test_mdbm_OrdinaryFetchData_Random_PreLoad_FetchWithLock(t *testing.T) {
 	rv, err := dbm.PreLoad()
 	assert.AssertNil(t, err, "failured, can't pre-load the mdbm, path=%s, rv=%d, err=%v", dbm.GetDBMFile(), rv, err)
 
-	r := rand.New(rand.NewSource(time.Now().UnixNano()))
-
 	for i := 0; i <= loopLimit; i++ {
 
-		val, err := dbm.FetchWithLock(r.Intn(loopLimit))
+		val, err := dbm.FetchWithLock(getRandomNumber(loopLimit))
 		assert.AssertNil(t, err, "failured, return Value mismatch. value=%s, err=%v\n", val, err)
 		assert.AssertEquals(t, strconv.Itoa(i), val, "return Value mismatch.\nExpected: %v\nActual: %v", i, val)
 	}
@@ -563,11 +569,9 @@ func Test_mdbm_OrdinaryFetchData_Random_NonePreLoad_FetchWithLockSmart(t *testin
 
 	assert.AssertNil(t, err, "failured, can't open the mdbm, path=%s, err=%v", dbm.GetDBMFile(), err)
 
-	r := rand.New(rand.NewSource(time.Now().UnixNano()))
-
 	for i := 0; i <= loopLimit; i++ {
 
-		val, err := dbm.FetchWithLockSmart(r.Intn(loopLimit), mdbm.Rdrw)
+		val, err := dbm.FetchWithLockSmart(getRandomNumber(loopLimit), mdbm.Rdrw)
 		assert.AssertNil(t, err, "failured, return Value mismatch. value=%s, err=%v\n", val, err)
 		assert.AssertEquals(t, strconv.Itoa(i), val, "return Value mismatch.\nExpected: %v\nActual: %v", i, val)
 	}
@@ -583,11 +587,9 @@ func Test_mdbm_OrdinaryFetchData_Random_PreLoad_FetchWithLockSmart(t *testing.T)
 	rv, err := dbm.PreLoad()
 	assert.AssertNil(t, err, "failured, can't pre-load the mdbm, path=%s, rv=%d, err=%v", dbm.GetDBMFile(), rv, err)
 
-	r := rand.New(rand.NewSource(time.Now().UnixNano()))
-
 	for i := 0; i <= loopLimit; i++ {
 
-		val, err := dbm.FetchWithLockSmart(r.Intn(loopLimit), mdbm.Rdrw)
+		val, err := dbm.FetchWithLockSmart(getRandomNumber(loopLimit), mdbm.Rdrw)
 		assert.AssertNil(t, err, "failured, return Value mismatch. value=%s, err=%v\n", val, err)
 		assert.AssertEquals(t, strconv.Itoa(i), val, "return Value mismatch.\nExpected: %v\nActual: %v", i, val)
 	}
@@ -1939,6 +1941,151 @@ func Test_mdbm_StoreDup(t *testing.T) {
 	}
 }
 
+func Test_mdbm_FetchDupRWithAnyLock(t *testing.T) {
+
+	var rv int
+	var val string
+	var err error
+	var goiter mdbm.Iter
+	var key int
+
+	dbm := mdbm.NewMDBM()
+	err = dbm.Open(pathTestDBMDup, mdbm.Rdonly, 0644, 0, 0)
+	defer dbm.EasyClose()
+	assert.AssertNil(t, err, "failured, can't open the mdbm, path=%s, err=%v", dbm.GetDBMFile(), err)
+
+	iter := dbm.GetNewIter()
+
+	key = getRandomNumber(loopLimit)
+	for rv != -1 {
+
+		rv, val, goiter, err = dbm.FetchDupR(key, &iter)
+		if rv == -1 {
+			//end of records
+			break
+		}
+
+		assert.AssertNil(t, err, "failured, can't get a duplicated record, path=%s, rv=%d, val=%s, goiter=%v, err=%v", dbm.GetDBMFile(), rv, val, goiter, err)
+		assert.AssertGreaterThanEqualTo(t, goiter.PageNo, 0, "failured, pageno of iter is not valid, iter.PageNo=%d", goiter.PageNo)
+		assert.AssertLessThanEqualTo(t, goiter.Next, 0, "failured, next of iter is not valid, iter.Next=%d", goiter.Next)
+	}
+
+	key = getRandomNumber(loopLimit)
+	for rv != -1 {
+
+		rv, val, goiter, err = dbm.FetchDupRWithLock(key, &iter)
+		if rv == -1 {
+			//end of records
+			break
+		}
+
+		assert.AssertNil(t, err, "failured, can't get a duplicated record, path=%s, rv=%d, val=%s, goiter=%v, err=%v", dbm.GetDBMFile(), rv, val, goiter, err)
+		assert.AssertGreaterThanEqualTo(t, goiter.PageNo, 0, "failured, pageno of iter is not valid, iter.PageNo=%d", goiter.PageNo)
+		assert.AssertLessThanEqualTo(t, goiter.Next, 0, "failured, next of iter is not valid, iter.Next=%d", goiter.Next)
+	}
+
+	key = getRandomNumber(loopLimit)
+	for rv != -1 {
+
+		rv, val, goiter, err = dbm.FetchDupRWithLockSmart(key, &iter, mdbm.Rdrw)
+		if rv == -1 {
+			//end of records
+			break
+		}
+
+		assert.AssertNil(t, err, "failured, can't get a duplicated record, path=%s, rv=%d, val=%s, goiter=%v, err=%v", dbm.GetDBMFile(), rv, val, goiter, err)
+		assert.AssertGreaterThanEqualTo(t, goiter.PageNo, 0, "failured, pageno of iter is not valid, iter.PageNo=%d", goiter.PageNo)
+		assert.AssertLessThanEqualTo(t, goiter.Next, 0, "failured, next of iter is not valid, iter.Next=%d", goiter.Next)
+	}
+
+	key = getRandomNumber(loopLimit)
+	for rv != -1 {
+
+		rv, val, goiter, err = dbm.FetchDupRWithLockShared(key, &iter)
+		if rv == -1 {
+			//end of records
+			break
+		}
+
+		assert.AssertNil(t, err, "failured, can't get a duplicated record, path=%s, rv=%d, val=%s, goiter=%v, err=%v", dbm.GetDBMFile(), rv, val, goiter, err)
+		assert.AssertGreaterThanEqualTo(t, goiter.PageNo, 0, "failured, pageno of iter is not valid, iter.PageNo=%d", goiter.PageNo)
+		assert.AssertLessThanEqualTo(t, goiter.Next, 0, "failured, next of iter is not valid, iter.Next=%d", goiter.Next)
+	}
+
+	key = getRandomNumber(loopLimit)
+	for rv != -1 {
+
+		rv, val, goiter, err = dbm.FetchDupRWithPlock(key, &iter, mdbm.Rdrw)
+		if rv == -1 {
+			//end of records
+			break
+		}
+
+		assert.AssertNil(t, err, "failured, can't get a duplicated record, path=%s, rv=%d, val=%s, goiter=%v, err=%v", dbm.GetDBMFile(), rv, val, goiter, err)
+		assert.AssertGreaterThanEqualTo(t, goiter.PageNo, 0, "failured, pageno of iter is not valid, iter.PageNo=%d", goiter.PageNo)
+		assert.AssertLessThanEqualTo(t, goiter.Next, 0, "failured, next of iter is not valid, iter.Next=%d", goiter.Next)
+	}
+
+	key = getRandomNumber(loopLimit)
+	for rv != -1 {
+
+		rv, val, goiter, err = dbm.FetchDupRWithTryLock(key, &iter)
+		if rv == -1 {
+			//end of records
+			break
+		}
+
+		assert.AssertNil(t, err, "failured, can't get a duplicated record, path=%s, rv=%d, val=%s, goiter=%v, err=%v", dbm.GetDBMFile(), rv, val, goiter, err)
+		assert.AssertGreaterThanEqualTo(t, goiter.PageNo, 0, "failured, pageno of iter is not valid, iter.PageNo=%d", goiter.PageNo)
+		assert.AssertLessThanEqualTo(t, goiter.Next, 0, "failured, next of iter is not valid, iter.Next=%d", goiter.Next)
+	}
+
+	key = getRandomNumber(loopLimit)
+	for rv != -1 {
+
+		rv, val, goiter, err = dbm.FetchDupRWithTryLockSmart(key, &iter, mdbm.Rdrw)
+		if rv == -1 {
+			//end of records
+			break
+		}
+
+		assert.AssertNil(t, err, "failured, can't get a duplicated record, path=%s, rv=%d, val=%s, goiter=%v, err=%v", dbm.GetDBMFile(), rv, val, goiter, err)
+		assert.AssertGreaterThanEqualTo(t, goiter.PageNo, 0, "failured, pageno of iter is not valid, iter.PageNo=%d", goiter.PageNo)
+		assert.AssertLessThanEqualTo(t, goiter.Next, 0, "failured, next of iter is not valid, iter.Next=%d", goiter.Next)
+	}
+
+	key = getRandomNumber(loopLimit)
+	for rv != -1 {
+
+		rv, val, goiter, err = dbm.FetchDupRWithTryLockShared(key, &iter)
+		if rv == -1 {
+			//end of records
+			break
+		}
+
+		assert.AssertNil(t, err, "failured, can't get a duplicated record, path=%s, rv=%d, val=%s, goiter=%v, err=%v", dbm.GetDBMFile(), rv, val, goiter, err)
+		assert.AssertGreaterThanEqualTo(t, goiter.PageNo, 0, "failured, pageno of iter is not valid, iter.PageNo=%d", goiter.PageNo)
+		assert.AssertLessThanEqualTo(t, goiter.Next, 0, "failured, next of iter is not valid, iter.Next=%d", goiter.Next)
+	}
+
+	key = getRandomNumber(loopLimit)
+	for rv != -1 {
+
+		rv, val, goiter, err = dbm.FetchDupRWithTryPlock(key, &iter, mdbm.Rdrw)
+		if rv == -1 {
+			//end of records
+			break
+		}
+
+		assert.AssertNil(t, err, "failured, can't get a duplicated record, path=%s, rv=%d, val=%s, goiter=%v, err=%v", dbm.GetDBMFile(), rv, val, goiter, err)
+		assert.AssertGreaterThanEqualTo(t, goiter.PageNo, 0, "failured, pageno of iter is not valid, iter.PageNo=%d", goiter.PageNo)
+		assert.AssertLessThanEqualTo(t, goiter.Next, 0, "failured, next of iter is not valid, iter.Next=%d", goiter.Next)
+	}
+
+	rv, val, goiter, err = dbm.FetchDupRWithTryPlock([]int{0}, &iter, mdbm.Rdrw)
+	assert.AssertNotNil(t, err, "failured, can't check the wrong data-type, path=%s, rv=%d, val=%s, goiter=%v, err=%v", dbm.GetDBMFile(), rv, val, goiter, err)
+}
+
 func Test_mdbm_Clean(t *testing.T) {
 
 	var rv int
@@ -2609,6 +2756,8 @@ func Test_mdbm_checkAvailable(t *testing.T) {
 	_, err = dbm.Fetch(0)
 	assert.AssertNotNil(t, err, "failured, can't check the available the mdbm handler, path=%s, err=%v", dbm.GetDBMFile(), err)
 	_, _, _, err = dbm.FetchR(0, &iter)
+	assert.AssertNotNil(t, err, "failured, can't check the available the mdbm handler, path=%s, err=%v", dbm.GetDBMFile(), err)
+	_, _, _, err = dbm.FetchDupR(0, &iter)
 	assert.AssertNotNil(t, err, "failured, can't check the available the mdbm handler, path=%s, err=%v", dbm.GetDBMFile(), err)
 	_, _, _, _, err = dbm.FetchInfo(0, &strtest, &iter)
 	assert.AssertNotNil(t, err, "failured, can't check the available the mdbm handler, path=%s, err=%v", dbm.GetDBMFile(), err)
