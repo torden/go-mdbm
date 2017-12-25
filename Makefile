@@ -52,7 +52,7 @@ VER_GOLANG=$(shell go version | awk '{print $$3}' | sed -e "s/go//;s/\.//g")
 GOLANGV18_OVER=$(shell [ "$(VER_GOLANG)" -ge "180" ] && echo 1 || echo 0)
 GOLANGV16_OVER=$(shell [ "$(VER_GOLANG)" -ge "160" ] && echo 1 || echo 0)
 
-all: clean setup
+all: clean setup lint build
 
 ## Setup Build Environment
 setup: installpkgs metalinter
@@ -72,6 +72,12 @@ ifeq ($(GOLANGV16_OVER),1)
 	@$(CMD_GO) get github.com/alecthomas/gometalinter
 endif
 	@$(CMD_GO) get -u github.com/awalterschulze/gographviz
+	@$(CMD_ECHO) -e "\033[1;40;36mDone\033[01;m\x1b[0m"
+
+## Build the go-mdbm
+build::
+	@$(CMD_ECHO)  -e "\033[1;40;32mBuilding\033[01;m\x1b[0m"
+	@$(CMD_GO) build -a -n -v
 	@$(CMD_ECHO) -e "\033[1;40;36mDone\033[01;m\x1b[0m"
 
 ## Install GoMetaLinter 

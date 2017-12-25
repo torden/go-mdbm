@@ -3514,14 +3514,8 @@ func (db *MDBM) EasyGetKeyList() ([]string, error) {
 	return retval, nil
 }
 
-/*
-// Clean does mark entries clean/re-usable in the database for the specified page. If
-// pagenum is -1, then clean all pages.  It relies on the user provided
-// callback function set via \ref mdbm_set_cleanfunc to determine
-// re-usability/cleanliness of an entry. To be clean means an entry can be
-// re-used to store new data.
+// Clean does mark entries clean/re-usable in the database for the specified page. If pagenum is -1, then clean all pages.
 // NOTE: V3 API
-// pagenum Page number to start cleaning. If < 0, then clean all pages in the database.
 func (db *MDBM) Clean(pagenum int) (int, error) {
 
 	err := db.checkAvailable()
@@ -3529,14 +3523,19 @@ func (db *MDBM) Clean(pagenum int) (int, error) {
 		return -1, err
 	}
 
+	err = db.isVersion3Above()
+	if err != nil {
+		return -1, err
+	}
+
 	rv, _, err := db.cgoRun(func() (int, error) {
-		rv, err := C.mdbm_clean(db.pmdbm, C.int(pagenum), C.int(0)) //flags ignored
+
+		rv, err := C.set_mdbm_clean(db.pmdbm, C.int(pagenum), C.int(0)) //flags ignored
 		return int(rv), err
 	})
 
 	return rv, err
 }
-*/
 
 /*
 func (db *MDBM) CDBDumpToFile(key interface{}, val interface{}, fnpath string, mode string) (int, *C.FILE, error) {

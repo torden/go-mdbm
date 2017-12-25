@@ -36,5 +36,7 @@ extern char *get_mdbm_fetch_str_with_lock(MDBM *db, const char *key, int locktyp
 extern int set_mdbm_delete_with_lock(MDBM *db, datum key, int locktype, int lockflags);
 extern int set_mdbm_delete_r_with_lock(MDBM *db, datum key, MDBM_ITER *iter, int locktype, int lockflags);
 extern int set_mdbm_delete_str_with_lock(MDBM *db, const char *key, int locktype, int lockflags);
-extern int dummy_clean_func(MDBM *, const datum*, const datum*, struct mdbm_clean_data *, int* quit); 
+extern int dummy_clean_func(MDBM *db, const datum *key, const datum *val, struct mdbm_clean_data *mcd, int *quit);
+extern int clean_anything_func(MDBM *db, const datum *key, const datum *val, struct mdbm_clean_data *mcd, int *quit);
+extern int set_mdbm_clean(MDBM* db, int pagenum, int flags);
 #endif
