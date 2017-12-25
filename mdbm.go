@@ -2492,7 +2492,7 @@ func (db *MDBM) First() (string, string, error) {
 	})
 
 	if int(kv.key.dsize) == 0 {
-		return "", "", errors.Wrapf(err, "database is empty")
+		return "", "", errors.New("database is empty")
 	}
 
 	key := C.GoStringN(kv.key.dptr, kv.key.dsize)
@@ -2519,7 +2519,7 @@ func (db *MDBM) Next() (string, string, error) {
 	})
 
 	if int(kv.key.dsize) == 0 {
-		return "", "", errors.Wrapf(err, "database is empty")
+		return "", "", errors.New("database is empty")
 	}
 
 	key := C.GoStringN(kv.key.dptr, kv.key.dsize)
@@ -2546,7 +2546,7 @@ func (db *MDBM) FirstR(iter *C.MDBM_ITER) (string, string, Iter, error) {
 	})
 
 	if int(kv.key.dsize) == 0 {
-		return "", "", db.convertIter(iter), errors.Wrapf(err, "database is empty")
+		return "", "", db.convertIter(iter), errors.New("database is empty")
 	}
 
 	key := C.GoStringN(kv.key.dptr, kv.key.dsize)
@@ -2575,7 +2575,7 @@ func (db *MDBM) NextR(iter *C.MDBM_ITER) (string, string, Iter, error) {
 	})
 
 	if int(kv.key.dsize) == 0 {
-		return "", "", db.convertIter(iter), errors.Wrapf(err, "database is empty")
+		return "", "", db.convertIter(iter), errors.New("database is empty")
 	}
 
 	key := C.GoStringN(kv.key.dptr, kv.key.dsize)
@@ -2604,7 +2604,7 @@ func (db *MDBM) FirstKey() (string, error) {
 	})
 
 	if int(k.dsize) == 0 {
-		return "", errors.Wrapf(err, "database is empty")
+		return "", errors.New("database is empty")
 	}
 
 	key := C.GoStringN(k.dptr, k.dsize)
@@ -2630,7 +2630,7 @@ func (db *MDBM) NextKey() (string, error) {
 	})
 
 	if int(k.dsize) == 0 {
-		return "", errors.Wrapf(err, "database is empty")
+		return "", errors.New("database is empty")
 	}
 
 	key := C.GoStringN(k.dptr, k.dsize)
@@ -2657,7 +2657,7 @@ func (db *MDBM) FirstKeyR(iter *C.MDBM_ITER) (string, Iter, error) {
 	})
 
 	if int(k.dsize) == 0 {
-		return "", db.convertIter(iter), errors.Wrapf(err, "database is empty")
+		return "", db.convertIter(iter), errors.New("database is empty")
 	}
 
 	key := C.GoStringN(k.dptr, k.dsize)
@@ -2685,7 +2685,7 @@ func (db *MDBM) NextKeyR(iter *C.MDBM_ITER) (string, Iter, error) {
 	})
 
 	if int(k.dsize) == 0 {
-		return "", db.convertIter(iter), errors.Wrapf(err, "database is empty")
+		return "", db.convertIter(iter), errors.New("database is empty")
 	}
 
 	key := C.GoStringN(k.dptr, k.dsize)
@@ -3467,11 +3467,7 @@ func (db *MDBM) EasyGetNumOfRows() (uint64, error) {
 	for {
 
 		key, _, err := db.Next()
-		if err != nil {
-			return cnt, errors.Wrapf(err, "failed, can't run mdbm.Next()")
-		}
-
-		if len(key) < 1 {
+		if err != nil || len(key) < 1 {
 			break
 		}
 		cnt++
@@ -3500,11 +3496,7 @@ func (db *MDBM) EasyGetKeyList() ([]string, error) {
 	for {
 
 		key, _, err := db.Next()
-		if err != nil {
-			return retval, errors.Wrapf(err, "failed, can't run mdbm.Next()")
-		}
-
-		if len(key) < 1 {
+		if err != nil || len(key) < 1 {
 			break
 		}
 
@@ -3512,6 +3504,29 @@ func (db *MDBM) EasyGetKeyList() ([]string, error) {
 	}
 
 	return retval, nil
+}
+
+// Clean does mark entries clean/re-usable in the database for the specified page. If pagenum is -1, then clean all pages.
+// NOTE: V3 API
+func (db *MDBM) Clean(pagenum int) (int, error) {
+
+	err := db.checkAvailable()
+	if err != nil {
+		return -1, err
+	}
+
+	err = db.isVersion3Above()
+	if err != nil {
+		return -1, err
+	}
+
+	rv, _, err := db.cgoRun(func() (int, error) {
+
+		rv, err := C.set_mdbm_clean(db.pmdbm, C.int(pagenum), C.int(0)) //flags ignored
+		return int(rv), err
+	})
+
+	return rv, err
 }
 
 /*
@@ -3568,20 +3583,6 @@ func (db *MDBM) CDBDumpTrailerAndClose(fd *C.FILE) (int, error) {
 		rv, err := C.mdbm_cdbdump_trailer_and_close(fd)
 		return int(rv), err
 	})
-
-	return rv, err
-}
-*/
-
-/*
-func (db *MDBM) Clean(pagenum int) (int, error) {
-
-	rv, out, err := db.cgoRun(func() (int, error) {
-		rv, err := C.mdbm_clean(db.pmdbm, C.int(pagenum), C.int(0)) //flags ignored
-		return int(rv), err
-	})
-
-	fmt.Println(out)
 
 	return rv, err
 }

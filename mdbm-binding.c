@@ -306,3 +306,28 @@ extern int set_mdbm_delete_str_with_lock(MDBM *db, const char *key, int locktype
     common_unlock_func(db, &lockkey, locktype, lockflags);
 	return rv;
 }
+
+extern int dummy_clean_func(MDBM *db, const datum *key, const datum *val, struct mdbm_clean_data *mcd, int *quit) {
+    *quit = 0;
+    return 1;
+}
+ 
+
+extern int clean_anything_func(MDBM *db, const datum *key, const datum *val, struct mdbm_clean_data *mcd, int *quit) {
+
+    if (quit) {
+        *quit = 0;
+    }
+    return 1;
+}
+
+extern int set_mdbm_clean(MDBM* db, int pagenum, int flags) {
+
+	int rv;
+    rv = mdbm_set_cleanfunc(db, clean_anything_func, 0);
+	if(rv != 1) {
+        return rv;
+    }
+
+    return mdbm_clean(db, pagenum, flags); //flags ignored
+}
