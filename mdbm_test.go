@@ -887,11 +887,7 @@ func Test_mdbm_AnyDataType_Store(t *testing.T) {
 	for {
 
 		key, val, err := dbm.Next()
-		if err != nil {
-			log.Fatalf("key=%s, val=%s, err=%v", key, val, err)
-		}
-
-		if len(key) < 1 {
+		if err != nil || len(key) < 1 {
 			break
 		}
 
@@ -1004,11 +1000,7 @@ func Test_mdbm_AnyDataType_StoreStr(t *testing.T) {
 	for {
 
 		key, val, err := dbm.Next()
-		if err != nil {
-			log.Fatalf("key=%s, val=%s, err=%v", key, val, err)
-		}
-
-		if len(key) < 1 {
+		if err != nil || len(key) < 1 {
 			break
 		}
 
@@ -1171,11 +1163,7 @@ func Test_mdbm_AnyDataType_StoreR(t *testing.T) {
 	for {
 
 		key, val, err := dbm.Next()
-		if err != nil {
-			log.Fatalf("key=%s, val=%s, err=%v", key, val, err)
-		}
-
-		if len(key) < 1 {
+		if err != nil || len(key) < 1 {
 			break
 		}
 
@@ -1596,11 +1584,11 @@ func Test_mdbm_StoreStr(t *testing.T) {
 	for {
 
 		key, val, err = dbm.Next()
-		assert.AssertNil(t, err, "failured, can't get next recods, path=%s, err=%v", dbm.GetDBMFile(), err)
-
 		if len(key) < 1 {
 			break
 		}
+
+		assert.AssertNil(t, err, "failured, can't get next recods, path=%s, err=%v", dbm.GetDBMFile(), err)
 		assert.AssertEquals(t, key, val, "failured, key and value mis match, key=%s, val=%s", key, val)
 	}
 
@@ -1695,11 +1683,11 @@ func Test_mdbm_StoreStrAnyLock(t *testing.T) {
 	for {
 
 		key, val, err = dbm.Next()
-		assert.AssertNil(t, err, "failured, can't get next recods, path=%s, err=%v", dbm.GetDBMFile(), err)
-
 		if len(key) < 1 {
 			break
 		}
+
+		assert.AssertNil(t, err, "failured, can't get next recods, path=%s, err=%v", dbm.GetDBMFile(), err)
 		assert.AssertEquals(t, key, val, "failured, key and value mis match, key=%s, val=%s", key, val)
 	}
 
@@ -1808,14 +1796,36 @@ func Test_mdbm_FirstNext(t *testing.T) {
 	for {
 
 		key, val, err := dbm.Next()
-		assert.AssertNil(t, err, "failured, can't obtain first record from the mdbm, path=%s, err=%v", dbm.GetDBMFile(), err)
-
 		if len(key) < 1 {
 			break
 		}
+		assert.AssertNil(t, err, "failured, can't obtain first record from the mdbm, path=%s, err=%v", dbm.GetDBMFile(), err)
 
 		assert.AssertEquals(t, key, val, "failured, key and value mismatch, key=%s,val=%s", key, val)
 	}
+}
+
+func Test_mdbm_AnyFirst_EmptyDB(t *testing.T) {
+
+	var err error
+
+	dbm := mdbm.NewMDBM()
+	err = dbm.EasyOpen(pathTestDBMEmpty, 0644)
+	defer dbm.EasyClose()
+	assert.AssertNil(t, err, "failured, can't open the mdbm, path=%s, err=%v", dbm.GetDBMFile(), err)
+
+	key, val, err := dbm.First()
+	assert.AssertNotNil(t, err, "failured, can't check the obtain first record from empty db, path=%s, err=%v, key=%s, val=%s", dbm.GetDBMFile(), err, key, val)
+
+	iter := dbm.GetNewIter()
+	_, _, _, err = dbm.FirstR(&iter)
+	assert.AssertNotNil(t, err, "failured, can't check the obtain first record from empty db, path=%s, err=%v", dbm.GetDBMFile(), err)
+
+	_, err = dbm.FirstKey()
+	assert.AssertNotNil(t, err, "failured, can't check the obtain first record from empty db, path=%s, err=%v", dbm.GetDBMFile(), err)
+
+	_, _, err = dbm.FirstKeyR(&iter)
+	assert.AssertNotNil(t, err, "failured, can't check the obtain first record from empty db, path=%s, err=%v", dbm.GetDBMFile(), err)
 }
 
 func Test_mdbm_FirstRNextR(t *testing.T) {
@@ -1839,11 +1849,10 @@ func Test_mdbm_FirstRNextR(t *testing.T) {
 	for {
 
 		key, val, goiter, err := dbm.NextR(&iter)
-		assert.AssertNil(t, err, "failured, can't obtain first record from the mdbm, path=%s, err=%v", dbm.GetDBMFile(), err)
-
 		if len(key) < 1 {
 			break
 		}
+		assert.AssertNil(t, err, "failured, can't obtain first record from the mdbm, path=%s, err=%v", dbm.GetDBMFile(), err)
 
 		assert.AssertGreaterThanEqualTo(t, goiter.PageNo, 0, "failured, pageno of iter is not valid, iter.PageNo=%d", goiter.PageNo)
 		assert.AssertLessThanEqualTo(t, goiter.Next, 0, "failured, next of iter is not valid, iter.Next=%d", goiter.Next)
@@ -1868,12 +1877,10 @@ func Test_mdbm_FirstKeyNextKey(t *testing.T) {
 	for {
 
 		key, err := dbm.NextKey()
-		assert.AssertNil(t, err, "failured, can't obtain first record from the mdbm, path=%s, err=%v", dbm.GetDBMFile(), err)
-
 		if len(key) < 1 {
 			break
 		}
-
+		assert.AssertNil(t, err, "failured, can't obtain first record from the mdbm, path=%s, err=%v", dbm.GetDBMFile(), err)
 		assert.AssertGreaterThanEqualTo(t, len(key), 1, "failured, length of key is zero, key=%s", key)
 	}
 }
@@ -1898,13 +1905,12 @@ func Test_mdbm_FirstKeyRNextKeyR(t *testing.T) {
 	for {
 
 		key, goiter, err := dbm.NextKeyR(&iter)
-		assert.AssertNil(t, err, "failured, can't obtain first record from the mdbm, path=%s, err=%v", dbm.GetDBMFile(), err)
-		assert.AssertGreaterThanEqualTo(t, goiter.PageNo, 0, "failured, pageno of iter is not valid, iter.PageNo=%d", goiter.PageNo)
-		assert.AssertLessThanEqualTo(t, goiter.Next, 0, "failured, next of iter is not valid, iter.Next=%d", goiter.Next)
-
 		if len(key) < 1 {
 			break
 		}
+		assert.AssertNil(t, err, "failured, can't obtain first record from the mdbm, path=%s, err=%v", dbm.GetDBMFile(), err)
+		assert.AssertGreaterThanEqualTo(t, goiter.PageNo, 0, "failured, pageno of iter is not valid, iter.PageNo=%d", goiter.PageNo)
+		assert.AssertLessThanEqualTo(t, goiter.Next, 0, "failured, next of iter is not valid, iter.Next=%d", goiter.Next)
 
 		assert.AssertGreaterThanEqualTo(t, len(key), 1, "failured, length of key is zero, key=%s", key)
 	}
@@ -2296,10 +2302,10 @@ func Test_mdbm_DeleteRWithAnyLock(t *testing.T) {
 
 		// ------------------------
 		key, val, goiter, err := dbm.NextR(&iter)
-		assert.AssertNil(t, err, "failured, can't obtain first record from the mdbm, path=%s, err=%v", dbm.GetDBMFile(), err)
 		if len(key) < 1 {
 			break
 		}
+		assert.AssertNil(t, err, "failured, can't obtain first record from the mdbm, path=%s, err=%v", dbm.GetDBMFile(), err)
 		assert.AssertGreaterThanEqualTo(t, len(key), 1, "failured, length of key is zero, key=%s", key)
 
 		assert.AssertGreaterThanEqualTo(t, goiter.PageNo, 0, "failured, pageno of iter is not valid, iter.PageNo=%d", goiter.PageNo)
@@ -2314,10 +2320,10 @@ func Test_mdbm_DeleteRWithAnyLock(t *testing.T) {
 
 		// ------------------------
 		key, val, goiter, err = dbm.NextR(&iter)
-		assert.AssertNil(t, err, "failured, can't obtain first record from the mdbm, path=%s, err=%v", dbm.GetDBMFile(), err)
 		if len(key) < 1 {
 			break
 		}
+		assert.AssertNil(t, err, "failured, can't obtain first record from the mdbm, path=%s, err=%v", dbm.GetDBMFile(), err)
 		assert.AssertGreaterThanEqualTo(t, len(key), 1, "failured, length of key is zero, key=%s", key)
 
 		assert.AssertGreaterThanEqualTo(t, goiter.PageNo, 0, "failured, pageno of iter is not valid, iter.PageNo=%d", goiter.PageNo)
@@ -2332,10 +2338,10 @@ func Test_mdbm_DeleteRWithAnyLock(t *testing.T) {
 
 		// ------------------------
 		key, val, goiter, err = dbm.NextR(&iter)
-		assert.AssertNil(t, err, "failured, can't obtain first record from the mdbm, path=%s, err=%v", dbm.GetDBMFile(), err)
 		if len(key) < 1 {
 			break
 		}
+		assert.AssertNil(t, err, "failured, can't obtain first record from the mdbm, path=%s, err=%v", dbm.GetDBMFile(), err)
 		assert.AssertGreaterThanEqualTo(t, len(key), 1, "failured, length of key is zero, key=%s", key)
 
 		assert.AssertGreaterThanEqualTo(t, goiter.PageNo, 0, "failured, pageno of iter is not valid, iter.PageNo=%d", goiter.PageNo)
@@ -2350,10 +2356,10 @@ func Test_mdbm_DeleteRWithAnyLock(t *testing.T) {
 
 		// ------------------------
 		key, val, goiter, err = dbm.NextR(&iter)
-		assert.AssertNil(t, err, "failured, can't obtain first record from the mdbm, path=%s, err=%v", dbm.GetDBMFile(), err)
 		if len(key) < 1 {
 			break
 		}
+		assert.AssertNil(t, err, "failured, can't obtain first record from the mdbm, path=%s, err=%v", dbm.GetDBMFile(), err)
 		assert.AssertGreaterThanEqualTo(t, len(key), 1, "failured, length of key is zero, key=%s", key)
 
 		assert.AssertGreaterThanEqualTo(t, goiter.PageNo, 0, "failured, pageno of iter is not valid, iter.PageNo=%d", goiter.PageNo)
@@ -2368,10 +2374,10 @@ func Test_mdbm_DeleteRWithAnyLock(t *testing.T) {
 
 		// ------------------------
 		key, val, goiter, err = dbm.NextR(&iter)
-		assert.AssertNil(t, err, "failured, can't obtain first record from the mdbm, path=%s, err=%v", dbm.GetDBMFile(), err)
 		if len(key) < 1 {
 			break
 		}
+		assert.AssertNil(t, err, "failured, can't obtain first record from the mdbm, path=%s, err=%v", dbm.GetDBMFile(), err)
 		assert.AssertGreaterThanEqualTo(t, len(key), 1, "failured, length of key is zero, key=%s", key)
 
 		assert.AssertGreaterThanEqualTo(t, goiter.PageNo, 0, "failured, pageno of iter is not valid, iter.PageNo=%d", goiter.PageNo)
@@ -2386,10 +2392,10 @@ func Test_mdbm_DeleteRWithAnyLock(t *testing.T) {
 
 		// ----------------------------------------------------------------------------------------------------
 		key, val, goiter, err = dbm.NextR(&iter)
-		assert.AssertNil(t, err, "failured, can't obtain first record from the mdbm, path=%s, err=%v", dbm.GetDBMFile(), err)
 		if len(key) < 1 {
 			break
 		}
+		assert.AssertNil(t, err, "failured, can't obtain first record from the mdbm, path=%s, err=%v", dbm.GetDBMFile(), err)
 		assert.AssertGreaterThanEqualTo(t, len(key), 1, "failured, length of key is zero, key=%s", key)
 
 		assert.AssertGreaterThanEqualTo(t, goiter.PageNo, 0, "failured, pageno of iter is not valid, iter.PageNo=%d", goiter.PageNo)
@@ -2404,10 +2410,10 @@ func Test_mdbm_DeleteRWithAnyLock(t *testing.T) {
 
 		// ------------------------
 		key, val, goiter, err = dbm.NextR(&iter)
-		assert.AssertNil(t, err, "failured, can't obtain first record from the mdbm, path=%s, err=%v", dbm.GetDBMFile(), err)
 		if len(key) < 1 {
 			break
 		}
+		assert.AssertNil(t, err, "failured, can't obtain first record from the mdbm, path=%s, err=%v", dbm.GetDBMFile(), err)
 		assert.AssertGreaterThanEqualTo(t, len(key), 1, "failured, length of key is zero, key=%s", key)
 
 		assert.AssertGreaterThanEqualTo(t, goiter.PageNo, 0, "failured, pageno of iter is not valid, iter.PageNo=%d", goiter.PageNo)
@@ -2422,10 +2428,10 @@ func Test_mdbm_DeleteRWithAnyLock(t *testing.T) {
 
 		// ------------------------
 		key, val, goiter, err = dbm.NextR(&iter)
-		assert.AssertNil(t, err, "failured, can't obtain first record from the mdbm, path=%s, err=%v", dbm.GetDBMFile(), err)
 		if len(key) < 1 {
 			break
 		}
+		assert.AssertNil(t, err, "failured, can't obtain first record from the mdbm, path=%s, err=%v", dbm.GetDBMFile(), err)
 		assert.AssertGreaterThanEqualTo(t, len(key), 1, "failured, length of key is zero, key=%s", key)
 
 		assert.AssertGreaterThanEqualTo(t, goiter.PageNo, 0, "failured, pageno of iter is not valid, iter.PageNo=%d", goiter.PageNo)
@@ -2440,10 +2446,10 @@ func Test_mdbm_DeleteRWithAnyLock(t *testing.T) {
 
 		// ------------------------
 		key, val, goiter, err = dbm.NextR(&iter)
-		assert.AssertNil(t, err, "failured, can't obtain first record from the mdbm, path=%s, err=%v", dbm.GetDBMFile(), err)
 		if len(key) < 1 {
 			break
 		}
+		assert.AssertNil(t, err, "failured, can't obtain first record from the mdbm, path=%s, err=%v", dbm.GetDBMFile(), err)
 		assert.AssertGreaterThanEqualTo(t, len(key), 1, "failured, length of key is zero, key=%s", key)
 
 		assert.AssertGreaterThanEqualTo(t, goiter.PageNo, 0, "failured, pageno of iter is not valid, iter.PageNo=%d", goiter.PageNo)
