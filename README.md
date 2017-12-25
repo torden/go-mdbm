@@ -25,13 +25,13 @@ Allmost MDBM APIs supported
 
 Use the master branch
 
-```
+```shell
 git clone https://github.com/yahoo/mdbm.git
 ```
 
 OR Use the release tarball, Guess you will using it
 
-```
+```shell
 wget https://github.com/yahoo/mdbm/archive/v4.12.3.tar.gz
 tar xvzf v4.12.3.tar.gz
 ```
@@ -48,11 +48,10 @@ PREFIX=/usr/local/mdbm make install
 
 ## Install from Pre-build Packages
 
-- [Ubuntu Package by Version](https://github.com/torden/go-mdbm/tree/master/pkg/ubuntu)
+- [Ubuntu Package by Version](https://github.com/torden/go-mdbm/tree/master/pkg)
 - RedHat Package by Version (as soon)
 - OSX Package by Version (as soon)
 - BSD Port by version (as soon)
-
 
 ### Ubuntu
 
@@ -114,12 +113,23 @@ vi mdbm.go
 |mdbm_restore|DEPRECATED|mdbm_restore is only supported for V2 MDBMs.|
 |mdbm_sethash|DEPRECATED|Legacy version of mdbm_set_hash() This function has inconsistent naming, and error return value. It will be removed in a future version.|
 
+### Only a V2 implementation
+
+|*API*|*STATUS*|*COMMENT*|
+|---|---|---|
+|mdbm_stat_all_page|V3 not supported|There is only a V2 implementation. V3 not currently supported.|
+|mdbm_stat_header|V3 not supported|There is only a V2 implementation. V3 not currently supported.|
+
+### Alternative
+
+|*API*|*COMMENT*|
+|---|---|
+|mdbm_fetch_buf|Fetch, FetchStr APIs|
+
 ### As soon
 
 |*API*|*STATUS*|
 |---|---|
-|mdbm_stat_all_page|as soon|
-|mdbm_stat_header|as soon|
 |mdbm_cdbdump_add_record|as soon|
 |mdbm_cdbdump_import|as soon|
 |mdbm_dbdump_to_file|as soon|
@@ -136,7 +146,6 @@ vi mdbm.go
 |mdbm_set_stats_func|as soon|
 |mdbm_chunk_iterate|as soon|
 |mdbm_sparsify_file|as soon|
-|mdbm_fetch_buf|similar FetchXXX() api|
 
 # Example
 
