@@ -2,7 +2,7 @@
 
 *Unfortunately, Not ready for use on production, but go-mdbm tests complete as soon...*
 
-- Go-mdbm is a Go bind to Yahoo! MDBM C API.
+- Go-mdbm is a Go(golang) bind to Yahoo! MDBM C API.
 - MDBM is a super-fast memory-mapped key/value store.
 - To use the modern buzzwords, it is NoSQL, and for many operations, it is Zero-Copy.
 - It is based on an earlier version by Larry McVoy, then at SGI. That in turn, is based on SDBM by Ozan Yigit. wikipedia DBM article
@@ -144,8 +144,6 @@ vi mdbm.go
 |mdbm_fcopy|as soon|
 |mdbm_iterate|as soon|
 |mdbm_prune|as soon|
-|mdbm_set_cleanfunc|as soon|
-|mdbm_clean|as soon|
 |mdbm_set_stats_func|as soon|
 |mdbm_chunk_iterate|as soon|
 |mdbm_sparsify_file|as soon|
