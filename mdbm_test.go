@@ -1552,10 +1552,10 @@ func Test_mdbm_GetHashValue(t *testing.T) {
 	rv, err = dbm.GetHashValue(1, mdbm.DefaultHash)
 	assert.AssertNotEquals(t, rv, uint32(1), "return Value mismatch., rv=%d, err=%v", rv, err)
 
-	_, err = dbm.GetHashValue(1, -1234)
+	_, err = dbm.GetHashValue(1, 12345)
 	assert.AssertNotNil(t, err, "failured, can't check the hash type err=%v", err)
 
-	_, err = dbm.GetHashValue([]int{mdbm.MaxHash}, 9999999)
+	_, err = dbm.GetHashValue([]int{mdbm.MaxHash}, 12345)
 	assert.AssertNotNil(t, err, "failured, can't check the hash type err=%v", err)
 
 }
@@ -1826,6 +1826,13 @@ func Test_mdbm_AnyFirst_EmptyDB(t *testing.T) {
 
 	_, _, err = dbm.FirstKeyR(&iter)
 	assert.AssertNotNil(t, err, "failured, can't check the obtain first record from empty db, path=%s, err=%v", dbm.GetDBMFile(), err)
+
+	_, err = dbm.EasyGetKeyList()
+	assert.AssertNotNil(t, err, "failured, can't check the obtain first record from empty db, path=%s, err=%v", dbm.GetDBMFile(), err)
+
+	_, err = dbm.EasyGetNumOfRows()
+	assert.AssertNotNil(t, err, "failured, can't check the obtain first record from empty db, path=%s, err=%v", dbm.GetDBMFile(), err)
+
 }
 
 func Test_mdbm_FirstRNextR(t *testing.T) {
@@ -2696,10 +2703,10 @@ func Test_mdbm_checkAvailable(t *testing.T) {
 	assert.AssertNotNil(t, err, "failured, can't check the available the mdbm handler, path=%s, err=%v", dbm.GetDBMFile(), err)
 	_, err = dbm.EasyGetKeyList()
 	assert.AssertNotNil(t, err, "failured, can't check the available the mdbm handler, path=%s, err=%v", dbm.GetDBMFile(), err)
-	/*
-		_, err = dbm.Clean(0)
-		assert.AssertNotNil(t, err, "failured, can't check the available the mdbm handler, path=%s, err=%v", dbm.GetDBMFile(), err)
-	*/
+
+	_, err = dbm.Clean(0)
+	assert.AssertNotNil(t, err, "failured, can't check the available the mdbm handler, path=%s, err=%v", dbm.GetDBMFile(), err)
+
 	dbm.Close()
 	dbm.EasyClose()
 }
