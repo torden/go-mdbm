@@ -195,6 +195,12 @@ const (
 	// CacheModeMax is Maximum cache mode value
 	CacheModeMax = C.MDBM_CACHEMODE_MAX
 
+	// CacheModeEvictCleanFirst is add to cachemode to evict clean items 1st
+	CacheModeEvictCleanFirst = C.MDBM_CACHEMODE_EVICT_CLEAN_FIRST
+
+	// CacheModeBits is Defines a mask for the cache mode, including control (eviction) bit.
+	CacheModeBits = C.MDBM_CACHEMODE_BITS
+
 	// StatsBasic is enables gathering only the stats counters.
 	StatsBasic = C.MDBM_STATS_BASIC
 

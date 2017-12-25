@@ -4,7 +4,10 @@
 
 - Go-mdbm is a Go bind to Yahoo! MDBM C API.
 - MDBM is a super-fast memory-mapped key/value store.
-- MDBM is a fast dbm (key-value store) clone originally based on Ozan Yigit’s sdbm.
+- To use the modern buzzwords, it is NoSQL, and for many operations, it is Zero-Copy.
+- It is based on an earlier version by Larry McVoy, then at SGI. That in turn, is based on SDBM by Ozan Yigit. wikipedia DBM article
+- Yahoo added significant performance enhancements, many tools, tests, and comprehensive documentation.
+- It has been used in production for over a decade, for a wide variety of applications, both large and small.
 
 [![Build Status](https://travis-ci.org/torden/go-mdbm.svg?branch=master)](https://travis-ci.org/torden/go-mdbm)
 [![Go Report Card](https://goreportcard.com/badge/github.com/torden/go-mdbm)](https://goreportcard.com/report/github.com/torden/go-mdbm)

@@ -306,3 +306,8 @@ extern int set_mdbm_delete_str_with_lock(MDBM *db, const char *key, int locktype
     common_unlock_func(db, &lockkey, locktype, lockflags);
 	return rv;
 }
+
+extern int dummy_clean_func(MDBM *, const datum*, const datum*, struct mdbm_clean_data *, int* quit) {
+    *quit = 0;
+    return 1;
+}

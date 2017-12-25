@@ -1926,6 +1926,32 @@ func Test_mdbm_StoreDup(t *testing.T) {
 	}
 }
 
+/*
+func Test_mdbm_Clean(t *testing.T) {
+
+	var rv int
+	var err error
+
+	dbm := mdbm.NewMDBM()
+	err = dbm.EasyOpen(pathTestDBMCache, 0644)
+
+	dbm.SetCacheMode(mdbm.CacheModeEvictCleanFirst | mdbm.CacheModeGDSF)
+
+	defer dbm.EasyClose()
+	assert.AssertNil(t, err, "failured, can't open the mdbm, path=%s, err=%v", dbm.GetDBMFile(), err)
+
+	r := rand.New(rand.NewSource(time.Now().UnixNano()))
+	iter := dbm.GetNewIter()
+	_, _, goiter, err := dbm.FetchR(r.Int31n(65535), &iter)
+	assert.AssertNil(t, err, "failured, can't obtain the iter, path=%s, err=%v", dbm.GetDBMFile(), err)
+
+	//clean all pages
+	rv, err = dbm.Clean(0)
+
+	spew.Dump(rv, err)
+}
+*/
+
 func Test_mdbm_Double_Close(t *testing.T) {
 
 	dbm := mdbm.NewMDBM()
@@ -1941,7 +1967,7 @@ func Test_mdbm_SetHash(t *testing.T) {
 	var err error
 
 	dbm := mdbm.NewMDBM()
-	err = dbm.EasyOpen(pathTestDBMHash, 0644)
+	err = dbm.EasyOpen(pathTestDBM1, 0644)
 	assert.AssertNil(t, err, "failured, can't open the mdbm, path=%s, err=%v", dbm.GetDBMFile(), err)
 	defer dbm.EasyClose()
 
@@ -2672,6 +2698,10 @@ func Test_mdbm_checkAvailable(t *testing.T) {
 	assert.AssertNotNil(t, err, "failured, can't check the available the mdbm handler, path=%s, err=%v", dbm.GetDBMFile(), err)
 	_, err = dbm.EasyGetKeyList()
 	assert.AssertNotNil(t, err, "failured, can't check the available the mdbm handler, path=%s, err=%v", dbm.GetDBMFile(), err)
-	dbm.EasyClose()
+	/*
+		_, err = dbm.Clean(0)
+		assert.AssertNotNil(t, err, "failured, can't check the available the mdbm handler, path=%s, err=%v", dbm.GetDBMFile(), err)
+	*/
 	dbm.Close()
+	dbm.EasyClose()
 }
