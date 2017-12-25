@@ -1955,7 +1955,6 @@ func Test_mdbm_FetchDupRWithAnyLock(t *testing.T) {
 	assert.AssertNil(t, err, "failured, can't open the mdbm, path=%s, err=%v", dbm.GetDBMFile(), err)
 
 	iter := dbm.GetNewIter()
-
 	key = getRandomNumber(loopLimit)
 	for rv != -1 {
 
@@ -1970,6 +1969,8 @@ func Test_mdbm_FetchDupRWithAnyLock(t *testing.T) {
 		assert.AssertLessThanEqualTo(t, goiter.Next, 0, "failured, next of iter is not valid, iter.Next=%d", goiter.Next)
 	}
 
+	rv = 0
+	iter = dbm.GetNewIter()
 	key = getRandomNumber(loopLimit)
 	for rv != -1 {
 
@@ -1984,6 +1985,8 @@ func Test_mdbm_FetchDupRWithAnyLock(t *testing.T) {
 		assert.AssertLessThanEqualTo(t, goiter.Next, 0, "failured, next of iter is not valid, iter.Next=%d", goiter.Next)
 	}
 
+	rv = 0
+	iter = dbm.GetNewIter()
 	key = getRandomNumber(loopLimit)
 	for rv != -1 {
 
@@ -1998,6 +2001,8 @@ func Test_mdbm_FetchDupRWithAnyLock(t *testing.T) {
 		assert.AssertLessThanEqualTo(t, goiter.Next, 0, "failured, next of iter is not valid, iter.Next=%d", goiter.Next)
 	}
 
+	rv = 0
+	iter = dbm.GetNewIter()
 	key = getRandomNumber(loopLimit)
 	for rv != -1 {
 
@@ -2012,6 +2017,8 @@ func Test_mdbm_FetchDupRWithAnyLock(t *testing.T) {
 		assert.AssertLessThanEqualTo(t, goiter.Next, 0, "failured, next of iter is not valid, iter.Next=%d", goiter.Next)
 	}
 
+	rv = 0
+	iter = dbm.GetNewIter()
 	key = getRandomNumber(loopLimit)
 	for rv != -1 {
 
@@ -2026,6 +2033,8 @@ func Test_mdbm_FetchDupRWithAnyLock(t *testing.T) {
 		assert.AssertLessThanEqualTo(t, goiter.Next, 0, "failured, next of iter is not valid, iter.Next=%d", goiter.Next)
 	}
 
+	rv = 0
+	iter = dbm.GetNewIter()
 	key = getRandomNumber(loopLimit)
 	for rv != -1 {
 
@@ -2040,6 +2049,8 @@ func Test_mdbm_FetchDupRWithAnyLock(t *testing.T) {
 		assert.AssertLessThanEqualTo(t, goiter.Next, 0, "failured, next of iter is not valid, iter.Next=%d", goiter.Next)
 	}
 
+	rv = 0
+	iter = dbm.GetNewIter()
 	key = getRandomNumber(loopLimit)
 	for rv != -1 {
 
@@ -2054,6 +2065,8 @@ func Test_mdbm_FetchDupRWithAnyLock(t *testing.T) {
 		assert.AssertLessThanEqualTo(t, goiter.Next, 0, "failured, next of iter is not valid, iter.Next=%d", goiter.Next)
 	}
 
+	rv = 0
+	iter = dbm.GetNewIter()
 	key = getRandomNumber(loopLimit)
 	for rv != -1 {
 
@@ -2068,6 +2081,8 @@ func Test_mdbm_FetchDupRWithAnyLock(t *testing.T) {
 		assert.AssertLessThanEqualTo(t, goiter.Next, 0, "failured, next of iter is not valid, iter.Next=%d", goiter.Next)
 	}
 
+	rv = 0
+	iter = dbm.GetNewIter()
 	key = getRandomNumber(loopLimit)
 	for rv != -1 {
 
