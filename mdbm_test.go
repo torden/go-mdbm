@@ -417,7 +417,6 @@ func Test_mdbm_OrdinaryFetchData_Fetch(t *testing.T) {
 
 	val, err = dbm.Fetch(map[int]int{0: 1})
 	assert.AssertNotNil(t, err, "failured, can't check the wrong data-type, val=%s, err=%v\n", val, err)
-
 }
 
 func Test_mdbm_OrdinaryFetchData_RandomFetch(t *testing.T) {
