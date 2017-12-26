@@ -811,6 +811,12 @@ func (db *MDBM) EasyOpen(dbmfile string, perms int) error {
 		return errors.New("dbm file path is empty")
 	}
 
+	// if opened
+	if db.isopened {
+		log.Printf("Already opened db handler(=%s). will open after close the previously db handler.", db.dbmfile)
+		db.EasyClose()
+	}
+
 	db.dbmfile = dbmfile
 	if perms > 0 {
 		db.perms = perms

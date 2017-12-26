@@ -2805,6 +2805,19 @@ func Test_mdbm_ChkError(t *testing.T) {
 	}
 }
 
+func Test_mdbm_EasyOpen_Adter_NotClose(t *testing.T) {
+
+	var err error
+
+	dbm := mdbm.NewMDBM()
+
+	for _, path := range gPathList {
+
+		err = dbm.EasyOpen(path, 0644)
+		assert.AssertNil(t, err, "failured, can't open the mdbm, path=%s, err=%v", dbm.GetDBMFile(), err)
+	}
+}
+
 func Test_mdbm_checkAvailable(t *testing.T) {
 
 	var err error
