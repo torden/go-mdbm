@@ -413,7 +413,7 @@ func Test_mdbm_OrdinaryFetchData_Fetch(t *testing.T) {
 	}
 
 	rv, err := dbm.Fetch(map[int]int{0: 1})
-	assert.AssertNotNil(t, err, "failured, can't check the wrong data-tyep, rv=%d, err=%v\n", rv, err)
+	assert.AssertNotNil(t, err, "failured, can't check the wrong data-type, rv=%d, err=%v\n", rv, err)
 
 }
 
@@ -1674,10 +1674,10 @@ func Test_mdbm_StoreStrAnyLock(t *testing.T) {
 	}
 
 	rv, err = dbm.StoreStrWithLock([]int{1, 2}, 0, mdbm.Replace)
-	assert.AssertNotNil(t, err, "failed, can't check the wrong data-tyep, rv=%d, err=%v", dbm.GetDBMFile(), rv, err)
+	assert.AssertNotNil(t, err, "failed, can't check the wrong data-type, rv=%d, err=%v", dbm.GetDBMFile(), rv, err)
 
 	rv, err = dbm.StoreStrWithLock(0, []int{1, 2, 3}, mdbm.Replace)
-	assert.AssertNotNil(t, err, "failed, can't check the wrong data-tyep, rv=%d, err=%v", dbm.GetDBMFile(), rv, err)
+	assert.AssertNotNil(t, err, "failed, can't check the wrong data-type, rv=%d, err=%v", dbm.GetDBMFile(), rv, err)
 
 	key, val, err := dbm.First()
 	assert.AssertNil(t, err, "failured, can't get first recods, path=%s, err=%v", dbm.GetDBMFile(), err)
@@ -1762,6 +1762,9 @@ func Test_mdbm_FetchStrAnyLock(t *testing.T) {
 		assert.AssertEquals(t, strconv.Itoa(i), val, "failured, key and value mismatch, key=%d, val=%s", i, val)
 		assert.AssertNil(t, err, "failured, can't obtain value, path=%s, err=%v", dbm.GetDBMFile(), err)
 	}
+
+	val, err = dbm.FetchStr([]int{1, 2})
+	assert.AssertNotNil(t, err, "failed, can't check the wrong data-type, val=%d, err=%v", dbm.GetDBMFile(), val, err)
 }
 
 func Test_mdbm_GetPage(t *testing.T) {
@@ -2482,7 +2485,7 @@ func Test_mdbm_DeleteRWithAnyLock(t *testing.T) {
 		assert.AssertEquals(t, key, val, "failured, key and value mismatch, key=%s,val=%s", key, val)
 
 		i++
-		rv, goiter, err = dbm.DeleteR(i, &iter)
+		rv, goiter, err = dbm.DeleteR(nil, &iter)
 		assert.AssertNil(t, err, "failured, can't delete record, lockkey=%d, iter.PageNo=%d, iter.Next=%d, rv=%v, err=%v\n", i, goiter.PageNo, goiter.Next, rv, err)
 		assert.AssertGreaterThanEqualTo(t, goiter.PageNo, 0, "failured, pageno of iter is not valid, iter.PageNo=%d", goiter.PageNo)
 		assert.AssertLessThanEqualTo(t, goiter.Next, 0, "failured, next of iter is not valid, iter.Next=%d", goiter.Next)
@@ -2678,6 +2681,19 @@ func Test_mdbm_EasyClose(t *testing.T) {
 	dbm.EasyClose()
 }
 
+func Test_mdbm_GetMagicNumber(t *testing.T) {
+
+	var rv uint32
+
+	dbm := mdbm.NewMDBM()
+	err := dbm.EasyOpen(pathTestDBMEmpty, 0644)
+	defer dbm.EasyClose()
+	assert.AssertNil(t, err, "failured, can't open the mdbm, path=%s, err=%v", dbm.GetDBMFile(), err)
+
+	rv, err = dbm.GetMagicNumber()
+	assert.AssertNil(t, err, "failured, can't obtain the magic number of the mdbm, path=%s, rv=%d, err=%v", dbm.GetDBMFile(), rv, err)
+}
+
 func Test_mdbm_checkAvailable(t *testing.T) {
 
 	var err error
@@ -2770,6 +2786,8 @@ func Test_mdbm_checkAvailable(t *testing.T) {
 
 	_, err = dbm.Fetch(0)
 	assert.AssertNotNil(t, err, "failured, can't check the available the mdbm handler, path=%s, err=%v", dbm.GetDBMFile(), err)
+	_, err = dbm.FetchStr(0)
+	assert.AssertNotNil(t, err, "failured, can't check the available the mdbm handler, path=%s, err=%v", dbm.GetDBMFile(), err)
 	_, _, _, err = dbm.FetchR(0, &iter)
 	assert.AssertNotNil(t, err, "failured, can't check the available the mdbm handler, path=%s, err=%v", dbm.GetDBMFile(), err)
 	_, _, _, err = dbm.FetchDupR(0, &iter)
@@ -2846,8 +2864,6 @@ func Test_mdbm_checkAvailable(t *testing.T) {
 	_, _, _, err = dbm.GetDBStats(0)
 	assert.AssertNotNil(t, err, "failured, can't check the available the mdbm handler, path=%s, err=%v", dbm.GetDBMFile(), err)
 	_, _, err = dbm.GetWindowStats()
-	assert.AssertNotNil(t, err, "failured, can't check the available the mdbm handler, path=%s, err=%v", dbm.GetDBMFile(), err)
-	_, err = dbm.GetHashValue(0, 0)
 	assert.AssertNotNil(t, err, "failured, can't check the available the mdbm handler, path=%s, err=%v", dbm.GetDBMFile(), err)
 	_, err = dbm.Plock(0)
 	assert.AssertNotNil(t, err, "failured, can't check the available the mdbm handler, path=%s, err=%v", dbm.GetDBMFile(), err)
