@@ -2140,9 +2140,6 @@ func Test_mdbm_Clean(t *testing.T) {
 	err = dbm.EasyOpen(pathTestDBMCache, 0644)
 	assert.AssertNil(t, err, "failured, can't open the mdbm, path=%s, err=%v", dbm.GetDBMFile(), err)
 
-	rv, err = dbm.SetCacheMode(mdbm.CacheModeEvictCleanFirst | mdbm.CacheModeGDSF)
-	assert.AssertNil(t, err, "failured, can't set the cache mode, path=%s, rv=%d, err=%v", dbm.GetDBMFile(), rv, err)
-
 	defer dbm.EasyClose()
 	assert.AssertNil(t, err, "failured, can't open the mdbm, path=%s, err=%v", dbm.GetDBMFile(), err)
 
