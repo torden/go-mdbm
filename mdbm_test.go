@@ -2754,6 +2754,42 @@ func Test_mdbm_Fcopy(t *testing.T) {
 	assert.AssertNil(t, err, "failured, can't copy `%s` to `%s`, path=%s, rv=%d, err=%v", dbm.GetDBMFile(), pathTestDBMFcopy, rv, err)
 }
 
+func Test_mdbm_SparsifyFile(t *testing.T) {
+
+	var rv int
+
+	dbm := mdbm.NewMDBM()
+	err := dbm.EasyOpen(pathTestDBMLarge, 0644)
+	defer dbm.EasyClose()
+	assert.AssertNil(t, err, "failured, can't open the mdbm, path=%s, err=%v", dbm.GetDBMFile(), err)
+
+	//use the system block-size
+	rv, err = dbm.SparsifyFile(pathTestDBMFcopy, -1)
+	assert.AssertNil(t, err, "failured, can't copy `%s` to `%s`, path=%s, rv=%d, err=%v", dbm.GetDBMFile(), pathTestDBMFcopy, rv, err)
+
+	rv, err = dbm.SparsifyFile(pathTestDBMFcopy, 8196)
+	assert.AssertNil(t, err, "failured, can't copy `%s` to `%s`, path=%s, rv=%d, err=%v", dbm.GetDBMFile(), pathTestDBMFcopy, rv, err)
+
+}
+
+func Test_mdbm_ChkPage(t *testing.T) {
+
+	var rv int
+	var err error
+	var out string
+
+	dbm := mdbm.NewMDBM()
+
+	for _, path := range gPathList {
+
+		err = dbm.EasyOpen(path, 0644)
+		assert.AssertNil(t, err, "failured, can't open the mdbm, path=%s, err=%v", dbm.GetDBMFile(), err)
+		rv, out, err = dbm.ChkPage(0)
+		assert.AssertNil(t, err, "failured, can't check the page, path=%s, rv=%d, err=%v\nout=%s", dbm.GetDBMFile(), rv, err, out)
+		dbm.EasyClose()
+	}
+}
+
 func Test_mdbm_ChkError(t *testing.T) {
 
 	var err error
@@ -2765,7 +2801,7 @@ func Test_mdbm_ChkError(t *testing.T) {
 		err = dbm.EasyOpen(path, 0644)
 		assert.AssertNil(t, err, "failured, can't open the mdbm, path=%s, err=%v", dbm.GetDBMFile(), err)
 		err = dbm.ChkError(0, 0, 0)
-		assert.AssertNil(t, err, "failured, can't check error the mdbm, path=%s, err=%v", dbm.GetDBMFile(), err)
+		assert.AssertNil(t, err, "failured, can't check the error, path=%s, err=%v", dbm.GetDBMFile(), err)
 		dbm.EasyClose()
 	}
 }
@@ -2963,7 +2999,6 @@ func Test_mdbm_checkAvailable(t *testing.T) {
 	assert.AssertNotNil(t, err, "failured, can't check the available the mdbm handler, path=%s, err=%v", dbm.GetDBMFile(), err)
 	_, err = dbm.Fcopy("/tmp/aa", 0644)
 	assert.AssertNotNil(t, err, "failured, can't check the available the mdbm handler, path=%s, err=%v", dbm.GetDBMFile(), err)
-
 	_, err = dbm.Clean(0)
 	assert.AssertNotNil(t, err, "failured, can't check the available the mdbm handler, path=%s, err=%v", dbm.GetDBMFile(), err)
 

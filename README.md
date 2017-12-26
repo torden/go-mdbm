@@ -144,7 +144,6 @@ vi mdbm.go
 |mdbm_prune|as soon|
 |mdbm_set_stats_func|as soon|
 |mdbm_chunk_iterate|as soon|
-|mdbm_sparsify_file|as soon|
 
 # Example
 

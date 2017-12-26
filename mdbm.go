@@ -2952,7 +2952,7 @@ func (db *MDBM) ChkPage(pagenum int) (int, string, error) {
 		return -1, "", err
 	}
 
-	rv, out, err := db.cgoRun(func() (int, error) {
+	rv, out, err := db.cgoRunCapture(func() (int, error) {
 		rv, err := C.mdbm_chk_page(db.pmdbm, C.int(pagenum))
 		return int(rv), err
 	})
@@ -3541,7 +3541,7 @@ func (db *MDBM) PreSplit(split uint32) (int, error) {
 	return rv, err
 }
 
-// Copies the contents of a database to an open file handle.
+// Fcopy copies the contents of a database to an open file handle.
 // NOTE: lock for the duration
 func (db *MDBM) Fcopy(filepath string, mode int) (int, error) {
 
@@ -3555,6 +3555,24 @@ func (db *MDBM) Fcopy(filepath string, mode int) (int, error) {
 
 	rv, _, err := db.cgoRun(func() (int, error) {
 		rv, err := C.set_mdbm_fcopy(db.pmdbm, fpath, C.int(mode))
+		return int(rv), err
+	})
+
+	return rv, err
+}
+
+// SparsifyFile makes a file sparse. Read every blockssize bytes and for all-zero blocks punch a hole in the file.
+// This can make a file with lots of zero-bytes use less disk space.
+// NOTE: For MDBM files that may be modified, the DB should be opened, and exclusive-locked for the duration of the sparsify operation.
+// NOTE: This function is linux-only.
+// blocksize Minimum size to consider for hole-punching, <=0 to use the system block-size
+func (db *MDBM) SparsifyFile(filepath string, blocksize int) (int, error) {
+
+	fpath := C.CString(filepath)
+	defer C.free(unsafe.Pointer(fpath))
+
+	rv, _, err := db.cgoRun(func() (int, error) {
+		rv, err := C.mdbm_sparsify_file(fpath, C.int(blocksize))
 		return int(rv), err
 	})
 
