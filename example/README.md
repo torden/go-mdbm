@@ -34,7 +34,7 @@ func main() {
 	} else {
 		log.Println("remove the mdbm file(=%s)", mdbmPath1)
 	}
-    
+
 	log.Printf("Createing and Populating the mdbm file(=%s)", mdbmPath1)
 
 	//init. the go-mdbm
@@ -262,12 +262,12 @@ func main() {
 	for {
 
 		key, val, err := dbm.Next()
-		if err != nil {
-			log.Fatalf("key=%s, val=%s, err=%v", key, val, err)
-		}
-
 		if len(key) < 1 {
 			break
+		}
+
+		if err != nil {
+			log.Fatalf("key=%s, val=%s, err=%v", key, val, err)
 		}
 
 		if key != val {
@@ -410,6 +410,7 @@ func main() {
 ```
 
 ### Output
+
 ```
 2017/01/01 00:00:00 Fetcing records in the mdbm file(=/tmp/example1.mdbm)
 2017/01/01 00:00:00 ISO ALPHA-2 Code : [TL] , Country or Area Name : [Timor-Leste]
@@ -515,6 +516,255 @@ func main() {
 2017/01/01 00:00:00 ISO ALPHA-2 Code : [ZW] , Country or Area Name : [Zimbabwe]
 2017/01/01 00:00:00 complete
 ```
+
+## Creating a database (multiple value by same key) 
+
+### Code
+
+```go
+package main
+
+import (
+	"io/ioutil"
+	"log"
+	"math/rand"
+	"os"
+	"strings"
+	"time"
+
+	mdbm "github.com/torden/go-mdbm"
+)
+
+const (
+	mdbmPathDup   = "/tmp/exampleDup.mdbm"
+)
+
+func main() {
+	log.Printf("Creating and Populating the mdbm file(=%s)", mdbmPath1)
+
+	var rv int
+	var err error
+
+
+	var rv int
+	var err error
+
+	err = os.Remove(mdbmPathDup)
+		if err == nil {
+		log.Println("not exists the mdbm file(=%s)", mdbmPathDup)
+	} else {
+		log.Println("remove the mdbm file(=%s)", mdbmPathDup)
+	}
+	
+	//init. the go-mdbm
+	dbm = mdbm.NewMDBM()
+
+	//create & open(RDRW|DUP) an mdbm file
+	err = dbm.Open(mdbmPathDup, mdbm.Create|mdbm.Rdrw|mdbm.LargeObjects|mdbm.InsertDup, 0644, 0, 0)
+
+	//the mdbm object close at close func
+	defer dbm.EasyClose()
+
+	//check the open error
+	if err != nil {
+		log.Fatalf("failed, can't open mdbm file\npath=%s, err=%v", mdbmPath1, err)
+	}
+
+	//read a content
+	data, err := ioutil.ReadFile(sample1Path)
+	if err != nil {
+		log.Fatalf("failed, read to the tsv file\npath=%s, err=%v", sample1Path, err)
+	}
+
+	//convert []byte to string and split by newline
+	dataStrAr := strings.Split(string(data), "\n")
+	for k, v := range dataStrAr {
+
+		if k == 0 { //header
+			continue
+		}
+
+		//obtain data by field
+		row := strings.Split(v, "\t")
+		if len(row) < 4 {
+			continue
+		}
+
+		//0 : ISO ALPHA-2 Code
+		//1 : Country or Area Name
+		//2 : ISO ALPHA-3 Code
+		//3 : USO Numeric Code , UN M49 Numeric Code
+
+		rv, err = dbm.Store(row[0], row[1], mdbm.InsertDup)
+		if err != nil {
+			log.Fatalf("failed, can't data(key=%+v, value=%+v) add to the mdbm file(=%s)\nrv=%d, err=%v", row[0], row[1], mdbmPath1, rv, err)
+		}
+
+		rv, err = dbm.Store(row[0], row[2], mdbm.InsertDup)
+		if err != nil {
+			log.Fatalf("failed, can't data(key=%+v, value=%+v) add to the mdbm file(=%s)\nrv=%d, err=%v", row[0], row[1], mdbmPath1, rv, err)
+		}
+
+		rv, err = dbm.Store(row[0], row[3], mdbm.InsertDup)
+		if err != nil {
+			log.Fatalf("failed, can't data(key=%+v, value=%+v) add to the mdbm file(=%s)\nrv=%d, err=%v", row[0], row[1], mdbmPath1, rv, err)
+		}
+
+	}
+
+	log.Println("complete")
+}
+```
+
+### Output
+```
+2017/01/01 00:00:00 Createing and Populating the mdbm file(=/tmp/exampleDup.mdbm)
+2017/01/01 00:00:00 complete
+```
+
+## Fetching duplicated records in-place
+
+### Code
+
+```go
+package main
+
+import (
+	"io/ioutil"
+	"log"
+	"math/rand"
+	"os"
+	"strings"
+	"time"
+
+	mdbm "github.com/torden/go-mdbm"
+)
+
+const (
+	mdbmPathDup   = "/tmp/exampleDup.mdbm"
+)
+
+func main() {
+
+	log.Printf("Fetching records in the mdbm file(=%s)", mdbmPath1)
+
+	//init. the go-mdbm
+	dbm := mdbm.NewMDBM()
+
+	//create & open(ReadOnly) an mdbm file
+	err := dbm.Open(mdbmPathDup, mdbm.Rdonly, 0644, 0, 0)
+
+	//the mdbm object close at close func
+	defer dbm.EasyClose()
+
+	//check the open error
+	if err != nil {
+		log.Fatalf("failed, can't open mdbm file\npath=%s, err=%v", mdbmPath1, err)
+	}
+
+	//read a content
+	data, err := ioutil.ReadFile(sample1Path)
+	if err != nil {
+		log.Fatalf("failed, read to the tsv file\npath=%s, err=%v", sample1Path, err)
+	}
+
+	//convert []byte to string and split by newline
+	dataStrAr := strings.Split(string(data), "\n")
+
+	var keyList []string
+	var keySize int
+
+	//obtain list of key
+	for k, v := range dataStrAr {
+
+		if k == 0 { //header
+			continue
+		}
+
+		row := strings.Split(v, "\t")
+		if len(row) < 4 {
+			continue
+		}
+
+		keyList = append(keyList, row[0])
+	}
+
+	keySize = len(keyList)
+
+	//obtain a pseudo-random 32-bit value as a uint32
+	random := rand.New(rand.NewSource(time.Now().UnixNano()))
+
+	var rkey int
+
+	//header
+	fmt.Println(strings.Repeat("-", 129))
+	fmt.Printf("| %-30s| %-30s| %-30s| %-30s|\n", "ISO ALPHA-2 Code", "Country or Area Name", "ISO ALPHA-3 Code", "USO Numeric Code")
+	fmt.Println(strings.Repeat("-", 129))
+
+	//random fetching..
+	for i := 0; i <= limit; i++ {
+
+		//obtain a pseudo-random 32-bit value between 0 and keySize
+		for {
+			rkey = random.Intn(keySize)
+			if rkey >= 0 {
+				break
+			}
+		}
+
+		fmt.Printf("| %-30s", keyList[rkey])
+
+		rv := 0
+		var val string
+		iter := dbm.GetNewIter()
+		for rv != -1 {
+
+			rv, val, _, err = dbm.FetchDupRWithLock(keyList[rkey], &iter)
+			if rv == -1 {
+				break
+			}
+			fmt.Printf("| %-30s", val)
+		}
+
+		fmt.Println("|")
+	}
+
+	//footer
+	fmt.Println(strings.Repeat("-", 129))
+
+	log.Println("complete")
+}
+```
+
+### Output
+```
+---------------------------------------------------------------------------------------------------------------------------------
+| ISO ALPHA-2 Code              | Country or Area Name          | ISO ALPHA-3 Code              | USO Numeric Code              |
+---------------------------------------------------------------------------------------------------------------------------------
+| FO                            | Faroe Islands                 | FRO                           | 234                           |
+| EG                            | Egypt                         | EGY                           | 818                           |
+| MC                            | Monaco                        | MCO                           | 492                           |
+| LY                            | Libya                         | LBY                           | 434                           |
+| UA                            | Ukraine                       | UKR                           | 804                           |
+| GW                            | Guinea-Bissau                 | GNB                           | 624                           |
+| RS                            | Serbia                        | SRB                           | 688                           |
+| NC                            | New Caledonia                 | NCL                           | 540                           |
+| BD                            | Bangladesh                    | BGD                           | 50                            |
+| VI                            | Virgin Islands, US            | VIR                           | 850                           |
+| ZM                            | Zambia                        | ZMB                           | 894                           |
+| NR                            | Nauru                         | NRU                           | 520                           |
+| MF                            | Saint-Martin (French part)    | MAF                           | 663                           |
+| DZ                            | Algeria                       | DZA                           | 12                            |
+| PM                            | Saint Pierre and Miquelon     | SPM                           | 666                           |
+| HN                            | Honduras                      | HND                           | 340                           |
+| FO                            | Faroe Islands                 | FRO                           | 234                           |
+| CZ                            | Czech Republic                | CZE                           | 203                           |
+| BD                            | Bangladesh                    | BGD                           | 50                            |
+| KR                            | Korea (South)                 | KOR                           | 410                           |
+| MM                            | Myanmar                       | MMR                           | 104                           |
+---------------------------------------------------------------------------------------------------------------------------------
+```
+
 
 
 
@@ -968,7 +1218,7 @@ func main() {
 ```
 
 
-### Runs the Random Deleting records 
+### Runs the Random Deleting records
 
 ```go
 package main
@@ -1335,7 +1585,7 @@ const (
 func main() {
 
 	var err error
-	
+
 	log.Printf("Runs the updating records of the mdbm file(=%s)", mdbmPath1)
 
 	//init. the go-mdbm
@@ -1392,16 +1642,6 @@ func main() {
 2017/01/01 00:00:00 complete
 ```
 
-
-## Todo
-
-* coverage up to 95% (min.)
-* parallel testing..
-* data race detecting testing..
-* Binding All APIs without deprecated apis
-* Testing on another platform (osx, bsd...)
-* Pre-compiled mdbm library by OS
-* Stabilization
 
 ---
 Please feel free.
