@@ -10,13 +10,15 @@ import (
 	"time"
 
 	mdbm "github.com/torden/go-mdbm"
+	"github.com/torden/go-strutil"
 )
 
 const (
-	mdbmPath1   = "/tmp/example1.mdbm"
-	mdbmPath2   = "/tmp/example2.mdbm"
-	mdbmPathDup = "/tmp/exampleDup.mdbm"
-	sample1Path = "./sample1.tsv" //ISO Alpha-2,3 and Numeric Country Codes
+	mdbmPath1     = "/tmp/example1.mdbm"
+	mdbmPath2     = "/tmp/example2.mdbm"
+	mdbmPathDup   = "/tmp/exampleDup.mdbm"
+	mdbmPathLarge = "/tmp/exampleLarge.mdbm"
+	sample1Path   = "./sample1.tsv" //ISO Alpha-2,3 and Numeric Country Codes
 )
 
 func exampleGenerateMDBMFile() {
@@ -133,6 +135,59 @@ func exampleDupDataMDBMFile() {
 		}
 
 	}
+
+	log.Println("complete")
+}
+
+func exampleLargeMDBMFile() {
+
+	var rv int
+	var err error
+
+	log.Printf("Creating a Large database(=%s)", mdbmPathLarge)
+
+	//init. the go-mdbm
+	dbm := mdbm.NewMDBM()
+
+	//create & open(RDRW|LARGE|TRUNC) an mdbm file
+	err = dbm.Open(mdbmPathLarge, mdbm.Create|mdbm.Rdrw|mdbm.LargeObjects|mdbm.Trunc, 0644, 0, 0)
+
+	//the mdbm object close at close func
+	defer dbm.EasyClose()
+
+	//check the open error
+	if err != nil {
+		log.Fatalf("failed, can't open mdbm file\npath=%s, err=%v", mdbmPathLarge, err)
+	}
+
+	for i := 0; i <= 655350; i++ {
+
+		val := time.Now().UnixNano()
+		rv, err = dbm.Store(i, val, mdbm.Insert)
+		if err != nil {
+			log.Fatalf("failed, can't data(key=%+v, value=%+v) add to the mdbm file(=%s)\nrv=%d, err=%v", i, val, mdbmPathLarge, rv, err)
+		}
+	}
+
+	//get the size of mdbm
+	size, err := dbm.GetSize()
+	if err != nil {
+		log.Fatalf("failed, can't get a file size of open mdbm file\npath=%s, err=%v", mdbmPathLarge, err)
+	}
+
+	//get the count of number of records
+	cnt, err := dbm.CountRecords()
+	if err != nil {
+		log.Fatalf("failed, can't get a file size of open mdbm file\npath=%s, err=%v", mdbmPathLarge, err)
+	}
+
+	strproc := strutils.NewStringProc()
+
+	humanSize, _ := strproc.HumanByteSize(size, 2, strutils.UpperCaseDouble)
+	humanNumFmt, _ := strproc.NumberFmt(cnt)
+
+	log.Printf("%s size = %s", mdbmPathLarge, humanSize)
+	log.Printf("%s count of records = %s", mdbmPathLarge, humanNumFmt)
 
 	log.Println("complete")
 }
@@ -673,10 +728,13 @@ func main() {
 	os.Remove(mdbmPath1)
 	os.Remove(mdbmPath2)
 	os.Remove(mdbmPathDup)
+	os.Remove(mdbmPathLarge)
 
 	exampleGenerateMDBMFile()
 	exampleDupDataMDBMFile()
 	exampleGenerateUseAnyDataTypeMDBMFile()
+
+	exampleLargeMDBMFile()
 	exampleFetch(10)
 	exampleFetchDup(20)
 	exampleIterationUseFirstNext()
@@ -686,4 +744,5 @@ func main() {
 
 	exampleUpdateValue()
 	exampleIterationUseFirstNext()
+
 }

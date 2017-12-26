@@ -1,6 +1,9 @@
 # Go-mdbm
 
-The following source code is an ordinary examples, If you want, you can copy and paste this example into a file on your machine
+The following source code is an ordinary examples,
+If you want, you can copy and paste this example into a file on your machine
+
+See the [source codes](https://github.com/torden/go-mdbm/blob/master/example/example.go) for more details.
 
 ## Creating and populating a database
 
