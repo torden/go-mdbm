@@ -1,11 +1,7 @@
 # Go-mdbm
 
-- Go-mdbm is a Go(golang) bind to Yahoo! MDBM C API.
+- Go-mdbm is a Go(golang,go-lang) bind to [Yahoo! MDBM C API](https://github.com/yahoo/mdbm).
 - MDBM is a super-fast memory-mapped key/value store.
-- To use the modern buzzwords, it is NoSQL, and for many operations, it is Zero-Copy.
-- It is based on an earlier version by Larry McVoy, then at SGI. That in turn, is based on SDBM by Ozan Yigit. wikipedia DBM article
-- Yahoo added significant performance enhancements, many tools, tests, and comprehensive documentation.
-- It has been used in production for over a decade, for a wide variety of applications, both large and small.
 
 [![Build Status](https://travis-ci.org/torden/go-mdbm.svg?branch=master)](https://travis-ci.org/torden/go-mdbm)
 [![Go Report Card](https://goreportcard.com/badge/github.com/torden/go-mdbm)](https://goreportcard.com/report/github.com/torden/go-mdbm)
@@ -14,13 +10,10 @@
 [![Go Walker](http://gowalker.org/api/v1/badge)](https://gowalker.org/github.com/torden/go-mdbm)
 [![GitHub version](https://badge.fury.io/gh/torden%2Fgo-mdbm.svg)](https://badge.fury.io/gh/torden%2Fgo-mdbm)
 
-```
-Allmost MDBM APIs supported
-```
 
 ## Install from Source Code
 
-### MDBM
+### Y! MDBM
 
 #### Downloading
 
@@ -63,17 +56,27 @@ echo "/usr/local/mdbm/lib64/" >> /etc/ld.so.conf
 
 ### go-mdbm
 
-#### Download 
+#### Download
+
+for use
 
 ```
-git get github.com/torden/go-mdbm.git
+git get -u github.com/torden/go-mdbm
 ```
+
+for development or customization
+
+```
+git clone https://github.com/torden/go-mdbm
+```
+
+#### Preparing to Build
 
 As you know, The mdbm installation default path is /tmp/install, That's why go-mdbm used it.
-if you did mdbm install to another path or saw the following message, You must change the mdbm installed path in *mdbm.go* source code
+if you did the mdbm install to another path or saw the following message, You must change the mdbm installed path in *mdbm.go* source code
 
 ```shell
-$ go get github.com/torden/go-mdbm
+$ go get -u github.com/torden/go-mdbm
 # github.com/torden/go-mdbm
 go-mdbm/mdbm.go:13:10: fatal error: mdbm.h: No such file or directory
  #include <mdbm.h>
@@ -81,9 +84,57 @@ go-mdbm/mdbm.go:13:10: fatal error: mdbm.h: No such file or directory
 compilation terminated.
 ```
 
-#### Change the mdbm installed path 
+#### Build
 
-if you did change any other installation path, you must following below
+```shell
+cd $GOPATH/src/github.com/torden/go-mdbm
+
+make clean
+make setup
+make build
+```
+
+#### Testing
+
+```shell
+cd $GOPATH/src/github.com/torden/go-mdbm
+make test
+```
+
+#### Run to Example
+
+```shell
+cd $GOPATH/src/github.com/torden/go-mdbm/example/
+go run -race example.go
+```
+
+#### Miscellaneous
+
+
+The following is support to development
+```shell
+make help
+```
+
+```shell
+build:             Build the go-mdbm
+clean::            Clean-up
+cover:             Generate a report about coverage
+coveralls::        Send a report of coverage profile to coveralls.io
+help::             Show Help
+installpkgs::      Install Packages
+lint:              Run a LintChecker (Normal)
+metalinter::       Install GoMetaLinter
+pprof:             Profiling
+report:            Generate the report for profiling
+setup:             Setup Build Environment
+strictlint:        Run a LintChecker (Strict)
+test:              Run Go Test with Data Race Detection
+```
+
+#### Change the mdbm installed path
+
+if you did change the mdbm installation path, you must be following.
 
 ```shell
 cd $GOPATH/src/github.com/torden/go-mdbm/
@@ -107,16 +158,18 @@ vi mdbm.go
 
 [Source Code and a sample file](https://github.com/torden/go-mdbm/tree/master/example)
 
-## On Now, Not Support APIs
+## Not Support APIs
 
+Unfortunately, the following list is not supported on now.
+If you want them, please feel free to raise an issue
 
-### Deprecatred APIs
+### Deprecated APIs
 
 |*API*|*STATUS*|*COMMENT*|
 |---|---|---|
 |mdbm_save|DEPRECATED|mdbm_save is only supported for V2 MDBMs.|
 |mdbm_restore|DEPRECATED|mdbm_restore is only supported for V2 MDBMs.|
-|mdbm_sethash|DEPRECATED|Legacy version of mdbm_set_hash() This function has inconsistent naming, and error return value. It will be removed in a future version.|
+|mdbm_sethash|DEPRECATED|Legacy version of mdbm_set_hash() This function has inconsistent naming, an error return value. It will be removed in a future version.|
 
 ### Only a V2 implementation
 
@@ -147,5 +200,4 @@ vi mdbm.go
 |mdbm_set_stats_func|as soon|
 |mdbm_chunk_iterate|as soon|
 
----
-Please feel free.
+Please feel free. I hope it is helpful for you
