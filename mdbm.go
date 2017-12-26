@@ -545,7 +545,7 @@ func (db *MDBM) convertToArByte(obj interface{}) ([]byte, error) {
 		return []byte(fmt.Sprintf("%g", obj.(complex128))), nil
 
 	default:
-		return nil, fmt.Errorf("not support type(%s)", reflect.TypeOf(obj).String())
+		return nil, fmt.Errorf("not support type(%v)", reflect.TypeOf(obj))
 	}
 }
 
@@ -598,7 +598,7 @@ func (db *MDBM) convertToString(obj interface{}) (string, error) {
 		return fmt.Sprintf("%g", obj.(complex128)), nil
 
 	default:
-		return "", fmt.Errorf("not support type(%s)", reflect.TypeOf(obj).String())
+		return "", fmt.Errorf("not support type(%v)", reflect.TypeOf(obj))
 	}
 }
 
@@ -809,6 +809,12 @@ func (db *MDBM) EasyOpen(dbmfile string, perms int) error {
 
 	if len(strings.TrimSpace(dbmfile)) < 1 {
 		return errors.New("dbm file path is empty")
+	}
+
+	// if opened
+	if db.isopened {
+		log.Printf("Already opened db handler(=%s). will open after close the previously db handler.", db.dbmfile)
+		db.EasyClose()
 	}
 
 	db.dbmfile = dbmfile
@@ -2952,7 +2958,7 @@ func (db *MDBM) ChkPage(pagenum int) (int, string, error) {
 		return -1, "", err
 	}
 
-	rv, out, err := db.cgoRun(func() (int, error) {
+	rv, out, err := db.cgoRunCapture(func() (int, error) {
 		rv, err := C.mdbm_chk_page(db.pmdbm, C.int(pagenum))
 		return int(rv), err
 	})
@@ -2961,6 +2967,7 @@ func (db *MDBM) ChkPage(pagenum int) (int, string, error) {
 }
 
 // ChkError checks integrity of an entry on a page.
+// NOTE: This has not been implemented.
 func (db *MDBM) ChkError(pagenum int, mappedpagenum int, index int) error {
 
 	err := db.checkAvailable()
@@ -2968,7 +2975,7 @@ func (db *MDBM) ChkError(pagenum int, mappedpagenum int, index int) error {
 		return err
 	}
 
-	_, out, err := db.cgoRun(func() (int, error) {
+	_, out, err := db.cgoRunCapture(func() (int, error) {
 		_, err := C.mdbm_chk_error(db.pmdbm, C.int(pagenum), C.int(mappedpagenum), C.int(index))
 		return 0, err
 	})
@@ -3516,7 +3523,6 @@ func (db *MDBM) Clean(pagenum int) (int, error) {
 	}
 
 	rv, _, err := db.cgoRun(func() (int, error) {
-
 		rv, err := C.set_mdbm_clean(db.pmdbm, C.int(pagenum), C.int(0)) //flags ignored
 		return int(rv), err
 	})
@@ -3524,61 +3530,57 @@ func (db *MDBM) Clean(pagenum int) (int, error) {
 	return rv, err
 }
 
-/*
-func (db *MDBM) CDBDumpToFile(key interface{}, val interface{}, fnpath string, mode string) (int, *C.FILE, error) {
+// PreSplit forces a db to split, creating N pages.  Must be called before any data is inserted. If N is not a multiple of 2, it will be rounded up.
+// N Target number of pages post split. If N is not larger than the initial size (ex., 0), a split will not be done and a success status is returned.
+func (db *MDBM) PreSplit(split uint32) (int, error) {
 
-	rv := -1
-
-	var fd *C.struct__IO_FILE
-
-	bkey, err := db.convertToArByte(key)
+	err := db.checkAvailable()
 	if err != nil {
-		return rv, fd, errors.Wrapf(err, "failured")
+		return -1, err
 	}
-	bval, err := db.convertToArByte(val)
-	if err != nil {
-		return rv, fd, errors.Wrapf(err, "failured")
-	}
-
-	var k, v C.datum
-	k.dptr = (*C.char)(unsafe.Pointer(&bkey[0]))
-	k.dsize = C.int(len(bkey))
-
-	v.dptr = (*C.char)(unsafe.Pointer(&bval[0]))
-	v.dsize = C.int(len(bval))
-
-	var kv C.kvpair
-	kv.key = k
-	kv.val = v
-
-	fdpath := C.CString(fnpath)
-	fdmode := C.CString(mode)
-	defer C.free(unsafe.Pointer(fdpath))
-	defer C.free(unsafe.Pointer(fdmode))
-
-	fd, err = C.fopen(fdpath, fdmode)
-	if err != nil {
-		return rv, fd, errors.Wrapf(err, "fnpath=%s, mode=%s", fnpath, mode)
-	}
-
-	//defer C.fclose(fd)
-
-	rv, _, err = db.cgoRun(func() (int, error) {
-		rv, err := C.mdbm_cdbdump_to_file(kv, fd)
-		return int(rv), err
-	})
-
-	return rv, fd, err
-
-}
-
-func (db *MDBM) CDBDumpTrailerAndClose(fd *C.FILE) (int, error) {
 
 	rv, _, err := db.cgoRun(func() (int, error) {
-		rv, err := C.mdbm_cdbdump_trailer_and_close(fd)
+		rv, err := C.mdbm_pre_split(db.pmdbm, C.mdbm_ubig_t(split))
 		return int(rv), err
 	})
 
 	return rv, err
 }
-*/
+
+// Fcopy copies the contents of a database to an open file handle.
+// NOTE: lock for the duration
+func (db *MDBM) Fcopy(filepath string, mode int) (int, error) {
+
+	err := db.checkAvailable()
+	if err != nil {
+		return -1, err
+	}
+
+	fpath := C.CString(filepath)
+	defer C.free(unsafe.Pointer(fpath))
+
+	rv, _, err := db.cgoRun(func() (int, error) {
+		rv, err := C.set_mdbm_fcopy(db.pmdbm, fpath, C.int(mode))
+		return int(rv), err
+	})
+
+	return rv, err
+}
+
+// SparsifyFile makes a file sparse. Read every blockssize bytes and for all-zero blocks punch a hole in the file.
+// This can make a file with lots of zero-bytes use less disk space.
+// NOTE: For MDBM files that may be modified, the DB should be opened, and exclusive-locked for the duration of the sparsify operation.
+// NOTE: This function is linux-only.
+// blocksize Minimum size to consider for hole-punching, <=0 to use the system block-size
+func (db *MDBM) SparsifyFile(filepath string, blocksize int) (int, error) {
+
+	fpath := C.CString(filepath)
+	defer C.free(unsafe.Pointer(fpath))
+
+	rv, _, err := db.cgoRun(func() (int, error) {
+		rv, err := C.mdbm_sparsify_file(fpath, C.int(blocksize))
+		return int(rv), err
+	})
+
+	return rv, err
+}

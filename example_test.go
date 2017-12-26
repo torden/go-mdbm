@@ -1810,6 +1810,11 @@ func Example_mdbm_Plock_Punlock() {
 		log.Fatalf("MyLockReset() : rv=%d, err=%v", rv, err)
 	}
 
+	rv, err = dbm.Plock([]int{1})
+	if err == nil {
+		log.Fatalf("Plock([]int{1}) : rv=%d, err=%v", rv, err)
+	}
+
 	rv, err = dbm.Plock(1)
 	if err != nil {
 		log.Fatalf("Plock(1) : rv=%d, err=%v", rv, err)
@@ -1838,6 +1843,11 @@ func Example_mdbm_Plock_Punlock() {
 	}
 
 	fmt.Println("Store(2) :", rv, err)
+
+	rv, err = dbm.Punlock([]int{1})
+	if err == nil {
+		log.Fatalf("Punlock([]int{1}) : rv=%d, err=%v", rv, err)
+	}
 
 	rv, err = dbm.Punlock(1)
 	if err != nil {
@@ -1877,6 +1887,11 @@ func Example_mdbm_TryPlock() {
 		log.Fatalf("Plock(1) : rv=%d, err=%v", rv, err)
 	}
 
+	rv, err = dbm.TryPlock(nil)
+	if err == nil {
+		log.Fatalf("TryPlock(nil) : rv=%d, err=%v", rv, err)
+	}
+
 	rv, err = dbm.TryPlock(1)
 	if err != nil {
 		log.Fatalf("TryPlock(1) : rv=%d, err=%v", rv, err)
@@ -1900,6 +1915,7 @@ func Example_mdbm_TryPlock() {
 
 func Example_mdbm_LockSmart_Store_UnLockSmart() {
 
+	var rv int
 	dbm := mdbm.NewMDBM()
 	err := dbm.EasyOpen(pathTestDBMLock2, 0644)
 	if err != nil {
@@ -1912,13 +1928,24 @@ func Example_mdbm_LockSmart_Store_UnLockSmart() {
 		//Un-stable
 		//dbm.LockSmart(i, mdbm.Rdrw)
 
-		rv, err := dbm.StoreWithLockSmart(i, i, mdbm.Replace, mdbm.Rdrw)
+		rv, err = dbm.StoreWithLockSmart(i, i, mdbm.Replace, mdbm.Rdrw)
 		if err != nil {
 			log.Fatalf("Store(%d,%d,mdbm.Replace) : rv=%d, err=%v", i, i, rv, err)
 		}
 
 		//Un-stable
 		//dbm.UnLockSmart(i, mdbm.Rdrw)
+	}
+
+	// wrong data-type
+	rv, err = dbm.StoreWithLockSmart(nil, 0, mdbm.Replace, mdbm.Rdrw)
+	if err == nil {
+		log.Fatalf("Store(nil,%d,mdbm.Replace) : rv=%d, err=%v", 0, rv, err)
+	}
+
+	rv, err = dbm.StoreWithLockSmart(0, nil, mdbm.Replace, mdbm.Rdrw)
+	if err == nil {
+		log.Fatalf("Store(%d,nil,mdbm.Replace) : rv=%d, err=%v", 0, rv, err)
 	}
 
 	// Output:

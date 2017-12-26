@@ -1,7 +1,5 @@
 # Go-mdbm
 
-*Unfortunately, Not ready for use on production, but go-mdbm tests complete as soon...*
-
 - Go-mdbm is a Go(golang) bind to Yahoo! MDBM C API.
 - MDBM is a super-fast memory-mapped key/value store.
 - To use the modern buzzwords, it is NoSQL, and for many operations, it is Zero-Copy.
@@ -105,6 +103,10 @@ vi mdbm.go
 |master|yes|always|
 |release 4.3.x|yes|tested|
 
+# Example
+
+[Source Code and a sample file](https://github.com/torden/go-mdbm/tree/master/example)
+
 ## On Now, Not Support APIs
 
 
@@ -140,26 +142,10 @@ vi mdbm.go
 |mdbm_dbdump_export_header|as soon|
 |mdbm_set_backingstore|as soon|
 |mdbm_replace_backing_store|as soon|
-|mdbm_pre_split|as soon|
-|mdbm_fcopy|as soon|
 |mdbm_iterate|as soon|
 |mdbm_prune|as soon|
 |mdbm_set_stats_func|as soon|
 |mdbm_chunk_iterate|as soon|
-|mdbm_sparsify_file|as soon|
-
-# Example
-
-[Source Code and a sample file](https://github.com/torden/go-mdbm/tree/master/example)
-
-	
-## Todo
-
-* coverage up to 95% (min.)
-* Binding All APIs without deprecated apis
-* Testing on another platform (osx, bsd...)
-* Pre-compiled mdbm library by OS
-* Stabilization & Clear
 
 ---
 Please feel free.

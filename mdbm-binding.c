@@ -134,7 +134,7 @@ static inline int common_unlock_func(MDBM *db, datum *key, int locktype, int loc
 // STORE
 extern int set_mdbm_store_with_lock(MDBM *db, datum key, datum val, int flags, int locktype, int lockflags) {
 
-	int rv;
+	int rv = -1;
 
     rv = common_lock_func(db, &key, locktype, lockflags);
     if(rv != 1) {
@@ -150,7 +150,7 @@ extern int set_mdbm_store_with_lock(MDBM *db, datum key, datum val, int flags, i
 // STORE_R
 extern int set_mdbm_store_r_with_lock(MDBM *db, datum *key, datum *val, int flags, MDBM_ITER *iter,  int locktype, int lockflags) {
 
-	int rv;
+	int rv = -1;
     rv = common_lock_func(db, key, locktype, lockflags);
     if(rv != 1) {
         return rv;
@@ -166,7 +166,7 @@ extern int set_mdbm_store_r_with_lock(MDBM *db, datum *key, datum *val, int flag
 ///STORE_STR
 extern int set_mdbm_store_str_with_lock(MDBM *db, const char *key, const char *val, int flags, int locktype, int lockflags) {
 
-	int rv;
+	int rv = -1;
 	datum lockkey = {(char *)key, strlen(key)+1};
 
     rv = common_lock_func(db, &lockkey, locktype, lockflags);
@@ -183,7 +183,7 @@ extern int set_mdbm_store_str_with_lock(MDBM *db, const char *key, const char *v
 // FETCH
 extern char *get_mdbm_fetch_with_lock(MDBM *db, datum key, int locktype, int lockflags) {
 
-	int rv;
+	int rv = -1;
 	datum val;
 	char *buf = NULL;
 
@@ -209,7 +209,7 @@ extern char *get_mdbm_fetch_with_lock(MDBM *db, datum key, int locktype, int loc
 // FETCH_R
 extern int get_mdbm_fetch_r_with_lock(MDBM *db, datum *key, datum *val, MDBM_ITER *iter, int locktype, int lockflags) {
 
-	int rv;
+	int rv = -1;
     rv = common_lock_func(db, key, locktype, lockflags);
 	if(rv != 1) {
 		return rv;
@@ -224,7 +224,7 @@ extern int get_mdbm_fetch_r_with_lock(MDBM *db, datum *key, datum *val, MDBM_ITE
 // FETCH_DUP_R
 extern int get_mdbm_fetch_dup_r_with_lock(MDBM *db, datum *key, datum *val, MDBM_ITER *iter, int locktype, int lockflags) {
 
-	int rv;
+	int rv = -1;
     rv = common_lock_func(db, key, locktype, lockflags);
 	if(rv != 1) {
 		return rv;
@@ -241,7 +241,7 @@ extern int get_mdbm_fetch_dup_r_with_lock(MDBM *db, datum *key, datum *val, MDBM
 // FETCH_STR
 extern char *get_mdbm_fetch_str_with_lock(MDBM *db, const char *key, int locktype, int lockflags) {
 
-	int rv;
+	int rv = -1;
 	char *retval = NULL;
 
 	datum lockkey = {(char *)key, strlen(key)+1};
@@ -258,7 +258,7 @@ extern char *get_mdbm_fetch_str_with_lock(MDBM *db, const char *key, int locktyp
 // DELETE
 extern int set_mdbm_delete_with_lock(MDBM *db, datum key, int locktype, int lockflags) {
 
-    int rv;
+    int rv = -1;
     rv = common_lock_func(db, &key, locktype, lockflags);
 	if(rv != 1) {
 		return rv;
@@ -273,7 +273,7 @@ extern int set_mdbm_delete_with_lock(MDBM *db, datum key, int locktype, int lock
 // DELETE_R
 extern int set_mdbm_delete_r_with_lock(MDBM *db, datum key, MDBM_ITER *iter, int locktype, int lockflags) {
 
-    int rv;
+    int rv = -1;
 
     datum *lockkey = NULL;
     if(key.dsize >= 0) {
@@ -293,7 +293,7 @@ extern int set_mdbm_delete_r_with_lock(MDBM *db, datum key, MDBM_ITER *iter, int
 
 extern int set_mdbm_delete_str_with_lock(MDBM *db, const char *key, int locktype, int lockflags) {
 
-	int rv;
+	int rv = -1;
 
 	datum lockkey = {(char *)key, strlen(key)};
     rv = common_lock_func(db, &lockkey, locktype, lockflags);
@@ -308,10 +308,10 @@ extern int set_mdbm_delete_str_with_lock(MDBM *db, const char *key, int locktype
 }
 
 extern int dummy_clean_func(MDBM *db, const datum *key, const datum *val, struct mdbm_clean_data *mcd, int *quit) {
+
     *quit = 0;
     return 1;
 }
- 
 
 extern int clean_anything_func(MDBM *db, const datum *key, const datum *val, struct mdbm_clean_data *mcd, int *quit) {
 
@@ -321,13 +321,27 @@ extern int clean_anything_func(MDBM *db, const datum *key, const datum *val, str
     return 1;
 }
 
-extern int set_mdbm_clean(MDBM* db, int pagenum, int flags) {
+extern int set_mdbm_clean(MDBM *db, int pagenum, int flags) {
 
-	int rv;
+	int rv = -1;
     rv = mdbm_set_cleanfunc(db, clean_anything_func, 0);
 	if(rv != 1) {
         return rv;
     }
 
     return mdbm_clean(db, pagenum, flags); //flags ignored
+}
+
+extern int set_mdbm_fcopy(MDBM *db, const char *filepath, int mode) {
+
+    int rv = -1;
+    int fd = open(filepath, O_RDWR | O_CREAT | O_TRUNC, mode);
+    if(fd == -1) {
+        fprintf(stderr, "Error : can't create a tempfeil(=%s), err=%s", filepath, strerror(errno));
+        return fd;
+    } 
+
+    rv = mdbm_fcopy(db, fd, MDBM_COPY_LOCK_ALL);
+    close(fd);
+    return rv;
 }

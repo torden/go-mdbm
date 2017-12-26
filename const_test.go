@@ -20,11 +20,15 @@ const (
 	pathTestDBMStr           = "/tmp/test_str.mdbm"
 	pathTestDBMR             = "/tmp/test_r.mdbm"
 	pathTestDBMStrAnyLock    = "/tmp/test_str_anylock.mdbm"
-	pathTestDBMReplace1      = "/tmp/test_replace1.mdbm"
-	pathTestDBMReplace2      = "/tmp/test_replace2.mdbm"
-	pathTestDBMReplace3      = "/tmp/test_replace3.mdbm"
-	pathTestDBMRemove        = "/tmp/test_remove.mdbm"
-	pathTestDBMEmpty         = "/tmp/test_empty.mdbm"
+	//pathTestDBMReplace1      = "/tmp/test_replace1.mdbm"
+	//pathTestDBMReplace2      = "/tmp/test_replace2.mdbm"
+	pathTestDBMReplace3   = "/tmp/test_replace3.mdbm"
+	pathTestDBMRemove     = "/tmp/test_remove.mdbm"
+	pathTestDBMEmpty      = "/tmp/test_empty.mdbm"
+	pathTestDBMFcopy      = "/tmp/test_fcopy.mdbm"
+	pathTestDBMBenchmark1 = "/tmp/test_benchmark1.mdbm"
+	pathTestDBMBenchmark2 = "/tmp/test_benchmark1.mdbm"
+	pathTestDBMBenchmark3 = "/tmp/test_benchmark1.mdbm"
 )
 
 var gPathList = [...]string{
@@ -46,4 +50,9 @@ var gPathList = [...]string{
 	pathTestDBMStrAnyLock,
 	pathTestDBMCacheNoneData,
 	pathTestDBMRemove,
-	pathTestDBMEmpty}
+	pathTestDBMEmpty,
+	pathTestDBMFcopy,
+	pathTestDBMBenchmark1,
+	pathTestDBMBenchmark2,
+	pathTestDBMBenchmark3,
+}

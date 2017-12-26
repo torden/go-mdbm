@@ -1,25 +1,31 @@
 package main
 
 import (
+	"fmt"
 	"io/ioutil"
 	"log"
 	"math/rand"
 	"os"
+	"runtime"
 	"strings"
+	"sync"
 	"time"
 
 	mdbm "github.com/torden/go-mdbm"
+	"github.com/torden/go-strutil"
 )
 
 const (
-	mdbmPath1   = "/tmp/example1.mdbm"
-	mdbmPath2   = "/tmp/example2.mdbm"
-	sample1Path = "./sample1.tsv" //ISO Alpha-2,3 and Numeric Country Codes
+	mdbmPath1     = "/tmp/example1.mdbm"
+	mdbmPath2     = "/tmp/example2.mdbm"
+	mdbmPathDup   = "/tmp/exampleDup.mdbm"
+	mdbmPathLarge = "/tmp/exampleLarge.mdbm"
+	sample1Path   = "./sample1.tsv" //ISO Alpha-2,3 and Numeric Country Codes
 )
 
 func exampleGenerateMDBMFile() {
 
-	log.Printf("Createing and Populating the mdbm file(=%s)", mdbmPath1)
+	log.Printf("Creating and Populating the mdbm file(=%s)", mdbmPath1)
 
 	//init. the go-mdbm
 	dbm := mdbm.NewMDBM()
@@ -55,15 +61,135 @@ func exampleGenerateMDBMFile() {
 			continue
 		}
 
-		//0 : Country or Area Name
-		//1 : ISO ALPHA-2 Code
+		//0 : ISO ALPHA-2 Code
+		//1 : Country or Area Name
 		//2 : ISO ALPHA-3 Code
 		//3 : USO Numeric Code , UN M49 Numeric Code
+
 		rv, err := dbm.Store(row[0], row[1], mdbm.Insert) // if key does not exist; fail if exists
 		if err != nil {
 			log.Fatalf("failed, can't data(key=%+v, value=%+v) add to the mdbm file(=%s)\nrv=%d, err=%v", row[0], row[1], mdbmPath1, rv, err)
 		}
 	}
+
+	log.Println("complete")
+}
+
+func exampleDupDataMDBMFile() {
+
+	log.Printf("Creating and Populating the mdbm file(=%s)", mdbmPath1)
+
+	var rv int
+	var err error
+
+	//init. the go-mdbm
+	dbm := mdbm.NewMDBM()
+
+	//create & open(RDRW|DUP) an mdbm file
+	err = dbm.Open(mdbmPathDup, mdbm.Create|mdbm.Rdrw|mdbm.LargeObjects|mdbm.InsertDup, 0644, 0, 0)
+
+	//the mdbm object close at close func
+	defer dbm.EasyClose()
+
+	//check the open error
+	if err != nil {
+		log.Fatalf("failed, can't open mdbm file\npath=%s, err=%v", mdbmPath1, err)
+	}
+
+	//read a content
+	data, err := ioutil.ReadFile(sample1Path)
+	if err != nil {
+		log.Fatalf("failed, read to the tsv file\npath=%s, err=%v", sample1Path, err)
+	}
+
+	//convert []byte to string and split by newline
+	dataStrAr := strings.Split(string(data), "\n")
+	for k, v := range dataStrAr {
+
+		if k == 0 { //header
+			continue
+		}
+
+		//obtain data by field
+		row := strings.Split(v, "\t")
+		if len(row) < 4 {
+			continue
+		}
+
+		//0 : ISO ALPHA-2 Code
+		//1 : Country or Area Name
+		//2 : ISO ALPHA-3 Code
+		//3 : USO Numeric Code , UN M49 Numeric Code
+
+		rv, err = dbm.Store(row[0], row[1], mdbm.InsertDup)
+		if err != nil {
+			log.Fatalf("failed, can't data(key=%+v, value=%+v) add to the mdbm file(=%s)\nrv=%d, err=%v", row[0], row[1], mdbmPath1, rv, err)
+		}
+
+		rv, err = dbm.Store(row[0], row[2], mdbm.InsertDup)
+		if err != nil {
+			log.Fatalf("failed, can't data(key=%+v, value=%+v) add to the mdbm file(=%s)\nrv=%d, err=%v", row[0], row[1], mdbmPath1, rv, err)
+		}
+
+		rv, err = dbm.Store(row[0], row[3], mdbm.InsertDup)
+		if err != nil {
+			log.Fatalf("failed, can't data(key=%+v, value=%+v) add to the mdbm file(=%s)\nrv=%d, err=%v", row[0], row[1], mdbmPath1, rv, err)
+		}
+
+	}
+
+	log.Println("complete")
+}
+
+func exampleLargeMDBMFile() {
+
+	var rv int
+	var err error
+
+	log.Printf("Creating a Large database(=%s)", mdbmPathLarge)
+
+	//init. the go-mdbm
+	dbm := mdbm.NewMDBM()
+
+	//create & open(RDRW|LARGE|TRUNC) an mdbm file
+	err = dbm.Open(mdbmPathLarge, mdbm.Create|mdbm.Rdrw|mdbm.LargeObjects|mdbm.Trunc, 0644, 0, 0)
+
+	//the mdbm object close at close func
+	defer dbm.EasyClose()
+
+	//check the open error
+	if err != nil {
+		log.Fatalf("failed, can't open mdbm file\npath=%s, err=%v", mdbmPathLarge, err)
+	}
+
+	for i := 0; i <= 655350; i++ {
+
+		val := time.Now().UnixNano()
+		rv, err = dbm.Store(i, val, mdbm.Insert)
+		if err != nil {
+			log.Fatalf("failed, can't data(key=%+v, value=%+v) add to the mdbm file(=%s)\nrv=%d, err=%v", i, val, mdbmPathLarge, rv, err)
+		}
+	}
+
+	//get the size of mdbm
+	size, err := dbm.GetSize()
+	if err != nil {
+		log.Fatalf("failed, can't get a file size of open mdbm file\npath=%s, err=%v", mdbmPathLarge, err)
+	}
+
+	//get the count of number of records
+	cnt, err := dbm.CountRecords()
+	if err != nil {
+		log.Fatalf("failed, can't get a file size of open mdbm file\npath=%s, err=%v", mdbmPathLarge, err)
+	}
+
+	strproc := strutils.NewStringProc()
+
+	humanSize, _ := strproc.HumanByteSize(size, 2, strutils.UpperCaseDouble)
+	humanNumFmt, _ := strproc.NumberFmt(cnt)
+
+	log.Printf("%s size = %s", mdbmPathLarge, humanSize)
+	log.Printf("%s count of records = %s", mdbmPathLarge, humanNumFmt)
 
 	log.Println("complete")
 }
@@ -205,12 +331,12 @@ func exampleGenerateUseAnyDataTypeMDBMFile() {
 	for {
 
 		key, val, err := dbm.Next()
-		if err != nil {
-			log.Fatalf("key=%s, val=%s, err=%v", key, val, err)
-		}
-
 		if len(key) < 1 {
 			break
+		}
+
+		if err != nil {
+			log.Fatalf("key=%s, val=%s, err=%v", key, val, err)
 		}
 
 		if key != val {
@@ -227,7 +353,7 @@ func exampleGenerateUseAnyDataTypeMDBMFile() {
 
 func exampleFetch(limit int) {
 
-	log.Printf("Fetcing records in the mdbm file(=%s)", mdbmPath1)
+	log.Printf("Fetching records in the mdbm file(=%s)", mdbmPath1)
 
 	//init. the go-mdbm
 	dbm := mdbm.NewMDBM()
@@ -296,6 +422,97 @@ func exampleFetch(limit int) {
 
 		log.Printf("ISO ALPHA-2 Code : [%s] , Country or Area Name : [%s]", keyList[rkey], val)
 	}
+
+	log.Println("complete")
+}
+
+func exampleFetchDup(limit int) {
+
+	log.Printf("Fetching records in the mdbm file(=%s)", mdbmPath1)
+
+	//init. the go-mdbm
+	dbm := mdbm.NewMDBM()
+
+	//create & open(ReadOnly) an mdbm file
+	err := dbm.Open(mdbmPathDup, mdbm.Rdonly, 0644, 0, 0)
+
+	//the mdbm object close at close func
+	defer dbm.EasyClose()
+
+	//check the open error
+	if err != nil {
+		log.Fatalf("failed, can't open mdbm file\npath=%s, err=%v", mdbmPath1, err)
+	}
+
+	//read a content
+	data, err := ioutil.ReadFile(sample1Path)
+	if err != nil {
+		log.Fatalf("failed, read to the tsv file\npath=%s, err=%v", sample1Path, err)
+	}
+
+	//convert []byte to string and split by newline
+	dataStrAr := strings.Split(string(data), "\n")
+
+	var keyList []string
+	var keySize int
+
+	//obtain list of key
+	for k, v := range dataStrAr {
+
+		if k == 0 { //header
+			continue
+		}
+
+		row := strings.Split(v, "\t")
+		if len(row) < 4 {
+			continue
+		}
+
+		keyList = append(keyList, row[0])
+	}
+
+	keySize = len(keyList)
+
+	//obtain a pseudo-random 32-bit value as a uint32
+	random := rand.New(rand.NewSource(time.Now().UnixNano()))
+
+	var rkey int
+
+	//header
+	fmt.Println(strings.Repeat("-", 129))
+	fmt.Printf("| %-30s| %-30s| %-30s| %-30s|\n", "ISO ALPHA-2 Code", "Country or Area Name", "ISO ALPHA-3 Code", "USO Numeric Code")
+	fmt.Println(strings.Repeat("-", 129))
+
+	//random fetching..
+	for i := 0; i <= limit; i++ {
+
+		//obtain a pseudo-random 32-bit value between 0 and keySize
+		for {
+			rkey = random.Intn(keySize)
+			if rkey >= 0 {
+				break
+			}
+		}
+
+		fmt.Printf("| %-30s", keyList[rkey])
+
+		rv := 0
+		var val string
+		iter := dbm.GetNewIter()
+		for rv != -1 {
+
+			rv, val, _, err = dbm.FetchDupRWithLock(keyList[rkey], &iter)
+			if rv == -1 {
+				break
+			}
+			fmt.Printf("| %-30s", val)
+		}
+
+		fmt.Println("|")
+	}
+
+	//footer
+	fmt.Println(strings.Repeat("-", 129))
 
 	log.Println("complete")
 }
@@ -508,14 +725,92 @@ func exampleUpdateValue() {
 	log.Println("complete")
 }
 
+func workerRandomFetch(id int, wg *sync.WaitGroup, jobs <-chan *mdbm.MDBM) {
+
+	//obtain a pseudo-random 32-bit value as a uint32
+	random := rand.New(rand.NewSource(time.Now().UnixNano()))
+
+	//waiting for incoming job!
+	for dbm := range jobs {
+
+		for i := 0; i < 100; i++ {
+			key := random.Intn(65530)
+			val, err := dbm.FetchWithLock(key)
+			if err != nil {
+				log.Print("failed, can't find out value in the mdbm file(=%s)\nekey=%s, err=%v", dbm.GetDBMFile(), key, err)
+			}
+
+			log.Printf("worker[%d] : %d is %s", id, key, val)
+		}
+
+		wg.Add(-1)
+		runtime.Gosched()
+	}
+
+	log.Printf("worker[%d] is complete")
+}
+
+func exampleRandomFetchOnWorker(worker int) {
+
+	log.Printf("Runs the fetching random records of the mdbm file(=%s) on workers", mdbmPath1)
+
+	//init. the go-mdbm
+	dbm := mdbm.NewMDBM()
+
+	//create & open(RDONLY) an mdbm file
+	err := dbm.Open(mdbmPathLarge, mdbm.Rdonly, 0644, 0, 0)
+
+	//the mdbm object close at close func
+	defer dbm.EasyClose()
+
+	//check the open error
+	if err != nil {
+		log.Fatalf("failed, can't open mdbm file\npath=%s, err=%v", mdbmPath1, err)
+	}
+
+	//init. queue
+	jobs := make(chan *mdbm.MDBM, 100)
+
+	//init. waiting group
+	var wg sync.WaitGroup
+
+	//creating worker
+	for i := 0; i < worker; i++ {
+		go workerRandomFetch(i, &wg, jobs)
+	}
+
+	for t := 0; t < (worker * 2); t++ {
+
+		wg.Add(1)
+
+		dbm, _ := dbm.DupHandle()
+		jobs <- dbm
+	}
+
+	//wait for close jobs channel
+	close(jobs)
+
+	//wait for finish workgroup
+	wg.Wait()
+
+	log.Println("complete")
+}
+
 func main() {
 
 	os.Remove(mdbmPath1)
 	os.Remove(mdbmPath2)
-	exampleGenerateUseAnyDataTypeMDBMFile()
+	os.Remove(mdbmPathDup)
+	os.Remove(mdbmPathLarge)
 
 	exampleGenerateMDBMFile()
+	exampleDupDataMDBMFile()
+	exampleGenerateUseAnyDataTypeMDBMFile()
+
+	exampleLargeMDBMFile()
 	exampleFetch(10)
+	exampleFetchDup(20)
+	exampleRandomFetchOnWorker(100)
 	exampleIterationUseFirstNext()
 	exampleNumRows()
 	exampleKeyList()
@@ -523,5 +818,4 @@ func main() {
 
 	exampleUpdateValue()
 	exampleIterationUseFirstNext()
-
 }
