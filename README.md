@@ -140,8 +140,6 @@ vi mdbm.go
 |mdbm_dbdump_export_header|as soon|
 |mdbm_set_backingstore|as soon|
 |mdbm_replace_backing_store|as soon|
-|mdbm_pre_split|as soon|
-|mdbm_fcopy|as soon|
 |mdbm_iterate|as soon|
 |mdbm_prune|as soon|
 |mdbm_set_stats_func|as soon|
