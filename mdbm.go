@@ -2326,7 +2326,7 @@ func (db *MDBM) deleteRWithAnyLock(key interface{}, iter *C.MDBM_ITER, lockType 
 		k.dsize = C.int(len(bkey))
 
 	} else {
-		k.dptr = (*C.char)(unsafe.Pointer(uintptr(0)))
+		k.dptr = nil
 		k.dsize = C.int(-1)
 	}
 
