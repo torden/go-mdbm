@@ -52,7 +52,7 @@ VER_GOLANG=$(shell go version | awk '{print $$3}' | sed -e "s/go//;s/\.//g")
 GOLANGV18_OVER=$(shell [ "$(VER_GOLANG)" -ge "180" ] && echo 1 || echo 0)
 GOLANGV16_OVER=$(shell [ "$(VER_GOLANG)" -ge "160" ] && echo 1 || echo 0)
 
-all: clean setup lint build
+all: clean setup build
 
 ## Setup Build Environment
 setup: installpkgs metalinter
@@ -75,7 +75,7 @@ endif
 	@$(CMD_ECHO) -e "\033[1;40;36mDone\033[01;m\x1b[0m"
 
 ## Build the go-mdbm
-build::
+build: lint
 	@$(CMD_ECHO)  -e "\033[1;40;32mBuilding\033[01;m\x1b[0m"
 	@$(CMD_GO) build -a -n -v
 	@$(CMD_ECHO) -e "\033[1;40;36mDone\033[01;m\x1b[0m"
@@ -154,7 +154,7 @@ endif
 	@$(CMD_MV) -f *.test $(PATH_REPORT)/raw/
 	@$(CMD_ECHO) -e "\033[1;40;36mDone\033[01;m\x1b[0m"
 
-## Generate report fo profiling
+## Generate the report for profiling
 report: pprof
 	@$(CMD_MKDIR) -p $(PATH_REPORT)/raw/ $(PATH_REPORT)/doc/
 	@$(CMD_ECHO)  -e "\033[1;40;33mGenerate all report in text format.\033[01;m\x1b[0m"
@@ -183,4 +183,4 @@ clean::
 	@$(CMD_RM) -rfv *.coverprofile *.swp *.core *.html *.prof *.test *.report ./$(PATH_REPORT)/* ./tmp/* *.mdbm *.txt *.log *.out
 	@$(CMD_ECHO) -e "\033[1;40;36mDone\033[01;m\x1b[0m"
 
-.PHONY: clean cover coveralls help lint pprof report run setup strictlint test
+.PHONY: clean cover coveralls help lint pprof report run setup strictlint test build 

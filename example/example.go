@@ -73,6 +73,7 @@ func exampleGenerateMDBMFile() {
 	}
 
 	log.Println("complete")
+	log.Println(strings.Repeat("-", 120))
 }
 
 func exampleDupDataMDBMFile() {
@@ -139,6 +140,7 @@ func exampleDupDataMDBMFile() {
 	}
 
 	log.Println("complete")
+	log.Println(strings.Repeat("-", 120))
 }
 
 func exampleLargeMDBMFile() {
@@ -192,6 +194,7 @@ func exampleLargeMDBMFile() {
 	log.Printf("%s count of records = %s", mdbmPathLarge, humanNumFmt)
 
 	log.Println("complete")
+	log.Println(strings.Repeat("-", 120))
 }
 
 func exampleGenerateUseAnyDataTypeMDBMFile() {
@@ -349,6 +352,7 @@ func exampleGenerateUseAnyDataTypeMDBMFile() {
 
 	log.Printf("the count of number of rows in the mdbm(=%s) is `%d` rows", mdbmPath2, cnt)
 	log.Println("complete")
+	log.Println(strings.Repeat("-", 120))
 }
 
 func exampleFetch(limit int) {
@@ -424,6 +428,7 @@ func exampleFetch(limit int) {
 	}
 
 	log.Println("complete")
+	log.Println(strings.Repeat("-", 120))
 }
 
 func exampleFetchDup(limit int) {
@@ -505,6 +510,11 @@ func exampleFetchDup(limit int) {
 			if rv == -1 {
 				break
 			}
+
+			if err != nil {
+				log.Fatalf("err=%v", err)
+			}
+
 			fmt.Printf("| %-30s", val)
 		}
 
@@ -515,6 +525,7 @@ func exampleFetchDup(limit int) {
 	fmt.Println(strings.Repeat("-", 129))
 
 	log.Println("complete")
+	log.Println(strings.Repeat("-", 120))
 }
 
 func exampleIterationUseFirstNext() {
@@ -561,6 +572,7 @@ func exampleIterationUseFirstNext() {
 
 	log.Printf("the count of number of rows in the mdbm(=%s) is `%d` rows", mdbmPath1, cnt)
 	log.Println("complete")
+	log.Println(strings.Repeat("-", 120))
 }
 
 func exampleNumRows() {
@@ -589,6 +601,7 @@ func exampleNumRows() {
 
 	log.Printf("the count of number of rows in the mdbm(=%s) is `%d` rows", mdbmPath1, cnt)
 	log.Println("complete")
+	log.Println(strings.Repeat("-", 120))
 
 }
 
@@ -621,6 +634,7 @@ func exampleKeyList() {
 	}
 
 	log.Println("complete")
+	log.Println(strings.Repeat("-", 120))
 }
 
 func exampleDelete(cnt int) {
@@ -723,6 +737,7 @@ func exampleUpdateValue() {
 	}
 
 	log.Println("complete")
+	log.Println(strings.Repeat("-", 120))
 }
 
 func workerRandomFetch(id int, wg *sync.WaitGroup, jobs <-chan *mdbm.MDBM) {
@@ -737,7 +752,7 @@ func workerRandomFetch(id int, wg *sync.WaitGroup, jobs <-chan *mdbm.MDBM) {
 			key := random.Intn(65530)
 			val, err := dbm.FetchWithLock(key)
 			if err != nil {
-				log.Print("failed, can't find out value in the mdbm file(=%s)\nekey=%s, err=%v", dbm.GetDBMFile(), key, err)
+				log.Printf("failed, can't find out value in the mdbm file(=%s)\nkey=%d, err=%v", dbm.GetDBMFile(), key, err)
 			}
 
 			log.Printf("worker[%d] : %d is %s", id, key, val)
@@ -747,7 +762,7 @@ func workerRandomFetch(id int, wg *sync.WaitGroup, jobs <-chan *mdbm.MDBM) {
 		runtime.Gosched()
 	}
 
-	log.Printf("worker[%d] is complete")
+	log.Printf("worker[%d] is complete", id)
 }
 
 func exampleRandomFetchOnWorker(worker int) {
@@ -794,6 +809,7 @@ func exampleRandomFetchOnWorker(worker int) {
 	wg.Wait()
 
 	log.Println("complete")
+	log.Println(strings.Repeat("-", 120))
 }
 
 func main() {
