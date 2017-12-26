@@ -3227,11 +3227,6 @@ func (db *MDBM) GetWindowStats() (int, WindowStats, error) {
 // See SetHash() for the list of valid hash function codes.
 func (db *MDBM) GetHashValue(key interface{}, hashFunctionCode int) (uint32, error) {
 
-	err := db.checkAvailable()
-	if err != nil {
-		return 0, err
-	}
-
 	if hashFunctionCode < HashCRC32 || hashFunctionCode > MaxHash {
 		return 0, fmt.Errorf("not support hashFunctionCode=%d", hashFunctionCode)
 	}
