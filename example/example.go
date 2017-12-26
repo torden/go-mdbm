@@ -6,7 +6,9 @@ import (
 	"log"
 	"math/rand"
 	"os"
+	"runtime"
 	"strings"
+	"sync"
 	"time"
 
 	mdbm "github.com/torden/go-mdbm"
@@ -723,6 +725,77 @@ func exampleUpdateValue() {
 	log.Println("complete")
 }
 
+func workerRandomFetch(id int, wg *sync.WaitGroup, jobs <-chan *mdbm.MDBM) {
+
+	//obtain a pseudo-random 32-bit value as a uint32
+	random := rand.New(rand.NewSource(time.Now().UnixNano()))
+
+	//waiting for incoming job!
+	for dbm := range jobs {
+
+		for i := 0; i < 100; i++ {
+			key := random.Intn(65530)
+			val, err := dbm.FetchWithLock(key)
+			if err != nil {
+				log.Print("failed, can't find out value in the mdbm file(=%s)\nekey=%s, err=%v", dbm.GetDBMFile(), key, err)
+			}
+
+			log.Printf("worker[%d] : %d is %s", id, key, val)
+		}
+
+		wg.Add(-1)
+		runtime.Gosched()
+	}
+
+	log.Printf("worker[%d] is complete")
+}
+
+func exampleRandomFetchOnWorker(worker int) {
+
+	log.Printf("Runs the fetching random records of the mdbm file(=%s) on workers", mdbmPath1)
+
+	//init. the go-mdbm
+	dbm := mdbm.NewMDBM()
+
+	//create & open(RDONLY) an mdbm file
+	err := dbm.Open(mdbmPathLarge, mdbm.Rdonly, 0644, 0, 0)
+
+	//the mdbm object close at close func
+	defer dbm.EasyClose()
+
+	//check the open error
+	if err != nil {
+		log.Fatalf("failed, can't open mdbm file\npath=%s, err=%v", mdbmPath1, err)
+	}
+
+	//init. queue
+	jobs := make(chan *mdbm.MDBM, 100)
+
+	//init. waiting group
+	var wg sync.WaitGroup
+
+	//creating worker
+	for i := 0; i < worker; i++ {
+		go workerRandomFetch(i, &wg, jobs)
+	}
+
+	for t := 0; t < (worker * 2); t++ {
+
+		wg.Add(1)
+
+		dbm, _ := dbm.DupHandle()
+		jobs <- dbm
+	}
+
+	//wait for close jobs channel
+	close(jobs)
+
+	//wait for finish workgroup
+	wg.Wait()
+
+	log.Println("complete")
+}
+
 func main() {
 
 	os.Remove(mdbmPath1)
@@ -737,6 +810,7 @@ func main() {
 	exampleLargeMDBMFile()
 	exampleFetch(10)
 	exampleFetchDup(20)
+	exampleRandomFetchOnWorker(100)
 	exampleIterationUseFirstNext()
 	exampleNumRows()
 	exampleKeyList()
@@ -744,5 +818,4 @@ func main() {
 
 	exampleUpdateValue()
 	exampleIterationUseFirstNext()
-
 }
