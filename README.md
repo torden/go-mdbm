@@ -24,24 +24,24 @@ The following is result of Go-mdbm vs  BoltDB benchmarks for simple data storing
 ### Command
 
 ```shell
-go test -race -bench=. -run Benchmark -test.benchmem -v -cpu 8
+#CPU : 2 vCore
+#RAM : 8G
+go test -race -bench=. -run Benchmark -test.benchmem -v 
 ```
 
 ### Output
 
-|Func|Times|NanoSecond per Loop|Byte|Allocs|
-|---|---|---|---|---|
-|Benchmark_boltdb_Store-8|200|7917647ns/op|29052B/op|52allocs/op|
-|Benchmark_boltdb_Fetch-8|200000|14746ns/op|496B/op|9allocs/op|
-|Benchmark_mdbm_Store-8|300000|3764ns/op|96B/op|6allocs/op|
-|Benchmark_mdbm_StoreWithLock-8|500000|3768ns/op|96B/op|6allocs/op|
-|Benchmark_mdbm_StoreOnLock-8|500000|3473ns/op|96B/op|6allocs/op|
-|Benchmark_mdbm_Fetch-8|1000000|2200ns/op|56B/op|4allocs/op|
-|Benchmark_mdbm_FetchWithLock-8|500000|2751ns/op|56B/op|4allocs/op|
-|Benchmark_mdbm_FetchOnLock-8|500000|2785ns/op|56B/op|4allocs/op|
-|Benchmark_mdbm_PreLoad_Fetch-8|500000|2150ns/op|56B/op|4allocs/op|
-|Benchmark_mdbm_PreLoad_FetchWithLock-8|500000|2762ns/op|56B/op|4allocs/op|
-|Benchmark_mdbm_PreLoad_FetchOnLock-8|500000|2620ns/op|56B/op|4allocs/op|
+```
+Benchmark_boltdb_Store-2                            2000           1082487 ns/op           38110 B/op         59 allocs/op
+Benchmark_mdbm_Store-2                            500000              2845 ns/op              96 B/op          6 allocs/op
+Benchmark_mdbm_StoreWithLock-2                    500000              2908 ns/op              96 B/op          6 allocs/op
+Benchmark_boltdb_Fetch-2                          200000              9199 ns/op             496 B/op          9 allocs/op
+Benchmark_mdbm_Fetch-2                           1000000              1824 ns/op              56 B/op          4 allocs/op
+Benchmark_mdbm_FetchWithLock-2                   1000000              2025 ns/op              56 B/op          4 allocs/op
+Benchmark_mdbm_PreLoad_Fetch-2                   1000000              1811 ns/op              56 B/op          4 allocs/op
+Benchmark_mdbm_PreLoad_FetchWithLock-2            500000              2038 ns/op              56 B/op          4 allocs/op
+```
+
 
 
 ## Install from Source Code
@@ -91,49 +91,17 @@ echo "/usr/local/mdbm/lib64/" >> /etc/ld.so.conf
 
 #### Download
 
-for use
-
 ```
-git get -u github.com/torden/go-mdbm
+CGO_CFLAGS="-I/usr/local/mdbm/include/ -I./" \
+CGO_LDFLAGS="-L/usr/local/mdbm/lib64/ -Wl,-rpath=/usr/local/mdbm/lib64/ -lmdbm" \
+go get github.com/torden/go-mdbm
 ```
 
-for development or customization
+#### development or customization
 
 ```
 git clone https://github.com/torden/go-mdbm
 ```
-
-#### Preparing to Build
-
-As you know, The mdbm installation default path is /tmp/install, That's why go-mdbm used it.
-if you did the mdbm install to another path or saw the following message, You must change the mdbm installed path in *mdbm.go* source code
-
-```shell
-$ go get -u github.com/torden/go-mdbm
-# github.com/torden/go-mdbm
-go-mdbm/mdbm.go:13:10: fatal error: mdbm.h: No such file or directory
- #include <mdbm.h>
-          ^~~~~~~~
-compilation terminated.
-```
-
-
-#### Change the mdbm installed path
-
-if you did change the mdbm installation path, you must be following.
-
-(Default : MDBM_INSTALL_PATH = /usr/local/mdbm/)
-
-```shell
-cd $GOPATH/src/github.com/torden/go-mdbm/
-vi mdbm.go
-```
-
-```go
-#cgo CFLAGS: -I/[MDBM_INSTALLED_PATH]/include/
-#cgo LDFLAGS: -L/[MDBM_INSTALLED_PATH]/lib64/ -Wl,-rpath=/[MDBM_INSTALLED_PATH]/lib64/ -lmdbm
-```
-
 
 #### Build
 
@@ -237,6 +205,85 @@ If you want them, please feel free to raise an issue
 |mdbm_set_stats_func|as soon|
 |mdbm_chunk_iterate|as soon|
 
+
+### Additional Benchmarks
+
+#### Command
+```
+go test -race -bench=. -run Benchmark -test.benchmem -v 
+```
+
+##### Output
+
+```
+Benchmark_boltdb_Store-2                            2000           1072628 ns/op           37994 B/op         59 allocs/op
+Benchmark_boltdb_Fetch-2                          200000              8960 ns/op             496 B/op          9 allocs/op
+Benchmark_mdbm_Store-2                            500000              2923 ns/op              96 B/op          6 allocs/op
+Benchmark_mdbm_StoreWithLock-2                    500000              3055 ns/op              96 B/op          6 allocs/op
+Benchmark_mdbm_Fetch-2                           1000000              1823 ns/op              56 B/op          4 allocs/op
+Benchmark_mdbm_FetchWithLock-2                   1000000              2093 ns/op              56 B/op          4 allocs/op
+Benchmark_mdbm_PreLoad_Fetch-2                   1000000              1825 ns/op              56 B/op          4 allocs/op
+Benchmark_mdbm_PreLoad_FetchWithLock-2            500000              2084 ns/op              56 B/op          4 allocs/op
+```
+
+##### DB File
+
+|Type|File Size|Records|elapsed time|
+|---|---|---|---|
+|BoltDB|128K|10000|1168516ns|
+|MDBM(Store)|32M|3000000|2937ns|
+
+#### Command
+```
+go test -race -bench=. -run Benchmark -test.benchmem -v -test.benchtime 3s
+```
+
+##### Output
+
+```
+Benchmark_boltdb_Store-2                            5000           1168516 ns/op           39249 B/op         59 allocs/op
+Benchmark_boltdb_Fetch-2                          500000              9146 ns/op             496 B/op          9 allocs/op
+Benchmark_mdbm_Store-2                           2000000              2937 ns/op              96 B/op          6 allocs/op
+Benchmark_mdbm_StoreWithLock-2                   1000000              3015 ns/op              96 B/op          6 allocs/op
+Benchmark_mdbm_Fetch-2                           2000000              1891 ns/op              56 B/op          4 allocs/op
+Benchmark_mdbm_FetchWithLock-2                   2000000              2185 ns/op              56 B/op          4 allocs/op
+Benchmark_mdbm_PreLoad_Fetch-2                   2000000              1975 ns/op              56 B/op          4 allocs/op
+Benchmark_mdbm_PreLoad_FetchWithLock-2           2000000              2129 ns/op              56 B/op          4 allocs/op
+```
+
+##### DB File
+
+|Type|File Size|Records|elapsed time|
+|---|---|---|---|
+|BoltDB|256K|10000|1168516ns|
+|MDBM(Store)|128M|3000000|2937ns|
+
+
+#### Command
+
+```
+go test -race -bench=. -run Benchmark -test.benchmem -v -test.benchtime 10s
+```
+
+##### Output
+
+```
+Benchmark_boltdb_Store-2                           10000           1115691 ns/op           41109 B/op         60 allocs/op
+Benchmark_mdbm_Store-2                           5000000              2933 ns/op              96 B/op          6 allocs/op
+Benchmark_mdbm_StoreWithLock-2                   5000000              3098 ns/op              96 B/op          6 allocs/op
+Benchmark_boltdb_Fetch-2                         2000000              9200 ns/op             496 B/op          9 allocs/op
+Benchmark_mdbm_Fetch-2                          10000000              1802 ns/op              56 B/op          4 allocs/op
+Benchmark_mdbm_FetchWithLock-2                  10000000              2049 ns/op              56 B/op          4 allocs/op
+Benchmark_mdbm_PreLoad_Fetch-2                  10000000              1802 ns/op              56 B/op          4 allocs/op
+Benchmark_mdbm_PreLoad_FetchWithLock-2          10000000              2038 ns/op              56 B/op          4 allocs/op
+```
+
+##### DB File
+
+|Type|File Size|Records|elapsed time|
+|---|---|---|---|
+|BoltDB|512K|10000|1115691ns|
+|MDBM(Store)|257M|5000000|2933ns|
 
 
 
