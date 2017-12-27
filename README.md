@@ -89,7 +89,7 @@ echo "/usr/local/mdbm/lib64/" >> /etc/ld.so.conf
 
 ### go-mdbm
 
-#### Download
+#### Install
 
 ```
 CGO_CFLAGS="-I/usr/local/mdbm/include/ -I./" \
@@ -97,13 +97,13 @@ CGO_LDFLAGS="-L/usr/local/mdbm/lib64/ -Wl,-rpath=/usr/local/mdbm/lib64/ -lmdbm" 
 go get github.com/torden/go-mdbm
 ```
 
-#### development or customization
+#### Download for Development or Customization
 
 ```
 git clone https://github.com/torden/go-mdbm
 ```
 
-#### Build
+##### Build
 
 ```shell
 cd $GOPATH/src/github.com/torden/go-mdbm
@@ -113,21 +113,21 @@ make setup
 make build
 ```
 
-#### Testing
+##### Testing
 
 ```shell
 cd $GOPATH/src/github.com/torden/go-mdbm
 make test
 ```
 
-#### Run to Example
+##### Run to Example
 
 ```shell
 cd $GOPATH/src/github.com/torden/go-mdbm/example/
 go run -race example.go
 ```
 
-#### Miscellaneous
+##### Miscellaneous
 
 
 The following is support to development
