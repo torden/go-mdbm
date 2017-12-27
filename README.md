@@ -2,6 +2,9 @@
 
 - Go-mdbm is a Go(golang,go-lang) bind to [Yahoo! MDBM C API](https://github.com/yahoo/mdbm).
 - MDBM is a super-fast memory-mapped key/value store.
+- MDBM is an ndbm work-alike hashed database library based on sdbm which is based on Per-Aake Larson’s Dynamic Hashing algorithms.
+- MDBM is a high-performance, memory-mapped hash database similar to the homegrown libhash.
+- The records stored in a mdbm database may have keys and values of arbitrary and variable lengths.
 
 [![Build Status](https://travis-ci.org/torden/go-mdbm.svg?branch=master)](https://travis-ci.org/torden/go-mdbm)
 [![Go Report Card](https://goreportcard.com/badge/github.com/torden/go-mdbm)](https://goreportcard.com/report/github.com/torden/go-mdbm)
@@ -9,6 +12,37 @@
 [![Coverage Status](https://coveralls.io/repos/github/torden/go-mdbm/badge.svg?branch=master)](https://coveralls.io/github/torden/go-mdbm?branch=master)
 [![Go Walker](http://gowalker.org/api/v1/badge)](https://gowalker.org/github.com/torden/go-mdbm)
 [![GitHub version](https://badge.fury.io/gh/torden%2Fgo-mdbm.svg)](https://badge.fury.io/gh/torden%2Fgo-mdbm)
+
+
+## Benchmark
+
+The following is result of Go-mdbm vs  BoltDB benchmarks for simple data storing and random fetching in them.
+
+- [Source Code](https://github.com/torden/go-mdbm/blob/master/benchmark_test.go)
+- [MDBM::Performance](http://yahoo.github.io/mdbm/guide/performance.html)
+
+### Command
+
+```shell
+go test -race -bench=. -run Benchmark -test.benchmem -v -cpu 8
+```
+
+### Output
+
+|Func|Times|NanoSecond per Loop|Byte|Allocs|
+|---|---|---|---|---|
+|Benchmark_boltdb_Store-8|200|7917647ns/op|29052B/op|52allocs/op|
+|Benchmark_boltdb_Fetch-8|200000|14746ns/op|496B/op|9allocs/op|
+|Benchmark_mdbm_Store-8|300000|3764ns/op|96B/op|6allocs/op|
+|Benchmark_mdbm_StoreWithLock-8|500000|3768ns/op|96B/op|6allocs/op|
+|Benchmark_mdbm_StoreOnLock-8|500000|3473ns/op|96B/op|6allocs/op|
+|Benchmark_mdbm_Fetch-8|1000000|2200ns/op|56B/op|4allocs/op|
+|Benchmark_mdbm_FetchWithLock-8|500000|2751ns/op|56B/op|4allocs/op|
+|Benchmark_mdbm_FetchOnLock-8|500000|2785ns/op|56B/op|4allocs/op|
+|Benchmark_mdbm_PreLoad_Fetch-8|500000|2150ns/op|56B/op|4allocs/op|
+|Benchmark_mdbm_PreLoad_FetchWithLock-8|500000|2762ns/op|56B/op|4allocs/op|
+|Benchmark_mdbm_PreLoad_FetchOnLock-8|500000|2620ns/op|56B/op|4allocs/op|
+
 
 ## Install from Source Code
 
@@ -83,6 +117,24 @@ go-mdbm/mdbm.go:13:10: fatal error: mdbm.h: No such file or directory
 compilation terminated.
 ```
 
+
+#### Change the mdbm installed path
+
+if you did change the mdbm installation path, you must be following.
+
+(Default : MDBM_INSTALL_PATH = /usr/local/mdbm/)
+
+```shell
+cd $GOPATH/src/github.com/torden/go-mdbm/
+vi mdbm.go
+```
+
+```go
+#cgo CFLAGS: -I/[MDBM_INSTALLED_PATH]/include/
+#cgo LDFLAGS: -L/[MDBM_INSTALLED_PATH]/lib64/ -Wl,-rpath=/[MDBM_INSTALLED_PATH]/lib64/ -lmdbm
+```
+
+
 #### Build
 
 ```shell
@@ -129,20 +181,6 @@ report:            Generate the report for profiling
 setup:             Setup Build Environment
 strictlint:        Run a LintChecker (Strict)
 test:              Run Go Test with Data Race Detection
-```
-
-#### Change the mdbm installed path
-
-if you did change the mdbm installation path, you must be following.
-
-```shell
-cd $GOPATH/src/github.com/torden/go-mdbm/
-vi mdbm.go
-```
-
-```go
-#cgo CFLAGS: -I/[MDBM_INSTALLED_PATH]/include/
-#cgo LDFLAGS: -L/[MDBM_INSTALLED_PATH]/lib64/ -Wl,-rpath=/[MDBM_INSTALLED_PATH]/lib64/ -lmdbm
 ```
 
 
@@ -200,43 +238,19 @@ If you want them, please feel free to raise an issue
 |mdbm_chunk_iterate|as soon|
 
 
-## Benchmark
-
-The following is result of Go-mdbm vs  BoltDB benchmarks for simple data storing and random fetching in them.
-
-### Command
-
-[Source Code](https://github.com/torden/go-mdbm/blob/master/benchmark_test.go)
-
-```shell
-go test -race -bench=. -run Benchmark -test.benchmem -v -cpu 8
-```
-
-### Output
-
-|Func|Times|NanoSecond per Loop|Byte|Allocs|
-|---|---|---|---|---|
-|Benchmark_boltdb_Store-8|200|7917647ns/op|29052B/op|52allocs/op|
-|Benchmark_boltdb_Fetch-8|200000|14746ns/op|496B/op|9allocs/op|
-|Benchmark_mdbm_Store-8|300000|3764ns/op|96B/op|6allocs/op|
-|Benchmark_mdbm_StoreWithLock-8|500000|3768ns/op|96B/op|6allocs/op|
-|Benchmark_mdbm_StoreOnLock-8|500000|3473ns/op|96B/op|6allocs/op|
-|Benchmark_mdbm_Fetch-8|1000000|2200ns/op|56B/op|4allocs/op|
-|Benchmark_mdbm_FetchWithLock-8|500000|2751ns/op|56B/op|4allocs/op|
-|Benchmark_mdbm_FetchOnLock-8|500000|2785ns/op|56B/op|4allocs/op|
-|Benchmark_mdbm_PreLoad_Fetch-8|500000|2150ns/op|56B/op|4allocs/op|
-|Benchmark_mdbm_PreLoad_FetchWithLock-8|500000|2762ns/op|56B/op|4allocs/op|
-|Benchmark_mdbm_PreLoad_FetchOnLock-8|500000|2620ns/op|56B/op|4allocs/op|
-
 
 
 ## Links
 
 - [Yahoo! MDBM](https://github.com/yahoo/mdbm)
-- [MDBM Build](https://github.com/yahoo/mdbm/blob/master/README.build)
-- [MDBM Document](http://yahoo.github.io/mdbm/)
+- [MDBM::Concept](http://yahoo.github.io/mdbm/guide/concepts.html)
+- [MDBM::Build](https://github.com/yahoo/mdbm/blob/master/README.build)
+- [MDBM::Document](http://yahoo.github.io/mdbm/)
+- [MDBM::FAQ](http://yahoo.github.io/mdbm/guide/faq.html)
 - [DBM](https://en.wikipedia.org/wiki/Dbm)
 - [BoltDB](https://github.com/boltdb/bolt)
 
 ---
-Please feel free. I hope it is helpful for you
+
+*Please feel free. I hope it is helpful for you*
+
