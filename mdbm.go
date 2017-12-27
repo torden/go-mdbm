@@ -152,7 +152,7 @@ func NewMDBM() *MDBM {
 
 	obj := &MDBM{
 		dbmfile:  "",
-		flags:    Create | Rdrw | AnyLocks,
+		flags:    Create | Rdrw | AnyLocks | LargeObjects,
 		perms:    0666,
 		psize:    0,
 		dsize:    0,
@@ -163,7 +163,7 @@ func NewMDBM() *MDBM {
 	obj.minpagesize = obj.scpagesize * 2
 	obj.iter = obj.GetNewIter()
 
-	runtime.GOMAXPROCS(1)
+	//runtime.GOMAXPROCS(1)
 	return obj
 }
 
