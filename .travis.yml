@@ -27,6 +27,5 @@ before_install:
 script:
     - make installpkgs
     - make metalinter
-    - make build
     - make test
     - make coveralls
