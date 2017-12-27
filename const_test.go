@@ -22,13 +22,18 @@ const (
 	pathTestDBMStrAnyLock    = "/tmp/test_str_anylock.mdbm"
 	//pathTestDBMReplace1      = "/tmp/test_replace1.mdbm"
 	//pathTestDBMReplace2      = "/tmp/test_replace2.mdbm"
-	pathTestDBMReplace3   = "/tmp/test_replace3.mdbm"
-	pathTestDBMRemove     = "/tmp/test_remove.mdbm"
-	pathTestDBMEmpty      = "/tmp/test_empty.mdbm"
-	pathTestDBMFcopy      = "/tmp/test_fcopy.mdbm"
-	pathTestDBMBenchmark1 = "/tmp/test_benchmark1.mdbm"
-	pathTestDBMBenchmark2 = "/tmp/test_benchmark1.mdbm"
-	pathTestDBMBenchmark3 = "/tmp/test_benchmark1.mdbm"
+	pathTestDBMReplace3                   = "/tmp/test_replace3.mdbm"
+	pathTestDBMRemove                     = "/tmp/test_remove.mdbm"
+	pathTestDBMEmpty                      = "/tmp/test_empty.mdbm"
+	pathTestDBMFcopy                      = "/tmp/test_fcopy.mdbm"
+	pathTestDBMBenchmark1                 = "/tmp/test_benchmark1.mdbm"
+	pathTestDBMBenchmark2                 = "/tmp/test_benchmark2.mdbm"
+	pathTestDBMBenchmark3                 = "/tmp/test_benchmark3.mdbm"
+	pathTestBoltDBBenchmark1              = "/tmp/test_benchmark1.boltdb"
+	pathTestBoltDBBenchmark2              = "/tmp/test_benchmark2.boltdb"
+	pathTestBoltDBBenchmark3              = "/tmp/test_benchmark3.boltdb"
+	pathTestDBMBenchmarkForRandomFetch    = "/tmp/test_benchmark_fetch.mdbm"
+	pathTestBoltDBBenchmarkForRandomFetch = "/tmp/test_benchmark_fetch.boltdb"
 )
 
 var gPathList = [...]string{
@@ -55,4 +60,9 @@ var gPathList = [...]string{
 	pathTestDBMBenchmark1,
 	pathTestDBMBenchmark2,
 	pathTestDBMBenchmark3,
+	pathTestBoltDBBenchmark1,
+	pathTestBoltDBBenchmark2,
+	pathTestBoltDBBenchmark3,
+	pathTestDBMBenchmarkForRandomFetch,
+	pathTestBoltDBBenchmarkForRandomFetch,
 }
