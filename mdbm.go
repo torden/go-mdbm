@@ -961,6 +961,7 @@ func (db *MDBM) EasyClose() {
 // The lock is nestable, so a caller already holding
 // the lock may call mdbm_lock again as long as an equal number of calls
 // to Unlock are made to release the lock.
+// NOTE: Unstable working on the multiple-thread(goroutine), please use the {Store|Fetch}WithLock API
 func (db *MDBM) Lock() (int, error) {
 
 	var rv int
@@ -981,6 +982,7 @@ func (db *MDBM) Lock() (int, error) {
 // Unlock unlocks the database, releasing exclusive or shared access by the caller.
 // If the caller has called Lock() or LockShared() multiple times
 // in a row, an equal number of unlock calls are required.
+// NOTE: Unstable working on the multiple-thread(goroutine), please use the {Store|Fetch}WithLock API
 func (db *MDBM) Unlock() (int, error) {
 
 	var rv int
@@ -998,6 +1000,7 @@ func (db *MDBM) Unlock() (int, error) {
 }
 
 // TryLock attempts to exclusively lock the MDBM.
+// NOTE: Unstable working on the multiple-thread(goroutine), please use the {Store|Fetch}WithTryLock API
 func (db *MDBM) TryLock() (int, error) {
 
 	var rv int
@@ -1037,6 +1040,7 @@ func (db *MDBM) IsLocked() (int, error) {
 // This is multiple-readers, one writer (MROW) locking.dwi
 // The database must be opened With the mdbm.RwLocks (=C.MDBM_RW_LOCKS) flag to enable shared locks.
 // Use Unlock() to release a shared lock.
+// NOTE: Unstable working on the multiple-thread(goroutine), please use the {Store|Fetch}WithLockShared API
 func (db *MDBM) LockShared() (int, error) {
 
 	var rv int
@@ -1056,6 +1060,7 @@ func (db *MDBM) LockShared() (int, error) {
 // TryLockShared locks the database for shared access by readers, excluding access to writers.
 // This is the non-blocking version of LockShared()
 // This is MROW locking. The database must be opened With the mdbm.RwLocks (=C.MDBM_RW_LOCKS) flag to enable shared locks.
+// NOTE: Unstable working on the multiple-thread(goroutine), please use the {Store|Fetch}WithTryLockShared API
 func (db *MDBM) TryLockShared() (int, error) {
 
 	var rv int
@@ -3262,6 +3267,7 @@ func (db *MDBM) GetHashValue(key interface{}, hashFunctionCode int) (uint32, err
 // Plock locks a specific partition in the database for exclusive access by the caller.
 // The lock is nestable, so a caller already holding the lock may call Plock() again
 // as long as an equal number of calls to Punlock() are made to release the lock.
+// NOTE: Unstable working on the multiple-thread(goroutine), please use the {Store|Fetch}WithPlock API
 func (db *MDBM) Plock(key interface{}) (int, error) {
 
 	err := db.checkAvailable()
@@ -3292,6 +3298,7 @@ func (db *MDBM) Plock(key interface{}) (int, error) {
 // Punlock unlocks a specific partition in the database, releasing exclusive access by the caller.
 // If the caller has called Plock() multiple times in a row, an equal number of unlock calls are required.
 // See Plock() for usage.
+// NOTE: Unstable working on the multiple-thread(goroutine), please use the {Store|Fetch}WithPlock API
 func (db *MDBM) Punlock(key interface{}) (int, error) {
 
 	err := db.checkAvailable()
@@ -3323,6 +3330,7 @@ func (db *MDBM) Punlock(key interface{}) (int, error) {
 // The lock is nestable, so a caller already holding the lock may call Plock() again
 // as long as an equal number of calls to Punlock() are made to release the lock.
 // See Plock() for usage.
+// NOTE: Unstable working on the multiple-thread(goroutine), please use the {Store|Fetch}WithTryPlock API
 func (db *MDBM) TryPlock(key interface{}) (int, error) {
 
 	err := db.checkAvailable()
@@ -3350,6 +3358,7 @@ func (db *MDBM) TryPlock(key interface{}) (int, error) {
 }
 
 // LockSmart performs either partition, shared or exclusive locking based on the locking-related flags supplied to Open()
+// NOTE: Unstable working on the multiple-thread(goroutine), please use the {Store|Fetch}WithLockSmart API
 func (db *MDBM) LockSmart(key interface{}, flags int) (int, error) {
 
 	err := db.checkAvailable()
@@ -3377,6 +3386,7 @@ func (db *MDBM) LockSmart(key interface{}, flags int) (int, error) {
 }
 
 // UnLockSmart unlocks an MDBM based on the locking flags supplied to Open()
+// NOTE: Unstable working on the multiple-thread(goroutine), please use the {Store|Fetch}WithLockSmart API
 func (db *MDBM) UnLockSmart(key interface{}, flags int) (int, error) {
 
 	err := db.checkAvailable()
@@ -3404,6 +3414,7 @@ func (db *MDBM) UnLockSmart(key interface{}, flags int) (int, error) {
 }
 
 // TryLockSmart attempts to lock an MDBM based on the locking flags supplied to Open()
+// NOTE: Unstable working on the multiple-thread(goroutine), please use the {Store|Fetch}WithTryLockSmart API
 func (db *MDBM) TryLockSmart(key interface{}, flags int) (int, error) {
 
 	err := db.checkAvailable()
