@@ -52,6 +52,7 @@ VER_GOLANG=$(shell go version | awk '{print $$3}' | sed -e "s/go//;s/\.//g")
 GOLANGV18_OVER=$(shell [ "$(VER_GOLANG)" -ge "180" ] && echo 1 || echo 0)
 GOLANGV16_OVER=$(shell [ "$(VER_GOLANG)" -ge "160" ] && echo 1 || echo 0)
 
+
 all: clean setup build
 
 ## Setup Build Environment
@@ -78,7 +79,8 @@ endif
 ## Build the go-mdbm
 build: lint
 	@$(CMD_ECHO)  -e "\033[1;40;32mBuilding\033[01;m\x1b[0m"
-	@$(CMD_GO) build -a -n -v
+#	@CGO_CFLAGS="-I/usr/local/mdbm/include/ -I./" CGO_LDFLAGS="-L/usr/local/mdbm/lib64/ -Wl,-rpath=/usr/local/mdbm/lib64/ -lmdbm" $(CMD_GO) build -a -n -v
+	@CGO_CFLAGS="-I/usr/local/mdbm/include/ -I./" CGO_LDFLAGS="-L/usr/local/mdbm/lib64/ -Wl,-rpath=/usr/local/mdbm/lib64/ -lmdbm" $(CMD_GO) build 
 	@$(CMD_ECHO) -e "\033[1;40;36mDone\033[01;m\x1b[0m"
 
 ## Install GoMetaLinter 
@@ -118,7 +120,7 @@ endif
 test: clean
 	@$(CMD_MKDIR) -p $(PATH_REPORT)/raw/ $(PATH_REPORT)/doc/
 	@$(CMD_ECHO)  -e "\033[1;40;32mRun Go Test.\033[01;m\x1b[0m"
-	@GORACE="log_path=$(PATH_REPORT)/doc/$(PATH_RACE_REPORT)" $(CMD_GO) test -v -test.parallel 4 -race -coverprofile=$(PATH_REPORT)/raw/$(PATH_CONVER_PROFILE)
+	@CGO_CFLAGS="-I/usr/local/mdbm/include/ -I./" CGO_LDFLAGS="-L/usr/local/mdbm/lib64/ -Wl,-rpath=/usr/local/mdbm/lib64/ -lmdbm" GORACE="log_path=$(PATH_REPORT)/doc/$(PATH_RACE_REPORT)" $(CMD_GO) test -v -test.parallel 4 -race -coverprofile=$(PATH_REPORT)/raw/$(PATH_CONVER_PROFILE)
 	@$(CMD_ECHO) -e "\033[1;40;36mGenerated a report of data race detection in $(PATH_REPORT)/doc/$(PATH_RACE_REPORT).pid\033[01;m\x1b[0m"
 	@$(CMD_ECHO) -e "\033[1;40;36mDone\033[01;m\x1b[0m"
 
