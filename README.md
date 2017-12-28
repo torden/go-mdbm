@@ -21,12 +21,22 @@ The following is result of Go-mdbm vs  BoltDB benchmarks for simple data storing
 - [Source Code](https://github.com/torden/go-mdbm/blob/master/benchmark_test.go)
 - [MDBM::Performance](http://yahoo.github.io/mdbm/guide/performance.html)
 
+### Spec
+
+|Type|Spec|
+|---|---|
+|Machine|VM(VirtualBox)|
+|OS|Ubuntu 17.10 (Artful Aardvark)|
+|CPU|2 vCore|
+|RAM|8G|
+|BoltDB Ver.|9da3174 on 20 Nov|
+|Mdbm Ver.|893f7a8 on 26 Jul|
+
 ### Command
 
 ```shell
-#CPU : 2 vCore
-#RAM : 8G
-go test -race -bench=. -run Benchmark -test.benchmem -v 
+CGO_CFLAGS="-I/usr/local/mdbm/include/ -I./" CGO_LDFLAGS="-L/usr/local/mdbm/lib64/ -Wl,-rpath=/usr/local/mdbm/lib64/ -lmdbm" \
+go test -race -bench=. -run Benchmark -test.benchmem -v
 ```
 
 ### Output
@@ -208,9 +218,22 @@ If you want them, please feel free to raise an issue
 
 ### Additional Benchmarks
 
+#### Spec
+
+|Type|Spec|
+|---|---|
+|Machine|VM(VirtualBox)|
+|OS|Ubuntu 17.10 (Artful Aardvark)|
+|CPU|2 vCore|
+|RAM|8G|
+|BoltDB Ver.|9da3174 on 20 Nov|
+|Mdbm Ver.|893f7a8 on 26 Jul|
+
+
 #### Command
 ```
-go test -race -bench=. -run Benchmark -test.benchmem -v 
+CGO_CFLAGS="-I/usr/local/mdbm/include/ -I./" CGO_LDFLAGS="-L/usr/local/mdbm/lib64/ -Wl,-rpath=/usr/local/mdbm/lib64/ -lmdbm"
+go test -race -bench=. -run Benchmark -test.benchmem -v \
 ```
 
 ##### Output
@@ -228,13 +251,14 @@ Benchmark_mdbm_PreLoad_FetchWithLock-2            500000              2084 ns/op
 
 ##### DB File
 
-|Type|File Size|Records|elapsed time|
+|Type|File Size|Times|elapsed time|
 |---|---|---|---|
 |BoltDB|128K|10000|1168516ns|
 |MDBM(Store)|32M|3000000|2937ns|
 
 #### Command
 ```
+CGO_CFLAGS="-I/usr/local/mdbm/include/ -I./" CGO_LDFLAGS="-L/usr/local/mdbm/lib64/ -Wl,-rpath=/usr/local/mdbm/lib64/ -lmdbm" \
 go test -race -bench=. -run Benchmark -test.benchmem -v -test.benchtime 3s
 ```
 
@@ -253,7 +277,7 @@ Benchmark_mdbm_PreLoad_FetchWithLock-2           2000000              2129 ns/op
 
 ##### DB File
 
-|Type|File Size|Records|elapsed time|
+|Type|File Size|Times|elapsed time|
 |---|---|---|---|
 |BoltDB|256K|10000|1168516ns|
 |MDBM(Store)|128M|3000000|2937ns|
@@ -262,6 +286,7 @@ Benchmark_mdbm_PreLoad_FetchWithLock-2           2000000              2129 ns/op
 #### Command
 
 ```
+CGO_CFLAGS="-I/usr/local/mdbm/include/ -I./" CGO_LDFLAGS="-L/usr/local/mdbm/lib64/ -Wl,-rpath=/usr/local/mdbm/lib64/ -lmdbm" \
 go test -race -bench=. -run Benchmark -test.benchmem -v -test.benchtime 10s
 ```
 
@@ -280,10 +305,108 @@ Benchmark_mdbm_PreLoad_FetchWithLock-2          10000000              2038 ns/op
 
 ##### DB File
 
-|Type|File Size|Records|elapsed time|
+|Type|File Size|Times|elapsed time|
 |---|---|---|---|
 |BoltDB|512K|10000|1115691ns|
 |MDBM(Store)|257M|5000000|2933ns|
+
+
+#### Spec
+
+|Type|Spec|
+|---|---|
+|Machine|Physical|
+|OS|Ubuntu 17.10 (Artful Aardvark)|
+|CPU|8 Core (Intel i7)|
+|RAM|16G|
+|HDD|SSD|
+|BoltDB Ver.|9da3174 on 20 Nov|
+|Mdbm Ver.|893f7a8 on 26 Jul|
+
+#### Command
+
+```
+#CPU : 8core
+#RAM : 16g
+CGO_CFLAGS="-I/usr/local/mdbm/include/ -I./" CGO_LDFLAGS="-L/usr/local/mdbm/lib64/ -Wl,-rpath=/usr/local/mdbm/lib64/ -lmdbm" \
+go test -race -bench=. -run Benchmark -test.benchmem -v
+```
+
+##### Output
+
+```
+Benchmark_boltdb_Store-8                 	     300	   6138312 ns/op	   32704 B/op	      55 allocs/op
+Benchmark_mdbm_Store-8                   	  200000	      5235 ns/op	      96 B/op	       6 allocs/op
+Benchmark_mdbm_StoreWithLock-8           	  200000	      5749 ns/op	      96 B/op	       6 allocs/op
+Benchmark_boltdb_Fetch-8                 	  100000	     15322 ns/op	     496 B/op	       9 allocs/op
+Benchmark_mdbm_Fetch-8                   	  500000	      2852 ns/op	      56 B/op	       4 allocs/op
+Benchmark_mdbm_FetchWithLock-8           	  300000	      3713 ns/op	      56 B/op	       4 allocs/op
+Benchmark_mdbm_PreLoad_Fetch-8           	  500000	      2829 ns/op	      56 B/op	       4 allocs/op
+Benchmark_mdbm_PreLoad_FetchWithLock-8   	  500000	      3436 ns/op	      56 B/op	       4 allocs/op
+```
+
+##### DB File
+
+|Type|File Size|Times|elapsed time|
+|---|---|---|---|
+|BoltDB|64K|300|6138312ns|
+|MDBM(Store)|16M|200000|5235ns|
+
+
+#### Command
+
+```
+CGO_CFLAGS="-I/usr/local/mdbm/include/ -I./" CGO_LDFLAGS="-L/usr/local/mdbm/lib64/ -Wl,-rpath=/usr/local/mdbm/lib64/ -lmdbm" \
+go test -race -bench=. -run Benchmark -test.benchmem -v -test.benchtime 3s
+```
+
+##### Output
+
+```
+Benchmark_boltdb_Store-8                 	    1000	   6283664 ns/op	   37533 B/op	      58 allocs/op
+Benchmark_mdbm_Store-8                   	 1000000	      4780 ns/op	      96 B/op	       6 allocs/op
+Benchmark_mdbm_StoreWithLock-8           	 1000000	      5360 ns/op	      96 B/op	       6 allocs/op
+Benchmark_boltdb_Fetch-8                 	  300000	     14556 ns/op	     496 B/op	       9 allocs/op
+Benchmark_mdbm_Fetch-8                   	 2000000	      2772 ns/op	      56 B/op	       4 allocs/op
+Benchmark_mdbm_FetchWithLock-8           	 1000000	      3104 ns/op	      56 B/op	       4 allocs/op
+Benchmark_mdbm_PreLoad_Fetch-8           	 2000000	      2527 ns/op	      56 B/op	       4 allocs/op
+Benchmark_mdbm_PreLoad_FetchWithLock-8   	 1000000	      3256 ns/op	      56 B/op	       4 allocs/op
+```
+
+##### DB File
+
+|Type|File Size|Times|elapsed time|
+|---|---|---|---|
+|BoltDB|128K|1000|6283664ns|
+|MDBM(Store)|64M|1000000|4780ns|
+
+#### Command
+
+```
+CGO_CFLAGS="-I/usr/local/mdbm/include/ -I./" CGO_LDFLAGS="-L/usr/local/mdbm/lib64/ -Wl,-rpath=/usr/local/mdbm/lib64/ -lmdbm" \
+go test -race -bench=. -run Benchmark -test.benchmem -v -test.benchtime 10s
+```
+
+##### Output
+
+```
+Benchmark_boltdb_Store-8                 	    2000	   6133872 ns/op	   28366 B/op	      59 allocs/op
+Benchmark_mdbm_Store-8                   	 3000000	      5377 ns/op	      96 B/op	       6 allocs/op
+Benchmark_mdbm_StoreWithLock-8           	 3000000	      5145 ns/op	      96 B/op	       6 allocs/op
+Benchmark_boltdb_Fetch-8                 	 1000000	     15703 ns/op	     496 B/op	       9 allocs/op
+Benchmark_mdbm_Fetch-8                   	 5000000	      2631 ns/op	      56 B/op	       4 allocs/op
+Benchmark_mdbm_FetchWithLock-8           	 5000000	      3245 ns/op	      56 B/op	       4 allocs/op
+Benchmark_mdbm_PreLoad_Fetch-8           	 5000000	      2598 ns/op	      56 B/op	       4 allocs/op
+Benchmark_mdbm_PreLoad_FetchWithLock-8   	 5000000	      3379 ns/op	      56 B/op	       4 allocs/op
+```
+
+##### DB File
+
+|Type|File Size|Times|elapsed time|
+|---|---|---|---|
+|BoltDB|128K|2000|6133872ns|
+|MDBM(Store)|256M|3000000|5377ns|
+
 
 
 
@@ -300,4 +423,3 @@ Benchmark_mdbm_PreLoad_FetchWithLock-2          10000000              2038 ns/op
 ---
 
 *Please feel free. I hope it is helpful for you*
-
