@@ -3,6 +3,7 @@ package mdbm_test
 import (
 	"fmt"
 	"math/rand"
+	"os"
 	"strconv"
 	"testing"
 	"time"
@@ -28,6 +29,8 @@ func getBenchMarkRandom() int {
 }
 
 func Benchmark_boltdb_Store(b *testing.B) {
+
+	os.Remove(pathTestBoltDBBenchmark1)
 
 	db, err := bolt.Open(pathTestBoltDBBenchmark1, 0644, nil)
 	if err != nil {

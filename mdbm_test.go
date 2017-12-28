@@ -2804,7 +2804,7 @@ func Test_mdbm_ChkError(t *testing.T) {
 	}
 }
 
-func Test_mdbm_EasyOpen_Adter_NotClose(t *testing.T) {
+func Test_mdbm_EasyOpen_After_NotClose(t *testing.T) {
 
 	var err error
 

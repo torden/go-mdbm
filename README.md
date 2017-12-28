@@ -1,3 +1,4 @@
+
 # Go-mdbm
 
 - Go-mdbm is a Go(golang,go-lang) bind to [Yahoo! MDBM C API](https://github.com/yahoo/mdbm).
@@ -14,44 +15,54 @@
 [![GitHub version](https://badge.fury.io/gh/torden%2Fgo-mdbm.svg)](https://badge.fury.io/gh/torden%2Fgo-mdbm)
 
 
-## Benchmark
+## Table of Contents
 
-The following is result of Go-mdbm vs  BoltDB benchmarks for simple data storing and random fetching in them.
 
-- [Source Code](https://github.com/torden/go-mdbm/blob/master/benchmark_test.go)
-- [MDBM::Performance](http://yahoo.github.io/mdbm/guide/performance.html)
-
-### Spec
-
-|Type|Spec|
-|---|---|
-|Machine|VM(VirtualBox)|
-|OS|Ubuntu 17.10 (Artful Aardvark)|
-|CPU|2 vCore|
-|RAM|8G|
-|BoltDB Ver.|9da3174 on 20 Nov|
-|Mdbm Ver.|893f7a8 on 26 Jul|
-
-### Command
-
-```shell
-CGO_CFLAGS="-I/usr/local/mdbm/include/ -I./" CGO_LDFLAGS="-L/usr/local/mdbm/lib64/ -Wl,-rpath=/usr/local/mdbm/lib64/ -lmdbm" \
-go test -race -bench=. -run Benchmark -test.benchmem -v
-```
-
-### Output
-
-```
-Benchmark_boltdb_Store-2                            2000           1082487 ns/op           38110 B/op         59 allocs/op
-Benchmark_mdbm_Store-2                            500000              2845 ns/op              96 B/op          6 allocs/op
-Benchmark_mdbm_StoreWithLock-2                    500000              2908 ns/op              96 B/op          6 allocs/op
-Benchmark_boltdb_Fetch-2                          200000              9199 ns/op             496 B/op          9 allocs/op
-Benchmark_mdbm_Fetch-2                           1000000              1824 ns/op              56 B/op          4 allocs/op
-Benchmark_mdbm_FetchWithLock-2                   1000000              2025 ns/op              56 B/op          4 allocs/op
-Benchmark_mdbm_PreLoad_Fetch-2                   1000000              1811 ns/op              56 B/op          4 allocs/op
-Benchmark_mdbm_PreLoad_FetchWithLock-2            500000              2038 ns/op              56 B/op          4 allocs/op
-```
-
+- [Install from Source Code](#install-from-source-code)
+    - [Y! MDBM](#y!-mdbm)
+    - [Downloading](#downloading)
+    - [Compiling](#compiling)
+- [Install from Pre-build Packages](#install-from-pre-build-packages)
+    - [Ubuntu](#ubuntu)
+    - [go-mdbm](#go-mdbm)
+    - [Install](#install)
+- [Download for Development or Customization](#download-for-development-or-customization)
+    - [Build](#build)
+    - [Testing](#testing)
+    - [Run to Example](#run-to-example)
+    - [Miscellaneous](#miscellaneous)
+    - [Support two compatibility branches](#support-two-compatibility-branches)
+- [Not Support APIs](#not-support-apis)
+    - [Deprecated APIs](#deprecated-apis)
+    - [Only a V2 implementation](#only-a-v2-implementation)
+    - [Alternative](#alternative)
+    - [As soon](#as-soon)
+- [Benchmark](#benchmark)
+    - [Spec](#spec)
+    - [Command](#command)
+    - [Output](#output)
+- [Additional Benchmarks](#additional-benchmarks)
+    - [Spec](#spec)
+        - [Command](#command)
+        - [Output](#output)
+        - [DB File](#db-file)
+    - [Command](#command)
+        - [Output](#output)
+        - [DB File](#db-file)
+    - [Command](#command)
+        - [Output](#output)
+        - [DB File](#db-file)
+    - [Spec](#spec)
+    - [Command](#command)
+        - [Output](#output)
+        - [DB File](#db-file)
+    - [Command](#command)
+        - [Output](#output)
+        - [DB File](#db-file)
+    - [Command](#command)
+        - [Output](#output)
+        - [DB File](#db-file)
+- [Links](#links)
 
 
 ## Install from Source Code
@@ -215,6 +226,44 @@ If you want them, please feel free to raise an issue
 |mdbm_set_stats_func|as soon|
 |mdbm_chunk_iterate|as soon|
 
+## Benchmark
+
+The following is result of Go-mdbm vs  BoltDB benchmarks for simple data storing and random fetching in them.
+
+- [Source Code](https://github.com/torden/go-mdbm/blob/master/benchmark_test.go)
+- [MDBM::Performance](http://yahoo.github.io/mdbm/guide/performance.html)
+
+### Spec
+
+|Type|Spec|
+|---|---|
+|Machine|VM(VirtualBox)|
+|OS|Ubuntu 17.10 (Artful Aardvark)|
+|CPU|2 vCore|
+|RAM|8G|
+|BoltDB Ver.|9da3174 on 20 Nov|
+|Mdbm Ver.|893f7a8 on 26 Jul|
+
+### Command
+
+```shell
+CGO_CFLAGS="-I/usr/local/mdbm/include/ -I./" CGO_LDFLAGS="-L/usr/local/mdbm/lib64/ -Wl,-rpath=/usr/local/mdbm/lib64/ -lmdbm" \
+go test -race -bench=. -run Benchmark -test.benchmem -v
+```
+
+### Output
+
+|func|count of loop|nano-seconds per loop|bytes per operation|allocations per operation|
+|---|---|---|---|---|
+|Benchmark_boltdb_Store-2                  |          2000      |     1082487 ns/op    |       38110 B/op     |    59 allocs/op|
+|Benchmark_mdbm_Store-2                    |        500000      |        2845 ns/op    |          96 B/op     |     6 allocs/op|
+|Benchmark_mdbm_StoreWithLock-2            |        500000      |        2908 ns/op    |          96 B/op     |     6 allocs/op|
+|Benchmark_boltdb_Fetch-2                  |        200000      |        9199 ns/op    |         496 B/op     |     9 allocs/op|
+|Benchmark_mdbm_Fetch-2                    |       1000000      |        1824 ns/op    |          56 B/op     |     4 allocs/op|
+|Benchmark_mdbm_FetchWithLock-2            |       1000000      |        2025 ns/op    |          56 B/op     |     4 allocs/op|
+|Benchmark_mdbm_PreLoad_Fetch-2            |       1000000      |        1811 ns/op    |          56 B/op     |     4 allocs/op|
+|Benchmark_mdbm_PreLoad_FetchWithLock-2    |        500000      |        2038 ns/op    |          56 B/op     |     4 allocs/op|
+
 
 ### Additional Benchmarks
 
@@ -335,14 +384,14 @@ go test -race -bench=. -run Benchmark -test.benchmem -v
 ##### Output
 
 ```
-Benchmark_boltdb_Store-8                 	     300	   6138312 ns/op	   32704 B/op	      55 allocs/op
-Benchmark_mdbm_Store-8                   	  200000	      5235 ns/op	      96 B/op	       6 allocs/op
-Benchmark_mdbm_StoreWithLock-8           	  200000	      5749 ns/op	      96 B/op	       6 allocs/op
-Benchmark_boltdb_Fetch-8                 	  100000	     15322 ns/op	     496 B/op	       9 allocs/op
-Benchmark_mdbm_Fetch-8                   	  500000	      2852 ns/op	      56 B/op	       4 allocs/op
-Benchmark_mdbm_FetchWithLock-8           	  300000	      3713 ns/op	      56 B/op	       4 allocs/op
-Benchmark_mdbm_PreLoad_Fetch-8           	  500000	      2829 ns/op	      56 B/op	       4 allocs/op
-Benchmark_mdbm_PreLoad_FetchWithLock-8   	  500000	      3436 ns/op	      56 B/op	       4 allocs/op
+Benchmark_boltdb_Store-8                             300           6138312 ns/op           32704 B/op         55 allocs/op
+Benchmark_mdbm_Store-8                            200000              5235 ns/op              96 B/op          6 allocs/op
+Benchmark_mdbm_StoreWithLock-8                    200000              5749 ns/op              96 B/op          6 allocs/op
+Benchmark_boltdb_Fetch-8                          100000             15322 ns/op             496 B/op          9 allocs/op
+Benchmark_mdbm_Fetch-8                            500000              2852 ns/op              56 B/op          4 allocs/op
+Benchmark_mdbm_FetchWithLock-8                    300000              3713 ns/op              56 B/op          4 allocs/op
+Benchmark_mdbm_PreLoad_Fetch-8                    500000              2829 ns/op              56 B/op          4 allocs/op
+Benchmark_mdbm_PreLoad_FetchWithLock-8            500000              3436 ns/op              56 B/op          4 allocs/op
 ```
 
 ##### DB File
@@ -363,14 +412,14 @@ go test -race -bench=. -run Benchmark -test.benchmem -v -test.benchtime 3s
 ##### Output
 
 ```
-Benchmark_boltdb_Store-8                 	    1000	   6283664 ns/op	   37533 B/op	      58 allocs/op
-Benchmark_mdbm_Store-8                   	 1000000	      4780 ns/op	      96 B/op	       6 allocs/op
-Benchmark_mdbm_StoreWithLock-8           	 1000000	      5360 ns/op	      96 B/op	       6 allocs/op
-Benchmark_boltdb_Fetch-8                 	  300000	     14556 ns/op	     496 B/op	       9 allocs/op
-Benchmark_mdbm_Fetch-8                   	 2000000	      2772 ns/op	      56 B/op	       4 allocs/op
-Benchmark_mdbm_FetchWithLock-8           	 1000000	      3104 ns/op	      56 B/op	       4 allocs/op
-Benchmark_mdbm_PreLoad_Fetch-8           	 2000000	      2527 ns/op	      56 B/op	       4 allocs/op
-Benchmark_mdbm_PreLoad_FetchWithLock-8   	 1000000	      3256 ns/op	      56 B/op	       4 allocs/op
+Benchmark_boltdb_Store-8                            1000           6283664 ns/op           37533 B/op         58 allocs/op
+Benchmark_mdbm_Store-8                           1000000              4780 ns/op              96 B/op          6 allocs/op
+Benchmark_mdbm_StoreWithLock-8                   1000000              5360 ns/op              96 B/op          6 allocs/op
+Benchmark_boltdb_Fetch-8                          300000             14556 ns/op             496 B/op          9 allocs/op
+Benchmark_mdbm_Fetch-8                           2000000              2772 ns/op              56 B/op          4 allocs/op
+Benchmark_mdbm_FetchWithLock-8                   1000000              3104 ns/op              56 B/op          4 allocs/op
+Benchmark_mdbm_PreLoad_Fetch-8                   2000000              2527 ns/op              56 B/op          4 allocs/op
+Benchmark_mdbm_PreLoad_FetchWithLock-8           1000000              3256 ns/op              56 B/op          4 allocs/op
 ```
 
 ##### DB File
@@ -390,14 +439,14 @@ go test -race -bench=. -run Benchmark -test.benchmem -v -test.benchtime 10s
 ##### Output
 
 ```
-Benchmark_boltdb_Store-8                 	    2000	   6133872 ns/op	   28366 B/op	      59 allocs/op
-Benchmark_mdbm_Store-8                   	 3000000	      5377 ns/op	      96 B/op	       6 allocs/op
-Benchmark_mdbm_StoreWithLock-8           	 3000000	      5145 ns/op	      96 B/op	       6 allocs/op
-Benchmark_boltdb_Fetch-8                 	 1000000	     15703 ns/op	     496 B/op	       9 allocs/op
-Benchmark_mdbm_Fetch-8                   	 5000000	      2631 ns/op	      56 B/op	       4 allocs/op
-Benchmark_mdbm_FetchWithLock-8           	 5000000	      3245 ns/op	      56 B/op	       4 allocs/op
-Benchmark_mdbm_PreLoad_Fetch-8           	 5000000	      2598 ns/op	      56 B/op	       4 allocs/op
-Benchmark_mdbm_PreLoad_FetchWithLock-8   	 5000000	      3379 ns/op	      56 B/op	       4 allocs/op
+Benchmark_boltdb_Store-8                            2000           6133872 ns/op           28366 B/op         59 allocs/op
+Benchmark_mdbm_Store-8                           3000000              5377 ns/op              96 B/op          6 allocs/op
+Benchmark_mdbm_StoreWithLock-8                   3000000              5145 ns/op              96 B/op          6 allocs/op
+Benchmark_boltdb_Fetch-8                         1000000             15703 ns/op             496 B/op          9 allocs/op
+Benchmark_mdbm_Fetch-8                           5000000              2631 ns/op              56 B/op          4 allocs/op
+Benchmark_mdbm_FetchWithLock-8                   5000000              3245 ns/op              56 B/op          4 allocs/op
+Benchmark_mdbm_PreLoad_Fetch-8                   5000000              2598 ns/op              56 B/op          4 allocs/op
+Benchmark_mdbm_PreLoad_FetchWithLock-8           5000000              3379 ns/op              56 B/op          4 allocs/op
 ```
 
 ##### DB File
