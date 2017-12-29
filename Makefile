@@ -34,7 +34,6 @@ CMD_NM          	:=$(shell which nm)
 CMD_GO				:=$(shell which go)
 CMD_GOLINT			:=$(shell which golint)
 CMD_GOMETALINTER	:=$(shell which gometalinter)
-CMD_GOIMPORTS		:=$(shell which goimport)
 CMD_MAKE2HELP		:=$(shell which make2help)
 CMD_GLIDE			:=$(shell which glide)
 CMD_GOVER			:=$(shell which gover)
@@ -72,6 +71,9 @@ installpkgs::
 	@$(CMD_GO) get golang.org/x/tools/cmd/cover
 	@$(CMD_GO) get github.com/modocache/gover
 	@$(CMD_GO) get github.com/boltdb/bolt
+	@$(CMD_GO) get github.com/pkg/errors
+	@$(CMD_GO) get github.com/torden/go-strutil
+	@$(CMD_GO) get golang.org/x/sys/unix
 ifeq ($(GOLANGV16_OVER),1)
 	@$(CMD_GO) get github.com/golang/lint/golint
 	@$(CMD_GO) get github.com/alecthomas/gometalinter
