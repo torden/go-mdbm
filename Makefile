@@ -72,6 +72,10 @@ installpkgs::
 	@$(CMD_GO) get golang.org/x/tools/cmd/cover
 	@$(CMD_GO) get github.com/modocache/gover
 	@$(CMD_GO) get github.com/boltdb/bolt
+	@$(CMD_GO) get github.com/pkg/errors
+	@$(CMD_GO) get github.com/torden/go-strutil
+	@$(CMD_GO) get golang.org/x/sys/unix
+	@$(CMD_GO) get golang.org/x/tools/...
 ifeq ($(GOLANGV16_OVER),1)
 	@$(CMD_GO) get github.com/golang/lint/golint
 	@$(CMD_GO) get github.com/alecthomas/gometalinter
