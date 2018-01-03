@@ -467,6 +467,10 @@ Benchmark_mdbm_PreLoad_FetchWithLock-8           5000000              3379 ns/op
 - [MDBM::FAQ](http://yahoo.github.io/mdbm/guide/faq.html)
 - [DBM](https://en.wikipedia.org/wiki/Dbm)
 - [BoltDB](https://github.com/boltdb/bolt)
+- [PHP-MDBM](https://github.com/torden/php-mdbm)
+
+
+
 
 ---
 
