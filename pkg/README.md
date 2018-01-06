@@ -16,7 +16,6 @@ The following is pre-build packages for easy install to your machine.
 
 ```shell
 git clone https://github.com/torden/go-mdbm
-sudo apt-get update -qq
 dpkg -i pkg/ubuntu/mdbm-XXX.deb
 ```
 
@@ -26,7 +25,7 @@ dpkg -i pkg/ubuntu/mdbm-XXX.deb
 
 |OS/Release Ver.|Arch.|Pkg File|
 |---|---|---|
-|RHEL6.x (CentOS6.x)|64bit|mdbm-Artful_Aardvark.deb|
+|RHEL6 ~ 7 (CentOS6.x ~7.x)|64bit|mdbm-4.12.3.0-1.el6.src.rpm|
 |||mdbm-4.12.3.0-1.el6.x86_64.rpm|
 |||mdbm-debuginfo-4.12.3.0-1.el6.x86_64.rpm|
 |||mdbm-devel-4.12.3.0-1.el6.x86_64.rpm|
@@ -36,10 +35,9 @@ dpkg -i pkg/ubuntu/mdbm-XXX.deb
 
 ```shell
 git clone https://github.com/torden/go-mdbm
-sudo apt-get update -qq
 rpm -Uvh pkg/rhel/rhel/el6/mdbm-4.12.3.0-1.el6.x86_64.rpm
-rpm -Uvh mdbm-devel-4.12.3.0-1.el6.x86_64.rpm
-rpm -Uvh mdbm-debuginfo-4.12.3.0-1.el6.x86_64.rpm
+rpm -Uvh pkg/rhel/rhel/el6/mdbm-devel-4.12.3.0-1.el6.x86_64.rpm
+rpm -Uvh pkg/rhel/rhel/el6/mdbm-debuginfo-4.12.3.0-1.el6.x86_64.rpm
 ```
 
 
