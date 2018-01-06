@@ -1,35 +1,47 @@
 # Go-mdbm
 
+The following is pre-build packages for easy install to your machine.
+
 ## Ubuntu
 
 ### List of Pre-build Packages
 
-|OS|Pkg File|Release Version|Arch|Install Path|
-|---|---|---|---|---|
-|ubuntu|mdbm-Artful_Aardvark.deb|Ubuntu 17.10|64bit|/usr/local/mdbm/|
-|ubuntu|mdbm-Precise_Pangolin.deb|Ubuntu 12.04.5 LTS|64bit|/usr/local/mdbm/|
-|ubuntu|mdbm-Trusty_Tahr.deb|Ubuntu 14.04.5 LTS|64bit|/usr/local/mdbm/|
-
-### Dependencies Package
-
-- openssl
-- libcppunit-dev 
-- libreadline6 
-- libreadline6-dev 
-- realpath 
-- libmodule-install-perl
+|OS/Release Ver.|Arch.|Pkg File|
+|---|---|---|
+|Ubuntu 17.10|64bit|mdbm-Artful_Aardvark.deb|
+|Ubuntu 12.04.5 LTS|64bit|mdbm-Precise_Pangolin.deb|
+|Ubuntu 14.04.5 LTS|64bit|mdbm-Trusty_Tahr.deb|
 
 ### Installation
 
 ```shell
+git clone https://github.com/torden/go-mdbm
 sudo apt-get update -qq
-sudo apt-get install -y openssl libcppunit-dev libreadline6 libreadline6-dev valgrind realpath libmodule-install-perl
-dpkg -i pkg/ubuntu/mdbm-Artful_Aardvark.deb
+dpkg -i pkg/ubuntu/mdbm-XXX.deb
 ```
 
 ## RedHat (RHEL)
 
-as soon
+### List of Pre-build Packages
+
+|OS/Release Ver.|Arch.|Pkg File|
+|---|---|---|
+|RHEL6.x (CentOS6.x)|64bit|mdbm-Artful_Aardvark.deb|
+|||mdbm-4.12.3.0-1.el6.x86_64.rpm|
+|||mdbm-debuginfo-4.12.3.0-1.el6.x86_64.rpm|
+|||mdbm-devel-4.12.3.0-1.el6.x86_64.rpm|
+|||mdbm-perl-4.12.3.0-1.el6.x86_64.rpm|
+
+### Installation (RHEL6, CentOS 6)
+
+```shell
+git clone https://github.com/torden/go-mdbm
+sudo apt-get update -qq
+rpm -Uvh pkg/rhel/rhel/el6/mdbm-4.12.3.0-1.el6.x86_64.rpm
+rpm -Uvh mdbm-devel-4.12.3.0-1.el6.x86_64.rpm
+rpm -Uvh mdbm-debuginfo-4.12.3.0-1.el6.x86_64.rpm
+```
+
 
 ## OSX
 
@@ -38,4 +50,5 @@ as soon
 ## BSD
 
 as soon
+
 
