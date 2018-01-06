@@ -2817,6 +2817,24 @@ func Test_mdbm_EasyOpen_After_NotClose(t *testing.T) {
 	}
 }
 
+func Test_mdbm_Open_Wrong_Flags(t *testing.T) {
+
+	var err error
+
+	dbm := mdbm.NewMDBM()
+	err = dbm.Open(pathTestDBM1, mdbm.Create|mdbm.Rdrw|mdbm.Protect, 0644, 0, 0)
+	dbm.Close()
+	assert.AssertNotNil(t, err, "failured, can't check the wrong open flags, path=%s, err=%v", dbm.GetDBMFile(), err)
+
+	err = dbm.Open(pathTestDBM1, mdbm.Rdrw|mdbm.Wronly, 0644, 0, 0)
+	dbm.Close()
+	assert.AssertNotNil(t, err, "failured, can't check the wrong open flags, path=%s, err=%v", dbm.GetDBMFile(), err)
+
+	err = dbm.Open(pathTestDBM1, mdbm.Wronly|mdbm.Rdonly, 0644, 0, 0)
+	dbm.Close()
+	assert.AssertNotNil(t, err, "failured, can't check the wrong open flags, path=%s, err=%v", dbm.GetDBMFile(), err)
+}
+
 func Test_mdbm_checkAvailable(t *testing.T) {
 
 	var err error

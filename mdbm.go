@@ -815,6 +815,19 @@ func (db *MDBM) EasyOpen(dbmfile string, perms int) error {
 		db.EasyClose()
 	}
 
+	//protect : sigfault
+	if db.flags == (db.flags|C.MDBM_O_CREAT) && db.flags == (db.flags|C.MDBM_PROTECT) {
+		return errors.New("failed to open the MDBM, not support create db.flags with MDBM_PROTECT")
+	}
+
+	if db.flags == (db.flags|C.MDBM_O_ASYNC) && db.flags == (db.flags|C.MDBM_O_FSYNC) {
+		return errors.New("failed to open the MDBM, not support mixed sync db.flags (MDBM_O_FSYNC, MDBM_O_ASYNC)")
+	}
+
+	if db.flags == (db.flags|C.MDBM_O_RDONLY) && db.flags == (db.flags|C.MDBM_O_WRONLY) {
+		return errors.New("failed to open the MDBM, not support mixed access db.flags (MDBM_O_RDONLY, MDBM_O_WRONLY, MDBM_O_RDWR)")
+	}
+
 	db.dbmfile = dbmfile
 	if perms > 0 {
 		db.perms = perms
