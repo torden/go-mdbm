@@ -1,7 +1,7 @@
 
 # Go-mdbm
 
-- Go-mdbm is a Go(golang,go-lang) bind to [Yahoo! MDBM C API](https://github.com/yahoo/mdbm).
+- Go-mdbm is a Go(golang,go-lang) binds to [Yahoo! MDBM C API](https://github.com/yahoo/mdbm).
 - MDBM is a super-fast memory-mapped key/value store.
 - MDBM is an ndbm work-alike hashed database library based on sdbm which is based on Per-Aake Larson’s Dynamic Hashing algorithms.
 - MDBM is a high-performance, memory-mapped hash database similar to the homegrown libhash.
@@ -468,7 +468,7 @@ Benchmark_mdbm_PreLoad_FetchWithLock-8           5000000              3379 ns/op
 - [DBM](https://en.wikipedia.org/wiki/Dbm)
 - [BoltDB](https://github.com/boltdb/bolt)
 - [PHP-MDBM](https://github.com/torden/php-mdbm)
-- [Py(thon)-MDBM](https://github.com/torden/py-mdbm)
+- [Py-MDBM](https://github.com/torden/py-mdbm)
 
 ---
 
