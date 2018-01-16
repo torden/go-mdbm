@@ -13,6 +13,7 @@
 [![Coverage Status](https://coveralls.io/repos/github/torden/go-mdbm/badge.svg?branch=master)](https://coveralls.io/github/torden/go-mdbm?branch=master)
 [![Go Walker](http://gowalker.org/api/v1/badge)](https://gowalker.org/github.com/torden/go-mdbm)
 [![GitHub version](https://badge.fury.io/gh/torden%2Fgo-mdbm.svg)](https://badge.fury.io/gh/torden%2Fgo-mdbm)
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 
 
 ## Table of Contents
@@ -214,13 +215,12 @@ If you want them, please feel free to raise an issue
 
 |*API*|*STATUS*|
 |---|---|
+|mdbm_set_backingstore|as soon|
 |mdbm_cdbdump_add_record|as soon|
 |mdbm_cdbdump_import|as soon|
 |mdbm_dbdump_to_file|as soon|
 |mdbm_dbdump_trailer_and_close|as soon|
 |mdbm_dbdump_export_header|as soon|
-|mdbm_set_backingstore|as soon|
-|mdbm_replace_backing_store|as soon|
 |mdbm_iterate|as soon|
 |mdbm_prune|as soon|
 |mdbm_set_stats_func|as soon|

@@ -1,8 +1,9 @@
 package mdbm
 
-/*
-#include <mdbm-binding.h>
-*/
+// The following is default flags for easy build, See the https://github.com/torden/go-mdbm#install for more details
+// #cgo CFLAGS: -I/usr/local/mdbm/include/ -I./
+// #cgo LDFLAGS: -L/usr/local/mdbm/lib64/ -Wl,-rpath=/usr/local/mdbm/lib64/ -lmdbm
+// #include <mdbm-binding.h>
 import "C"
 
 import (
@@ -1166,6 +1167,40 @@ func (db *MDBM) ReplaceFile(oldfile, newfile string) error {
 
 	_, _, err := db.cgoRun(func() (int, error) {
 		rv, err := C.mdbm_replace_file(oldmdbmfn, newmdbmfn)
+		return int(rv), err
+	})
+
+	return err
+}
+
+// ReplaceBackingStore Atomically replaces an old database in oldfile with a new database in
+// newfile. oldfile is deleted, and newfile is renamed to oldfile.
+//
+// The old database is locked (if the MDBM were opened with locking) while the
+// new database is renamed from newfile to oldfile, and the old database
+// is marked as having been replaced.  The marked old database causes all
+// processes that have the old database open to reopen using the new database on
+// their next access.
+//
+// Only database files of the same version may be specified for oldfile and
+// newfile. For example, mixing and matching of v2 and v3 for oldfile and
+// newfile is not allowed.
+//
+// replaceFile() may be used if the MDBM is opened with locking or without
+// locking (using mdbm_open flag MDBM_OPEN_NOLOCK), and without per-access
+// locking, if all accesses are read (fetches) accesses across all programs that
+// open that MDBM.  If there are any write (store/delete) accesses, you must
+// open the MDBM with locking, and you must lock around all operations (fetch, store, delete, iterate).
+func (db *MDBM) ReplaceBackingStore(newfile string) error {
+
+	db.mutex.Lock()
+	defer db.mutex.Unlock()
+
+	newmdbmfn := C.CString(newfile)
+	defer C.free(unsafe.Pointer(newmdbmfn))
+
+	_, _, err := db.cgoRun(func() (int, error) {
+		rv, err := C.mdbm_replace_backing_store(db.pmdbm, newmdbmfn)
 		return int(rv), err
 	})
 

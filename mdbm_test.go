@@ -2208,6 +2208,29 @@ func Test_mdbm_ReplaceDB(t *testing.T) {
 	assert.AssertNil(t, err, "failured, can't replace %s to %s, err=%v", pathTestDBMLarge, pathTestDBMReplace3, err)
 }
 
+func Test_mdbm_ReplaceBackingStore(t *testing.T) {
+
+	var err error
+	dbm := mdbm.NewMDBM()
+
+	//temp1
+	err = dbm.EasyOpen(pathTestDBMReplace1, 0644)
+	assert.AssertNil(t, err, "failured, can't open the mdbm, path=%s, err=%v", dbm.GetDBMFile(), err)
+	dbm.EasyClose()
+
+	//temp2
+	err = dbm.EasyOpen(pathTestDBMReplace2, 0644)
+	assert.AssertNil(t, err, "failured, can't open the mdbm, path=%s, err=%v", dbm.GetDBMFile(), err)
+	dbm.EasyClose()
+
+	err = dbm.EasyOpen(pathTestDBMReplace2, 0644)
+	assert.AssertNil(t, err, "failured, can't open the mdbm, path=%s, err=%v", dbm.GetDBMFile(), err)
+	defer dbm.EasyClose()
+
+	err = dbm.ReplaceDB(pathTestDBMReplace1)
+	assert.AssertNil(t, err, "failured, can't replace %s to %s, err=%v", pathTestDBMLarge, pathTestDBMReplace3, err)
+}
+
 func Test_mdbm_GetDBStats(t *testing.T) {
 
 	var rv int
