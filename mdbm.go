@@ -1172,6 +1172,7 @@ func (db *MDBM) ReplaceFile(oldfile, newfile string) error {
 	return err
 }
 
+/*
 // ReplaceBackingStore Atomically replaces an old database in oldfile with a new database in
 // newfile. oldfile is deleted, and newfile is renamed to oldfile.
 //
@@ -1205,6 +1206,7 @@ func (db *MDBM) ReplaceBackingStore(newfile string) error {
 
 	return err
 }
+*/
 
 // GetHash returns the MDBM's hash function identifier.
 func (db *MDBM) GetHash() (int, error) {

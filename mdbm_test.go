@@ -2208,6 +2208,7 @@ func Test_mdbm_ReplaceDB(t *testing.T) {
 	assert.AssertNil(t, err, "failured, can't replace %s to %s, err=%v", pathTestDBMLarge, pathTestDBMReplace3, err)
 }
 
+/*
 func Test_mdbm_ReplaceBackingStore(t *testing.T) {
 
 	var err error
@@ -2227,9 +2228,10 @@ func Test_mdbm_ReplaceBackingStore(t *testing.T) {
 	assert.AssertNil(t, err, "failured, can't open the mdbm, path=%s, err=%v", dbm.GetDBMFile(), err)
 	defer dbm.EasyClose()
 
-	err = dbm.ReplaceDB(pathTestDBMReplace1)
+	err = dbm.ReplaceBackingStore("/tmp/test_backingstore.mdbm")
 	assert.AssertNil(t, err, "failured, can't replace %s to %s, err=%v", pathTestDBMLarge, pathTestDBMReplace3, err)
 }
+*/
 
 func Test_mdbm_GetDBStats(t *testing.T) {
 
@@ -2838,6 +2840,16 @@ func Test_mdbm_EasyOpen_After_NotClose(t *testing.T) {
 		err = dbm.EasyOpen(path, 0644)
 		assert.AssertNil(t, err, "failured, can't open the mdbm, path=%s, err=%v", dbm.GetDBMFile(), err)
 	}
+}
+
+func Test_mdbm_EasyOpen_MutipleSyncFlags(t *testing.T) {
+
+	var err error
+
+	dbm := mdbm.NewMDBM()
+	err = dbm.Open(pathTestDBM1, mdbm.Create|mdbm.Rdrw|mdbm.Protect|mdbm.Fsync|mdbm.Async, 0644, 0, 0)
+	assert.AssertNotNil(t, err, "failured, can't check the open flags include mutiple sync")
+	defer dbm.EasyClose()
 }
 
 func Test_mdbm_Open_Wrong_Flags(t *testing.T) {
