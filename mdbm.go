@@ -1,6 +1,5 @@
 package mdbm
 
-// The following is default flags for easy build, See the https://github.com/torden/go-mdbm#install for more details
 // #cgo CFLAGS: -I/usr/local/mdbm/include/ -I./
 // #cgo LDFLAGS: -L/usr/local/mdbm/lib64/ -Wl,-rpath=/usr/local/mdbm/lib64/ -lmdbm
 // #include <mdbm-binding.h>
