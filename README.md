@@ -38,6 +38,7 @@
     - [Only a V2 implementation](#only-a-v2-implementation)
     - [Alternative](#alternative)
     - [As soon](#as-soon)
+- [Examples](#examples)
 - [Benchmark](#benchmark)
     - [Spec](#spec)
     - [Command](#command)
@@ -181,10 +182,6 @@ test:              Run Go Test with Data Race Detection
 |master|yes|always|
 |release 4.3.x|yes|tested|
 
-# Example
-
-[Source Code and a sample file](https://github.com/torden/go-mdbm/tree/master/example)
-
 ## Not Support APIs
 
 Unfortunately, the following list is not supported on now.
@@ -225,6 +222,11 @@ If you want them, please feel free to raise an issue
 |mdbm_prune|as soon|
 |mdbm_set_stats_func|as soon|
 |mdbm_chunk_iterate|as soon|
+
+## Examples
+
+See the [Documentations](https://github.com/torden/go-mdbm/tree/master/example) for more details
+
 
 ## Benchmark
 
