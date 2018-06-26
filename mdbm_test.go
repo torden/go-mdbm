@@ -255,7 +255,7 @@ func Test_mdbm_OrdinaryInsertData_Store1(t *testing.T) {
 	assert.AssertNil(t, err, "failured, can't open the mdbm, path=%s, err=%v", dbm.GetDBMFile(), err)
 
 	for i := 0; i <= loopLimit; i++ {
-		rv, err = dbm.Store(i, time.Now().UnixNano(), mdbm.Replace)
+		rv, err = dbm.Store(i, i, mdbm.Replace)
 		assert.AssertNil(t, err, "failured, return Value mismatch. value=%d, err=%v\n", rv, err)
 	}
 
@@ -431,7 +431,7 @@ func Test_mdbm_OrdinaryFetchData_RandomFetch(t *testing.T) {
 
 		val, err := dbm.Fetch(getRandomNumber(loopLimit))
 		assert.AssertNil(t, err, "failured, return Value mismatch. value=%s, err=%v\n", val, err)
-		assert.AssertEquals(t, strconv.Itoa(i), val, "return Value mismatch.\nExpected: %v\nActual: %v", i, val)
+		assert.AssertEquals(t, strconv.Itoa(i), val, "return Value mismatch.\nExpected: %v\nActual: %v", strconv.Itoa(i), val)
 	}
 }
 
