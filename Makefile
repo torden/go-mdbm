@@ -125,7 +125,7 @@ endif
 test: clean
 	@$(CMD_MKDIR) -p $(PATH_REPORT)/raw/ $(PATH_REPORT)/doc/
 	@$(CMD_ECHO)  -e "\033[1;40;32mRun Go Test.\033[01;m\x1b[0m"
-	@GORACE="log_path=$(PATH_REPORT)/doc/$(PATH_RACE_REPORT)" $(CMD_GO_MDBM) test -v -test.parallel 4 -race -coverprofile=$(PATH_REPORT)/raw/$(PATH_CONVER_PROFILE)
+	@GORACE="log_path=$(PATH_REPORT)/doc/$(PATH_RACE_REPORT)" $(CMD_GO_MDBM) test -tags unittest=false -v -test.parallel 4 -race -coverprofile=$(PATH_REPORT)/raw/$(PATH_CONVER_PROFILE)
 	@$(CMD_ECHO) -e "\033[1;40;36mGenerated a report of data race detection in $(PATH_REPORT)/doc/$(PATH_RACE_REPORT).pid\033[01;m\x1b[0m"
 	@$(CMD_ECHO) -e "\033[1;40;36mDone\033[01;m\x1b[0m"
 
@@ -148,11 +148,11 @@ pprof: clean
 	@$(CMD_MKDIR) -p $(PATH_REPORT)/raw/ $(PATH_REPORT)/doc/
 	@$(CMD_ECHO)  -e "\033[1;40;32mGenerate profiles.\033[01;m\x1b[0m"
 	@$(CMD_ECHO)  -e "\033[1;40;33mGenerate a CPU profile.\033[01;m\x1b[0m"
-	@$(CMD_GO_MDBM) test -v -test.run Benchmark -tags unittest -test.parallel 4 -bench . -benchmem -cpuprofile=$(PATH_REPORT)/raw/$(PATH_PROF_CPU)
+	@$(CMD_GO_MDBM) test -tags unittest=false -v -test.run Benchmark -test.parallel 4 -bench . -benchmem -cpuprofile=$(PATH_REPORT)/raw/$(PATH_PROF_CPU)
 	@$(CMD_ECHO)  -e "\033[1;40;33mGenerate a Memory profile.\033[01;m\x1b[0m"
-	@$(CMD_GO_MDBM) test -v -test.run Benchmark -tags unittest -test.parallel 4 -bench . -benchmem -memprofile=$(PATH_REPORT)/raw/$(PATH_PROF_MEM)
+	@$(CMD_GO_MDBM) test -tags unittest=false -v -test.run Benchmark -test.parallel 4 -bench . -benchmem -memprofile=$(PATH_REPORT)/raw/$(PATH_PROF_MEM)
 	@$(CMD_ECHO)  -e "\033[1;40;33mGenerate a Block profile.\033[01;m\x1b[0m"
-	@$(CMD_GO_MDBM) test -v -test.run Benchmark -tags unittest -test.parallel 4 -bench . -benchmem -blockprofile=$(PATH_REPORT)/raw/$(PATH_PROF_BLOCK)
+	@$(CMD_GO_MDBM) test -tags unittest=false -v -test.run Benchmark -test.parallel 4 -bench . -benchmem -blockprofile=$(PATH_REPORT)/raw/$(PATH_PROF_BLOCK)
 	@$(CMD_ECHO)  -e "\033[1;40;33mGenerate a Mutex profile.\033[01;m\x1b[0m"
 ifeq ($(GOLANGV18_OVER),1)
 #	@$(CMD_GO_MDBM) test -v -test.run Test -tags unittest -test.parallel 4 -bench . -benchmem -mutexprofile=$(PATH_REPORT)/raw/$(PATH_PROF_MUTEX)
@@ -188,7 +188,7 @@ help::
 ## Clean-up
 clean::
 	@$(CMD_ECHO)  -e "\033[1;40;32mClean-up.\033[01;m\x1b[0m"
-	@$(CMD_RM) -rfv *.coverprofile *.swp *.core *.html *.prof *.test *.report ./$(PATH_REPORT)/* ./tmp/* *.mdbm *.txt *.log *.out
+	@$(CMD_RM) -rfv *.coverprofile *.swp *.core *.html *.prof *.test *.report ./$(PATH_REPORT)/* ./tmp/*.mdbm *.txt *.log *.out
 	@$(CMD_ECHO) -e "\033[1;40;36mDone\033[01;m\x1b[0m"
 
 .PHONY: clean cover coveralls help lint pprof report run setup strictlint test build 
