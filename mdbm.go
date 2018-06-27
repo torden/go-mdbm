@@ -563,7 +563,7 @@ func (db *MDBM) convertToString(obj interface{}) (string, error) {
 		return string(obj.(byte)), nil
 
 	case []uint8:
-		return reflect.ValueOf(obj).String(), nil
+		return string(reflect.ValueOf(obj).Bytes()), nil
 
 	case string:
 		return obj.(string), nil
