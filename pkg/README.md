@@ -8,6 +8,7 @@ The following is pre-build packages for easy install to your machine.
 
 |OS/Release Ver.|Arch.|Pkg File|
 |---|---|---|
+|Ubuntu 18.04|64bit|mdbm-Bionic_Beaver.deb|
 |Ubuntu 17.10|64bit|mdbm-Artful_Aardvark.deb|
 |Ubuntu 12.04.5 LTS|64bit|mdbm-Precise_Pangolin.deb|
 |Ubuntu 14.04.5 LTS|64bit|mdbm-Trusty_Tahr.deb|
