@@ -16,7 +16,7 @@
 		{
 			"ImportPath": "github.com/torden/go-strutil",
 			"Comment": "v0.1.2",
-			"Rev": "1c13b2dd0ad3317e23846f27f40ab3174e408392"
+			"Rev": "26b30ac0ee7531b8d9abfd9f1c48e297eda9839a"
 		},
 		{
 			"ImportPath": "golang.org/x/sys/unix",
