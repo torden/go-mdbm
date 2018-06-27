@@ -49,7 +49,7 @@ PATH_PROF_MUTEX=$(PKG_NAME).mutex.prof
 
 VER_GOLANG=$(shell go version | awk '{print $$3}' | sed -e "s/go//;s/\.//g")
 GOLANGV18_OVER=$(shell [ "$(VER_GOLANG)" -ge "180" ] && echo 1 || echo 0)
-GOLANGV16_OVER=$(shell [ "$(VER_GOLANG)" -ge "160" ] && echo 1 || echo 0)
+GOLANGV16_OVER=$(shell [ "$(VER_GOLANG)" -ge "169" ] && echo 1 || echo 0)
 
 CFLAGS="-I/usr/local/mdbm/include/ -I./"
 LDFLAGS="-L/usr/local/mdbm/lib64/ -Wl,-rpath=/usr/local/mdbm/lib64/ -lmdbm"
