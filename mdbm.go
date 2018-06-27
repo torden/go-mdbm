@@ -1,7 +1,7 @@
 package mdbm
 
 // #cgo CFLAGS: -I/usr/local/mdbm/include/ -I./
-// #cgo LDFLAGS: -L/usr/local/mdbm/lib64/ -Wl,-rpath=/usr/local/mdbm/lib64/ -lmdbm
+// #cgo LDFLAGS: -L/usr/local/mdbm/lib64/ -Wl,-rpath,/usr/local/mdbm/lib64/ -lmdbm
 // #include <mdbm-binding.h>
 import "C"
 
@@ -563,7 +563,7 @@ func (db *MDBM) convertToString(obj interface{}) (string, error) {
 		return string(obj.(byte)), nil
 
 	case []uint8:
-		return reflect.ValueOf(obj).String(), nil
+		return string(reflect.ValueOf(obj).Bytes()), nil
 
 	case string:
 		return obj.(string), nil
