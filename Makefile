@@ -48,6 +48,7 @@ PATH_PROF_BLOCK=$(PKG_NAME).block.prof
 PATH_PROF_MUTEX=$(PKG_NAME).mutex.prof
 
 VER_GOLANG=$(shell go version | awk '{print $$3}' | sed -e "s/go//;s/\.//g")
+GOLANGV19_OVER=$(shell [ "$(VER_GOLANG)" -ge "190" ] && echo 1 || echo 0)
 GOLANGV18_OVER=$(shell [ "$(VER_GOLANG)" -ge "180" ] && echo 1 || echo 0)
 GOLANGV16_OVER=$(shell [ "$(VER_GOLANG)" -ge "169" ] && echo 1 || echo 0)
 
@@ -74,7 +75,7 @@ installpkgs::
 	@$(CMD_GO) get github.com/pkg/errors
 	@$(CMD_GO) get github.com/torden/go-strutil
 	@$(CMD_GO) get golang.org/x/sys/unix
-ifeq ($(GOLANGV16_OVER),1)
+ifeq ($(GOLANGV19_OVER),1)
 	@$(CMD_GO) get github.com/golang/lint/golint
 	@$(CMD_GO) get github.com/alecthomas/gometalinter
 endif
@@ -91,7 +92,7 @@ build: lint
 ## Install GoMetaLinter 
 metalinter::
 	@$(CMD_ECHO)  -e "\033[1;40;32mInstall Go-metalineter.\033[01;m\x1b[0m"
-ifeq ($(GOLANGV16_OVER),1)
+ifeq ($(GOLANGV19_OVER),1)
 	@$(shell which gometalinter) --install
 else
 	@$(CMD_ECHO) -e "\033[1;40;36mSKIP: your golang is older version $(shell go version)\033[01;m\x1b[0m"
