@@ -74,7 +74,7 @@ installpkgs::
 	@$(CMD_GO) get github.com/pkg/errors
 	@$(CMD_GO) get github.com/torden/go-strutil
 	@$(CMD_GO) get golang.org/x/sys/unix
-ifeq ($(GOLANGV16_OVER),1)
+ifeq ($(GOLANGV18_OVER),1)
 	@$(CMD_GO) get github.com/golang/lint/golint
 	@$(CMD_GO) get github.com/alecthomas/gometalinter
 endif
@@ -91,7 +91,7 @@ build: lint
 ## Install GoMetaLinter 
 metalinter::
 	@$(CMD_ECHO)  -e "\033[1;40;32mInstall Go-metalineter.\033[01;m\x1b[0m"
-ifeq ($(GOLANGV16_OVER),1)
+ifeq ($(GOLANGV18_OVER),1)
 	@$(shell which gometalinter) --install
 else
 	@$(CMD_ECHO) -e "\033[1;40;36mSKIP: your golang is older version $(shell go version)\033[01;m\x1b[0m"
