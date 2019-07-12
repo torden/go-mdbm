@@ -66,7 +66,9 @@ setup: installpkgs metalinter
 installpkgs::
 	@$(CMD_ECHO)  -e "\033[1;40;32mInstall Packages.\033[01;m\x1b[0m"
 	@$(CMD_GO) get github.com/Masterminds/glide
+ifeq ($(GOLANGV18_OVER),1)
 	@$(CMD_GO) get github.com/Songmu/make2help/cmd/make2help
+endif
 	@$(CMD_GO) get github.com/davecgh/go-spew/spew
 	@$(CMD_GO) get github.com/k0kubun/pp
 	@$(CMD_GO) get github.com/mattn/goveralls
@@ -81,7 +83,6 @@ ifeq ($(GOLANGV19_OVER),1)
 	@$(CMD_GO) get github.com/alecthomas/gometalinter
 endif
 ifeq ($(GOLANGV110_OVER),1)
-	@$(CMD_ECHO) -e "What???"
 	@$(CMD_GO) get github.com/awalterschulze/gographviz
 	@$(CMD_GO) get github.com/golangci/golangci-lint/cmd/golangci-lint
 endif
