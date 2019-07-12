@@ -71,7 +71,6 @@ ifeq ($(GOLANGV18_OVER),1)
 	@$(CMD_GO) get github.com/Songmu/make2help/cmd/make2help
 endif
 	@$(CMD_GO) get github.com/davecgh/go-spew/spew
-	@$(CMD_GO) get github.com/k0kubun/pp
 	@$(CMD_GO) get github.com/mattn/goveralls
 	@$(CMD_GO) get golang.org/x/tools/cmd/cover
 	@$(CMD_GO) get github.com/modocache/gover
@@ -79,6 +78,7 @@ endif
 	@$(CMD_GO) get github.com/pkg/errors
 	@$(CMD_GO) get github.com/torden/go-strutil
 ifeq ($(GOLANGV17_OVER),1)
+	@$(CMD_GO) get github.com/k0kubun/pp
 	@$(CMD_GO) get golang.org/x/sys/unix
 endif
 ifeq ($(GOLANGV19_OVER),1)
