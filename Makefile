@@ -48,6 +48,7 @@ PATH_PROF_BLOCK=$(PKG_NAME).block.prof
 PATH_PROF_MUTEX=$(PKG_NAME).mutex.prof
 
 VER_GOLANG=$(shell go version | awk '{print $$3}' | sed -e "s/go//;s/\.//g")
+GOLANGV110_OVER=$(shell [ "$(VER_GOLANG)" -gt "199" ] && echo 1 || echo 0)
 GOLANGV19_OVER=$(shell [ "$(VER_GOLANG)" -ge "190" ] && echo 1 || echo 0)
 GOLANGV18_OVER=$(shell [ "$(VER_GOLANG)" -ge "180" ] && echo 1 || echo 0)
 GOLANGV16_OVER=$(shell [ "$(VER_GOLANG)" -ge "169" ] && echo 1 || echo 0)
@@ -79,7 +80,11 @@ ifeq ($(GOLANGV19_OVER),1)
 	@$(CMD_GO) get github.com/golang/lint/golint
 	@$(CMD_GO) get github.com/alecthomas/gometalinter
 endif
-	@$(CMD_GO) get -u github.com/awalterschulze/gographviz
+ifeq ($(GOLANGV110_OVER),1)
+	@$(CMD_ECHO) -e "What???"
+	@$(CMD_GO) get github.com/awalterschulze/gographviz
+	@$(CMD_GO) get github.com/golangci/golangci-lint/cmd/golangci-lint
+endif
 	@$(CMD_ECHO) -e "\033[1;40;36mDone\033[01;m\x1b[0m"
 
 ## Build the go-mdbm
@@ -94,6 +99,16 @@ metalinter::
 	@$(CMD_ECHO)  -e "\033[1;40;32mInstall Go-metalineter.\033[01;m\x1b[0m"
 ifeq ($(GOLANGV19_OVER),1)
 	@$(shell which gometalinter) --install
+else
+	@$(CMD_ECHO) -e "\033[1;40;36mSKIP: your golang is older version $(shell go version)\033[01;m\x1b[0m"
+endif
+	@$(CMD_ECHO) -e "\033[1;40;36mDone\033[01;m\x1b[0m"
+
+## Install Golangci-lint
+metalinter::
+	@$(CMD_ECHO)  -e "\033[1;40;32mInstall Golangci-Lint.\033[01;m\x1b[0m"
+ifeq ($(GOLANGV110_OVER),1)
+	@$(shell which golangci-lint) run
 else
 	@$(CMD_ECHO) -e "\033[1;40;36mSKIP: your golang is older version $(shell go version)\033[01;m\x1b[0m"
 endif
