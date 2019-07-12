@@ -51,6 +51,7 @@ VER_GOLANG=$(shell go version | awk '{print $$3}' | sed -e "s/go//;s/\.//g")
 GOLANGV110_OVER=$(shell [ "$(VER_GOLANG)" -gt "199" ] && echo 1 || echo 0)
 GOLANGV19_OVER=$(shell [ "$(VER_GOLANG)" -ge "190" ] && echo 1 || echo 0)
 GOLANGV18_OVER=$(shell [ "$(VER_GOLANG)" -ge "180" ] && echo 1 || echo 0)
+GOLANGV17_OVER=$(shell [ "$(VER_GOLANG)" -ge "170" ] && echo 1 || echo 0)
 GOLANGV16_OVER=$(shell [ "$(VER_GOLANG)" -ge "169" ] && echo 1 || echo 0)
 
 CFLAGS="-I/usr/local/mdbm/include/ -I./"
@@ -77,7 +78,9 @@ endif
 	@$(CMD_GO) get github.com/boltdb/bolt
 	@$(CMD_GO) get github.com/pkg/errors
 	@$(CMD_GO) get github.com/torden/go-strutil
+ifeq ($(GOLANGV17_OVER),1)
 	@$(CMD_GO) get golang.org/x/sys/unix
+endif
 ifeq ($(GOLANGV19_OVER),1)
 	@$(CMD_GO) get github.com/golang/lint/golint
 	@$(CMD_GO) get github.com/alecthomas/gometalinter
