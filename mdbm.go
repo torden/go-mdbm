@@ -17,6 +17,7 @@ import (
 	"strconv"
 	"strings"
 	"sync"
+	"syscall"
 	"unsafe"
 
 	"github.com/pkg/errors"
@@ -429,14 +430,33 @@ func (db *MDBM) checkAvailable() error {
 
 func (db *MDBM) cgoRunCapture(call func() (int, error)) (int, string, error) {
 
+	var err error
+
 	db.cgomtx.Lock()
 	defer db.cgomtx.Unlock()
 
-	orgStdErr, orgStdOut := os.Stderr, os.Stdout
-	orgCStdErr, orgCStdOut := C.stderr, C.stdout
+	orgStdErr, err := syscall.Dup(syscall.Stderr)
+	if err != nil {
+		return 0, "", errors.Wrapf(err, "failed call to syscall.Dup(STDERR)")
+	}
+
 	defer func() {
-		os.Stderr, os.Stdout = orgStdErr, orgStdOut
-		C.stderr, C.stdout = orgCStdErr, orgCStdOut
+		e := syscall.Dup2(orgStdErr, syscall.Stderr)
+		if e != nil {
+			err = e
+		}
+	}()
+
+	orgStdOut, err := syscall.Dup(syscall.Stdout)
+	if err != nil {
+		return 0, "", errors.Wrapf(err, "failed call to syscall.Dup(STDOUT)")
+	}
+
+	defer func() {
+		e := syscall.Dup2(orgStdOut, syscall.Stdout)
+		if e != nil {
+			err = e
+		}
 	}()
 
 	r, w, err := os.Pipe()
@@ -445,23 +465,18 @@ func (db *MDBM) cgoRunCapture(call func() (int, error)) (int, string, error) {
 	}
 
 	defer func() {
-		e := r.Close()
-		if e != nil {
-			err = e
-		}
+		r.Close()
 	}()
 
-	cw := C.CString("w")
-	defer C.free(unsafe.Pointer(cw))
-
-	f := C.fdopen((C.int)(w.Fd()), cw)
-	if f == nil {
-		return 0, "", errors.New("failed call to mdbm::cgoRun(C.fdopen)")
+	err = syscall.Dup2(int(w.Fd()), syscall.Stderr)
+	if err != nil {
+		return 0, "", errors.Wrapf(err, "failed call to syscall.Dup2(STDERR)")
 	}
-	defer C.fclose(f)
 
-	os.Stderr, os.Stdout = w, w
-	C.stderr, C.stdout = f, f
+	err = syscall.Dup2(int(w.Fd()), syscall.Stdout)
+	if err != nil {
+		return 0, "", errors.Wrapf(err, "failed call to syscall.Dup2(STDOUT)")
+	}
 
 	out := make(chan []byte)
 	go func() {
@@ -479,10 +494,19 @@ func (db *MDBM) cgoRunCapture(call func() (int, error)) (int, string, error) {
 	rv, err := call()
 	runtime.Gosched()
 
-	C.fflush(f)
-	cerr := w.Close()
-	if cerr != nil {
+	err = w.Close()
+	if err != nil {
 		log.Println("failred close the os.Stderr, os.Stdout")
+	}
+
+	err = syscall.Close(syscall.Stderr)
+	if err != nil {
+		return 0, "", errors.Wrapf(err, "failed call to syscall.Close(STDERR)")
+	}
+
+	err = syscall.Close(syscall.Stderr)
+	if err != nil {
+		return 0, "", errors.Wrapf(err, "failed call to syscall.Close(STDOUT)")
 	}
 
 	return rv, string(<-out), err
