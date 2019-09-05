@@ -112,7 +112,7 @@ endif
 metalinter::
 	@$(CMD_ECHO)  -e "\033[1;40;32mInstall Golangci-Lint.\033[01;m\x1b[0m"
 ifeq ($(GOLANGV110_OVER),1)
-	@$(shell which golangci-lint) run
+	@$(shell which golangci-lint) run ./
 else
 	@$(CMD_ECHO) -e "\033[1;40;36mSKIP: your golang is older version $(shell go version)\033[01;m\x1b[0m"
 endif
