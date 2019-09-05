@@ -1,12 +1,11 @@
 sudo: false
 language: go
 go:
+    - 1.x
     - 1.9.x
     - 1.8.x
     - 1.7.x
     - 1.6.x
-    - 1.5.x
-    - 1.4.x
 before_install:
     - go get github.com/tools/godep
     - godep restore
