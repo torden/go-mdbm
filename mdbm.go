@@ -504,7 +504,7 @@ func (db *MDBM) cgoRunCapture(call func() (int, error)) (int, string, error) {
 		return 0, "", errors.Wrapf(err, "failed call to syscall.Close(STDERR)")
 	}
 
-	err = syscall.Close(syscall.Stderr)
+	err = syscall.Close(syscall.Stdout)
 	if err != nil {
 		return 0, "", errors.Wrapf(err, "failed call to syscall.Close(STDOUT)")
 	}
