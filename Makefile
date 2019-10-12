@@ -82,7 +82,7 @@ ifeq ($(GOLANGV17_OVER),1)
 	@$(CMD_GO) get golang.org/x/sys/unix
 endif
 ifeq ($(GOLANGV19_OVER),1)
-	@$(CMD_GO) get github.com/golang/lint/golint
+	@$(CMD_GO) get golang.org/x/lint
 	@$(CMD_GO) get github.com/alecthomas/gometalinter
 endif
 ifeq ($(GOLANGV110_OVER),1)
