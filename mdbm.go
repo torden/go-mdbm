@@ -3,6 +3,8 @@ package mdbm
 // #cgo CFLAGS: -I/usr/local/mdbm/include/ -I./
 // #cgo LDFLAGS: -L/usr/local/mdbm/lib64/ -Wl,-rpath,/usr/local/mdbm/lib64/ -lmdbm
 // #include <mdbm-binding.h>
+// FILE** ppstderr = &stderr;
+// FILE** ppstdout = &stdout;
 import "C"
 
 import (
@@ -17,7 +19,6 @@ import (
 	"strconv"
 	"strings"
 	"sync"
-	"syscall"
 	"unsafe"
 
 	"github.com/pkg/errors"
@@ -428,35 +429,17 @@ func (db *MDBM) checkAvailable() error {
 	return nil
 }
 
+// syscall.Stdout and syscall.Stderr it does not work that everything be the way my want
 func (db *MDBM) cgoRunCapture(call func() (int, error)) (int, string, error) {
-
-	var err error
 
 	db.cgomtx.Lock()
 	defer db.cgomtx.Unlock()
 
-	orgStdErr, err := syscall.Dup(syscall.Stderr)
-	if err != nil {
-		return 0, "", errors.Wrapf(err, "failed call to syscall.Dup(STDERR)")
-	}
-
+	orgStdErr, orgStdOut := os.Stderr, os.Stdout
+	orgCStdErr, orgCStdOut := C.ppstderr, C.ppstdout
 	defer func() {
-		e := syscall.Dup2(orgStdErr, syscall.Stderr)
-		if e != nil {
-			err = e
-		}
-	}()
-
-	orgStdOut, err := syscall.Dup(syscall.Stdout)
-	if err != nil {
-		return 0, "", errors.Wrapf(err, "failed call to syscall.Dup(STDOUT)")
-	}
-
-	defer func() {
-		e := syscall.Dup2(orgStdOut, syscall.Stdout)
-		if e != nil {
-			err = e
-		}
+		os.Stderr, os.Stdout = orgStdErr, orgStdOut
+		C.ppstderr, C.ppstdout = orgCStdErr, orgCStdOut
 	}()
 
 	r, w, err := os.Pipe()
@@ -465,18 +448,23 @@ func (db *MDBM) cgoRunCapture(call func() (int, error)) (int, string, error) {
 	}
 
 	defer func() {
-		r.Close()
+		e := r.Close()
+		if e != nil {
+			err = e
+		}
 	}()
 
-	err = syscall.Dup2(int(w.Fd()), syscall.Stderr)
-	if err != nil {
-		return 0, "", errors.Wrapf(err, "failed call to syscall.Dup2(STDERR)")
-	}
+	cw := C.CString("w")
+	defer C.free(unsafe.Pointer(cw))
 
-	err = syscall.Dup2(int(w.Fd()), syscall.Stdout)
-	if err != nil {
-		return 0, "", errors.Wrapf(err, "failed call to syscall.Dup2(STDOUT)")
+	f := C.fdopen((C.int)(w.Fd()), cw)
+	if f == nil {
+		return 0, "", errors.New("failed call to mdbm::cgoRun(C.fdopen)")
 	}
+	defer C.fclose(f)
+
+	os.Stderr, os.Stdout = w, w
+	(*C.ppstderr), (*C.ppstdout) = f, f
 
 	out := make(chan []byte)
 	go func() {
@@ -494,19 +482,10 @@ func (db *MDBM) cgoRunCapture(call func() (int, error)) (int, string, error) {
 	rv, err := call()
 	runtime.Gosched()
 
-	err = w.Close()
-	if err != nil {
+	C.fflush(f)
+	cerr := w.Close()
+	if cerr != nil {
 		log.Println("failred close the os.Stderr, os.Stdout")
-	}
-
-	err = syscall.Close(syscall.Stderr)
-	if err != nil {
-		return 0, "", errors.Wrapf(err, "failed call to syscall.Close(STDERR)")
-	}
-
-	err = syscall.Close(syscall.Stdout)
-	if err != nil {
-		return 0, "", errors.Wrapf(err, "failed call to syscall.Close(STDOUT)")
 	}
 
 	return rv, string(<-out), err
