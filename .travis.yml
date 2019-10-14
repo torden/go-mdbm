@@ -1,6 +1,8 @@
 sudo: false
 language: go
 go:
+    - 1.x
+    - 1.13.x
     - 1.12.x
     - 1.11.x
     - 1.10.x
@@ -22,6 +24,5 @@ before_install:
 #    - cd ..
 script:
     - make installpkgs
-    - make metalinter
     - make test
     - make coveralls
