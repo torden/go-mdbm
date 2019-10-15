@@ -3,6 +3,8 @@ package mdbm
 // #cgo CFLAGS: -I/usr/local/mdbm/include/ -I./
 // #cgo LDFLAGS: -L/usr/local/mdbm/lib64/ -Wl,-rpath,/usr/local/mdbm/lib64/ -lmdbm
 // #include <mdbm-binding.h>
+// FILE** ppstderr = &stderr;
+// FILE** ppstdout = &stdout;
 import "C"
 
 import (
@@ -420,23 +422,24 @@ func (db *MDBM) IsOpened() bool {
 
 func (db *MDBM) checkAvailable() error {
 
-	if false == db.IsOpened() {
+	if !db.IsOpened() {
 		return errors.New("not yet open the MDBM or closed the MDBM")
 	}
 
 	return nil
 }
 
+// syscall.Stdout and syscall.Stderr it does not work that everything be the way my want
 func (db *MDBM) cgoRunCapture(call func() (int, error)) (int, string, error) {
 
 	db.cgomtx.Lock()
 	defer db.cgomtx.Unlock()
 
 	orgStdErr, orgStdOut := os.Stderr, os.Stdout
-	orgCStdErr, orgCStdOut := C.stderr, C.stdout
+	orgCStdErr, orgCStdOut := C.ppstderr, C.ppstdout
 	defer func() {
 		os.Stderr, os.Stdout = orgStdErr, orgStdOut
-		C.stderr, C.stdout = orgCStdErr, orgCStdOut
+		C.ppstderr, C.ppstdout = orgCStdErr, orgCStdOut
 	}()
 
 	r, w, err := os.Pipe()
@@ -461,7 +464,7 @@ func (db *MDBM) cgoRunCapture(call func() (int, error)) (int, string, error) {
 	defer C.fclose(f)
 
 	os.Stderr, os.Stdout = w, w
-	C.stderr, C.stdout = f, f
+	(*C.ppstderr), (*C.ppstdout) = f, f
 
 	out := make(chan []byte)
 	go func() {
@@ -658,9 +661,7 @@ func (db *MDBM) GetDBMFile() string {
 // Threaded applications should use pthread_mutex_lock and unlock around calls to mdbm_dup_handle.
 func (db *MDBM) DupHandle() (*MDBM, error) {
 
-	var err error
-
-	err = db.checkAvailable()
+	err := db.checkAvailable()
 	if err != nil {
 		return nil, err
 	}
@@ -916,9 +917,7 @@ func (db *MDBM) Fsync() (int, error) {
 // CloseFD closes the MDBM's underlying file descriptor.
 func (db *MDBM) CloseFD() error {
 
-	var err error
-
-	err = db.checkAvailable()
+	err := db.checkAvailable()
 	if err != nil {
 		return err
 	}
@@ -1549,9 +1548,8 @@ func (db *MDBM) Check(level int, verbose bool) (int, string, error) {
 
 	var rv int
 	var out string
-	var err error
 
-	err = db.checkAvailable()
+	err := db.checkAvailable()
 	if err != nil {
 		return -1, "", err
 	}
@@ -2537,9 +2535,8 @@ func (db *MDBM) DeleteStr(key interface{}) (int, error) {
 func (db *MDBM) First() (string, string, error) {
 
 	var kv C.kvpair
-	var err error
 
-	err = db.checkAvailable()
+	err := db.checkAvailable()
 	if err != nil {
 		return "", "", err
 	}
@@ -2564,9 +2561,8 @@ func (db *MDBM) First() (string, string, error) {
 func (db *MDBM) Next() (string, string, error) {
 
 	var kv C.kvpair
-	var err error
 
-	err = db.checkAvailable()
+	err := db.checkAvailable()
 	if err != nil {
 		return "", "", err
 	}
@@ -2591,9 +2587,8 @@ func (db *MDBM) Next() (string, string, error) {
 func (db *MDBM) FirstR(iter *C.MDBM_ITER) (string, string, Iter, error) {
 
 	var kv C.kvpair
-	var err error
 
-	err = db.checkAvailable()
+	err := db.checkAvailable()
 	if err != nil {
 		return "", "", db.convertIter(iter), err
 	}
@@ -2620,9 +2615,8 @@ func (db *MDBM) FirstR(iter *C.MDBM_ITER) (string, string, Iter, error) {
 func (db *MDBM) NextR(iter *C.MDBM_ITER) (string, string, Iter, error) {
 
 	var kv C.kvpair
-	var err error
 
-	err = db.checkAvailable()
+	err := db.checkAvailable()
 	if err != nil {
 		return "", "", db.convertIter(iter), err
 	}
@@ -2649,9 +2643,8 @@ func (db *MDBM) NextR(iter *C.MDBM_ITER) (string, string, Iter, error) {
 func (db *MDBM) FirstKey() (string, error) {
 
 	var k C.datum
-	var err error
 
-	err = db.checkAvailable()
+	err := db.checkAvailable()
 	if err != nil {
 		return "", err
 	}
@@ -2675,9 +2668,8 @@ func (db *MDBM) FirstKey() (string, error) {
 func (db *MDBM) NextKey() (string, error) {
 
 	var k C.datum
-	var err error
 
-	err = db.checkAvailable()
+	err := db.checkAvailable()
 	if err != nil {
 		return "", err
 	}
@@ -2702,9 +2694,8 @@ func (db *MDBM) NextKey() (string, error) {
 func (db *MDBM) FirstKeyR(iter *C.MDBM_ITER) (string, Iter, error) {
 
 	var k C.datum
-	var err error
 
-	err = db.checkAvailable()
+	err := db.checkAvailable()
 	if err != nil {
 		return "", db.convertIter(iter), err
 	}
@@ -2730,9 +2721,8 @@ func (db *MDBM) FirstKeyR(iter *C.MDBM_ITER) (string, Iter, error) {
 func (db *MDBM) NextKeyR(iter *C.MDBM_ITER) (string, Iter, error) {
 
 	var k C.datum
-	var err error
 
-	err = db.checkAvailable()
+	err := db.checkAvailable()
 	if err != nil {
 		return "", db.convertIter(iter), err
 	}
@@ -2833,9 +2823,8 @@ func (db *MDBM) GetCacheModeName(cachemode int) (string, error) {
 func (db *MDBM) CountRecords() (uint64, error) {
 
 	var retval uint64
-	var err error
 
-	err = db.checkAvailable()
+	err := db.checkAvailable()
 	if err != nil {
 		return 0, err
 	}
@@ -2853,9 +2842,8 @@ func (db *MDBM) CountRecords() (uint64, error) {
 func (db *MDBM) CountPages() (uint32, error) {
 
 	var retval uint32
-	var err error
 
-	err = db.checkAvailable()
+	err := db.checkAvailable()
 	if err != nil {
 		return 0, err
 	}
@@ -2874,9 +2862,8 @@ func (db *MDBM) CountPages() (uint32, error) {
 func (db *MDBM) GetPage(key interface{}) (uint32, error) {
 
 	var retval uint32
-	var err error
 
-	err = db.checkAvailable()
+	err := db.checkAvailable()
 	if err != nil {
 		return 0, err
 	}
@@ -2944,9 +2931,8 @@ func (db *MDBM) LockDump() (string, error) {
 func (db *MDBM) LockPages() (int, error) {
 
 	var rv int
-	var err error
 
-	err = db.checkAvailable()
+	err := db.checkAvailable()
 	if err != nil {
 		return -1, err
 	}
@@ -2975,9 +2961,8 @@ func (db *MDBM) LockPages() (int, error) {
 func (db *MDBM) UnLockPages() (int, error) {
 
 	var rv int
-	var err error
 
-	err = db.checkAvailable()
+	err := db.checkAvailable()
 	if err != nil {
 		return -1, err
 	}
