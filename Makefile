@@ -82,12 +82,11 @@ ifeq ($(GOLANGV17_OVER),1)
 	@$(CMD_GO) get golang.org/x/sys/unix
 endif
 ifeq ($(GOLANGV19_OVER),1)
-	@$(CMD_GO) get github.com/golang/lint/golint
+	@$(CMD_GO) get golang.org/x/lint
 	@$(CMD_GO) get github.com/alecthomas/gometalinter
 endif
 ifeq ($(GOLANGV110_OVER),1)
 	@$(CMD_GO) get github.com/awalterschulze/gographviz
-	@$(CMD_GO) get github.com/golangci/golangci-lint/cmd/golangci-lint
 endif
 	@$(CMD_ECHO) -e "\033[1;40;36mDone\033[01;m\x1b[0m"
 
@@ -112,7 +111,8 @@ endif
 metalinter::
 	@$(CMD_ECHO)  -e "\033[1;40;32mInstall Golangci-Lint.\033[01;m\x1b[0m"
 ifeq ($(GOLANGV110_OVER),1)
-	@$(shell which golangci-lint) run
+	@$(CMD_GO) get github.com/golangci/golangci-lint/cmd/golangci-lint
+	@$(shell which golangci-lint) run ./
 else
 	@$(CMD_ECHO) -e "\033[1;40;36mSKIP: your golang is older version $(shell go version)\033[01;m\x1b[0m"
 endif
