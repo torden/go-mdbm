@@ -22,6 +22,8 @@ before_install:
 #    - make -j2 
 #    - make install
 #    - cd ..
+after_success:
+    - bash <(curl -s https://codecov.io/bash)
 script:
     - make installpkgs
     - make test
