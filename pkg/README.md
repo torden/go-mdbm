@@ -6,12 +6,14 @@ The following is pre-build packages for easy install to your machine.
 
 ### List of Pre-build Packages
 
-|OS/Release Ver.|Arch.|Pkg File|
-|---|---|---|
-|Ubuntu 18.04|64bit|mdbm-Bionic_Beaver.deb|
-|Ubuntu 17.10|64bit|mdbm-Artful_Aardvark.deb|
-|Ubuntu 12.04.5 LTS|64bit|mdbm-Precise_Pangolin.deb|
-|Ubuntu 14.04.5 LTS|64bit|mdbm-Trusty_Tahr.deb|
+|OS/Release Ver.|Arch.|Pkg File|dpkg::Depends|dpkg::Suggests|
+|---|---|---|---|---|
+|Ubuntu 19.xx|64bit|mdbm-4.13.0-Disco_Dingo.deb|zlib1g, libssl1.1, libreadline8, libtinfo6, libstdc++6, libc6|perl-modules|
+|Ubuntu 18.xx|64bit|mdbm-4.13.0-Bionic_Beaver.deb|zlib1g, libssl1.1, libreadline7, libtinfo5, libstdc++6, libc6|per-modules|
+|Ubuntu 16.xx|64bit|mdbm-4.13.0-Xenial_Xerus.deb|zlib1g, libssl1.0.0, libreadline6, libtinfo5, libstdc++6, libc6|perl-modules|
+|Ubuntu 14.xx|64bit|mdbm-4.13.0-Trusty_Tahr.deb|zlib1g, libssl1.0.0, libreadline6, libtinfo5, libstdc++6, libc6|perl-modules|
+|Ubuntu 12.xx|64bit|mdbm-4.13.0-Precise_Pangolin.deb|zlib1g, libssl1.0.0, libreadline6, libtinfo5, libstdc++6, libc6|perl-modules|
+
 
 ### Installation
 
