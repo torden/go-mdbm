@@ -35,7 +35,6 @@ CMD_GO				:=$(shell which go)
 CMD_GOLINT			:=$(shell which golint)
 CMD_GOMETALINTER	:=$(shell which gometalinter)
 CMD_MAKE2HELP		:=$(shell which make2help)
-CMD_GLIDE			:=$(shell which glide)
 CMD_GOVER			:=$(shell which gover)
 CMD_GOVERALLS		:=$(shell which goveralls)
 
@@ -66,7 +65,6 @@ setup: installpkgs metalinter
 ## Install Packages
 installpkgs::
 	@$(CMD_ECHO)  -e "\033[1;40;32mInstall Packages.\033[01;m\x1b[0m"
-	@$(CMD_GO) get github.com/Masterminds/glide
 ifeq ($(GOLANGV18_OVER),1)
 	@$(CMD_GO) get github.com/Songmu/make2help/cmd/make2help
 endif
@@ -122,10 +120,7 @@ endif
 lint: setup
 	@$(CMD_ECHO)  -e "\033[1;40;32mRun a LintChecker (Normal).\033[01;m\x1b[0m"
 ifeq ($(GOLANGV16_OVER),1)
-	@$(CMD_GO) vet $$($(shell which glide) novendor)
-	@for pkg in $$($(shell which glide) novendor -x); do \
-		$(CMD_GOLINT) -set_exit_status $$pkg || exit $$?; \
-	done
+	$(CMD_GOLINT) -set_exit_status ./.. || exit $$?; \
 else
 	@$(CMD_ECHO) -e "\033[1;40;36mSKIP: your golang is older version $(shell go version)\033[01;m\x1b[0m"
 endif
