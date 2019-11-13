@@ -1,6 +1,56 @@
+
 # Go-mdbm
 
 The following is pre-build packages for easy install to your machine.
+
+## List of packages
+
+```bash
+|-- rhel
+|   |-- el6
+|   |   |-- mdbm-4.12.4.0-1.el6.x86_64.rpm
+|   |   |-- mdbm-debuginfo-4.12.4.0-1.el6.x86_64.rpm
+|   |   |-- mdbm-devel-4.12.4.0-1.el6.x86_64.rpm
+|   |   -- mdbm-perl-4.12.4.0-1.el6.x86_64.rpm
+|   |-- el7
+|   |   |-- mdbm-4.12.4.0-1.el7.src.rpm
+|   |   |-- mdbm-4.12.4.0-1.el7.x86_64.rpm
+|   |   |-- mdbm-debuginfo-4.12.4.0-1.el7.x86_64.rpm
+|   |   |-- mdbm-devel-4.12.4.0-1.el7.x86_64.rpm
+|   |   -- mdbm-perl-4.12.4.0-1.el7.x86_64.rpm
+|   -- el8
+|       |-- cppunit-1.12.1-3.1.el8.src.rpm
+|       |-- cppunit-1.12.1-3.1.el8.x86_64.rpm
+|       |-- cppunit-debuginfo-1.12.1-3.1.el8.x86_64.rpm
+|       |-- cppunit-debugsource-1.12.1-3.1.el8.x86_64.rpm
+|       |-- cppunit-devel-1.12.1-3.1.el8.x86_64.rpm
+|       |-- cppunit-doc-1.12.1-3.1.el8.x86_64.rpm
+|       |-- doxygen-1.8.16-2.el8.src.rpm
+|       |-- doxygen-1.8.16-2.el8.x86_64.rpm
+|       |-- doxygen-debuginfo-1.8.16-2.el8.x86_64.rpm
+|       |-- doxygen-debugsource-1.8.16-2.el8.x86_64.rpm
+|       |-- doxygen-doxywizard-1.8.16-2.el8.x86_64.rpm
+|       |-- doxygen-doxywizard-debuginfo-1.8.16-2.el8.x86_64.rpm
+|       |-- doxygen-latex-1.8.16-2.el8.x86_64.rpm
+|       |-- mdbm-4.12.4.0-1.el8.src.rpm
+|       |-- mdbm-4.12.4.0-1.el8.x86_64.rpm
+|       |-- mdbm-debuginfo-4.12.4.0-1.el8.x86_64.rpm
+|       |-- mdbm-debugsource-4.12.4.0-1.el8.x86_64.rpm
+|       |-- mdbm-devel-4.12.4.0-1.el8.x86_64.rpm
+|       |-- mdbm-perl-4.12.4.0-1.el8.x86_64.rpm
+|       -- mdbm-perl-debuginfo-4.12.4.0-1.el8.x86_64.rpm
+-- ubuntu
+    |-- mdbm-4.13.0-Bionic_Beaver.deb
+    |-- mdbm-4.13.0-Bionic_Beaver.deb.md5
+    |-- mdbm-4.13.0-Disco_Dingo.deb
+    |-- mdbm-4.13.0-Disco_Dingo.deb.md5
+    |-- mdbm-4.13.0-Precise_Pangolin.deb
+    |-- mdbm-4.13.0-Precise_Pangolin.deb.md5
+    |-- mdbm-4.13.0-Trusty_Tahr.deb
+    |-- mdbm-4.13.0-Trusty_Tahr.deb.md5
+    |-- mdbm-4.13.0-Xenial_Xerus.deb
+    -- mdbm-4.13.0-Xenial_Xerus.deb.md5
+```
 
 ## Ubuntu
 
@@ -28,19 +78,28 @@ dpkg -i pkg/ubuntu/mdbm-XXX.deb
 
 |OS/Release Ver.|Arch.|Pkg File|
 |---|---|---|
-|RHEL6 ~ 7 (CentOS6.x ~7.x)|64bit|mdbm-4.12.3.0-1.el6.src.rpm|
-|||mdbm-4.12.3.0-1.el6.x86_64.rpm|
+|RHEL6 (CentOS6.x)|64bit|mdbm-4.12.3.0-1.el6.x86_64.rpm|
 |||mdbm-debuginfo-4.12.3.0-1.el6.x86_64.rpm|
 |||mdbm-devel-4.12.3.0-1.el6.x86_64.rpm|
 |||mdbm-perl-4.12.3.0-1.el6.x86_64.rpm|
+|RHEL7 (CentOS7.x)|64bit|mdbm-4.12.3.0-1.el6.x86_64.rpm|
+|||mdbm-debuginfo-4.12.3.0-1.el6.x86_64.rpm|
+|||mdbm-devel-4.12.3.0-1.el6.x86_64.rpm|
+|||mdbm-perl-4.12.3.0-1.el6.x86_64.rpm|
+|RHEL8 (CentOS8.x)|64bit|mdbm-4.12.4.0-1.el8.x86_64.rpm|
+|||mdbm-debuginfo-4.12.4.0-1.el8.x86_64.rpm|
+|||mdbm-debugsource-4.12.4.0-1.el8.x86_64.rpm|
+|||mdbm-devel-4.12.4.0-1.el8.x86_64.rpm|
+|||mdbm-perl-4.12.4.0-1.el8.x86_64.rpm|
+|||mdbm-perl-debuginfo-4.12.4.0-1.el8.x86_64.rpm|
 
-### Installation (RHEL6, CentOS 6)
+### Installation (RHEL6~8, CentOS 6~8)
 
 ```shell
 git clone https://github.com/torden/go-mdbm
-rpm -Uvh pkg/rhel/rhel/el6/mdbm-4.12.3.0-1.el6.x86_64.rpm
-rpm -Uvh pkg/rhel/rhel/el6/mdbm-devel-4.12.3.0-1.el6.x86_64.rpm
-rpm -Uvh pkg/rhel/rhel/el6/mdbm-debuginfo-4.12.3.0-1.el6.x86_64.rpm
+rpm -Uvh pkg/rhel/rhel/elX/mdbm-4.12.3.0-1.elX.x86_64.rpm
+rpm -Uvh pkg/rhel/rhel/elX/mdbm-devel-4.12.3.0-1.elX.x86_64.rpm
+rpm -Uvh pkg/rhel/rhel/elX/mdbm-debuginfo-4.12.3.0-1.elX.x86_64.rpm
 ```
 
 
@@ -51,5 +110,4 @@ as soon
 ## BSD
 
 as soon
-
 
