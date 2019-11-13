@@ -1,4 +1,3 @@
-
 # Go-mdbm
 
 The following is pre-build packages for easy install to your machine.
@@ -6,19 +5,36 @@ The following is pre-build packages for easy install to your machine.
 ## List of packages
 
 ```bash
+|-- docker
+|   |-- centos
+|   |   |-- 6
+|   |   |   `-- Dockerfile
+|   |   `-- 7
+|   |       `-- Dockerfile
+|   `-- ubuntu
+|       |-- 12.04
+|       |   `-- Dockerfile
+|       |-- 14.04
+|       |   `-- Dockerfile
+|       |-- 16.04
+|       |   `-- Dockerfile
+|       `-- 18.04
+|           `-- Dockerfile
+|-- osx
+|   `-- mdbm.rb
 |-- rhel
 |   |-- el6
 |   |   |-- mdbm-4.12.4.0-1.el6.x86_64.rpm
 |   |   |-- mdbm-debuginfo-4.12.4.0-1.el6.x86_64.rpm
 |   |   |-- mdbm-devel-4.12.4.0-1.el6.x86_64.rpm
-|   |   -- mdbm-perl-4.12.4.0-1.el6.x86_64.rpm
+|   |   `-- mdbm-perl-4.12.4.0-1.el6.x86_64.rpm
 |   |-- el7
 |   |   |-- mdbm-4.12.4.0-1.el7.src.rpm
 |   |   |-- mdbm-4.12.4.0-1.el7.x86_64.rpm
 |   |   |-- mdbm-debuginfo-4.12.4.0-1.el7.x86_64.rpm
 |   |   |-- mdbm-devel-4.12.4.0-1.el7.x86_64.rpm
-|   |   -- mdbm-perl-4.12.4.0-1.el7.x86_64.rpm
-|   -- el8
+|   |   `-- mdbm-perl-4.12.4.0-1.el7.x86_64.rpm
+|   `-- el8
 |       |-- cppunit-1.12.1-3.1.el8.src.rpm
 |       |-- cppunit-1.12.1-3.1.el8.x86_64.rpm
 |       |-- cppunit-debuginfo-1.12.1-3.1.el8.x86_64.rpm
@@ -38,8 +54,8 @@ The following is pre-build packages for easy install to your machine.
 |       |-- mdbm-debugsource-4.12.4.0-1.el8.x86_64.rpm
 |       |-- mdbm-devel-4.12.4.0-1.el8.x86_64.rpm
 |       |-- mdbm-perl-4.12.4.0-1.el8.x86_64.rpm
-|       -- mdbm-perl-debuginfo-4.12.4.0-1.el8.x86_64.rpm
--- ubuntu
+|       `-- mdbm-perl-debuginfo-4.12.4.0-1.el8.x86_64.rpm
+`-- ubuntu
     |-- mdbm-4.13.0-Bionic_Beaver.deb
     |-- mdbm-4.13.0-Bionic_Beaver.deb.md5
     |-- mdbm-4.13.0-Disco_Dingo.deb
@@ -49,7 +65,7 @@ The following is pre-build packages for easy install to your machine.
     |-- mdbm-4.13.0-Trusty_Tahr.deb
     |-- mdbm-4.13.0-Trusty_Tahr.deb.md5
     |-- mdbm-4.13.0-Xenial_Xerus.deb
-    -- mdbm-4.13.0-Xenial_Xerus.deb.md5
+    `-- mdbm-4.13.0-Xenial_Xerus.deb.md5
 ```
 
 ## Ubuntu
@@ -105,7 +121,13 @@ rpm -Uvh pkg/rhel/rhel/elX/mdbm-debuginfo-4.12.3.0-1.elX.x86_64.rpm
 
 ## OSX
 
-as soon
+### Using Homebrew  
+
+```shell
+/usr/bin/ruby -e "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/master/install)"
+git clone https://github.com/torden/go-mdbm
+brea install cd go-mdbm/pkg/osx/mdbm.rb
+```
 
 ## BSD
 
