@@ -126,7 +126,12 @@ rpm -Uvh pkg/rhel/rhel/elX/mdbm-debuginfo-4.12.3.0-1.elX.x86_64.rpm
 ```shell
 /usr/bin/ruby -e "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/master/install)"
 git clone https://github.com/torden/go-mdbm
-brea install cd go-mdbm/pkg/osx/mdbm.rb
+
+brew install cd go-mdbm/pkg/osx/mdbm.rb
+
+# OR (as soon)
+
+brew install mdbm 
 ```
 
 ## BSD
