@@ -21,11 +21,12 @@ jobs:
         go version
         sudo apt-get update -y
         sudo apt-get install -y openssl libcppunit-dev libreadline6 libreadline6-dev valgrind realpath libmodule-install-perl
-        sudo dpkg -i pkg/ubuntu/mdbm-4.13.0-Disco_Dingo.deb
-        
+	
     # Run build of the application
     - name: Run build
-      run: go build . 
+      run: |
+        sudo dpkg -i pkg/ubuntu/mdbm-4.13.0-Disco_Dingo.deb
+        go build . 
       
     # Run vet
     - name: Run vet
@@ -44,6 +45,9 @@ jobs:
           go-version: ${{ matrix.go }}
       - uses: actions/checkout@v3
       - run: |
+          sudo apt-get update -y
+          sudo apt-get install -y openssl libcppunit-dev libreadline6 libreadline6-dev valgrind realpath libmodule-install-perl
+          sudo dpkg -i pkg/ubuntu/mdbm-4.13.0-Disco_Dingo.deb
           go test -v -test.parallel 4 -race -coverprofile=coverage.txt  -covermode=atomic
 
       - name: Upload coverage report
