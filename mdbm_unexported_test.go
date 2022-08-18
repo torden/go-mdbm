@@ -12,14 +12,15 @@ const pathTestDBMUnexport = "/tmp/test_unexport.mdbm"
 
 var assert = strutils.NewAssert()
 
-var intzero = int(0)
-var uint32zero = uint32(0)
-var uint64zero = uint64(0)
+var (
+	intzero    = int(0)
+	uint32zero = uint32(0)
+	uint64zero = uint64(0)
+)
 
 var gPathList = [...]string{pathTestDBMUnexport}
 
 func TestMain(t *testing.T) {
-
 	dbm := NewMDBM()
 
 	for _, path := range gPathList {
@@ -37,11 +38,9 @@ func TestMain(t *testing.T) {
 		}
 
 	}
-
 }
 
 func Test_mdbm_unexport_convertIterToC(t *testing.T) {
-
 	var iter Iter
 
 	dbm := NewMDBM()
@@ -53,13 +52,10 @@ func Test_mdbm_unexport_convertIterToC(t *testing.T) {
 }
 
 func Test_mdbm_unexport_convertFetchInfo(t *testing.T) {
-
-	//golang not supported testing include the cgo routine
-
+	// golang not supported testing include the cgo routine
 }
 
 func Test_mdbm_unexport_convertStatsToC(t *testing.T) {
-
 	var stats Stats
 
 	dbm := NewMDBM()
@@ -86,11 +82,9 @@ func Test_mdbm_unexport_convertStatsToC(t *testing.T) {
 	assert.AssertEquals(t, goStats.LargeMinSize, uint32zero, "failured, converted value mismatch, goStats.LargeMinSize=%+v", goStats.LargeMinSize)
 	assert.AssertEquals(t, goStats.LargeMaxSize, uint32zero, "failured, converted value mismatch, goStats.LargeMaxSize=%+v", goStats.LargeMaxSize)
 	assert.AssertEquals(t, goStats.CacheMode, uint32zero, "failured, converted value mismatch, goStats.CacheMode=%+v", goStats.CacheMode)
-
 }
 
 func Test_mdbm_unexport_convertDBInfo(t *testing.T) {
-
 	var dbinfo DBInfo
 
 	dbm := NewMDBM()
@@ -114,7 +108,6 @@ func Test_mdbm_unexport_convertDBInfo(t *testing.T) {
 }
 
 func Test_mdbm_unexport_convertBucketStat(t *testing.T) {
-
 	var bucketstat BucketStat
 
 	dbm := NewMDBM()
@@ -133,7 +126,6 @@ func Test_mdbm_unexport_convertBucketStat(t *testing.T) {
 }
 
 func Test_mdbm_unexport_convertStatInfo(t *testing.T) {
-
 	var statinfo StatInfo
 
 	dbm := NewMDBM()
@@ -180,7 +172,6 @@ func Test_mdbm_unexport_convertStatInfo(t *testing.T) {
 }
 
 func Test_mdbm_unexport_convertWindowStat(t *testing.T) {
-
 	var wstats WindowStats
 	dbm := NewMDBM()
 
@@ -194,7 +185,6 @@ func Test_mdbm_unexport_convertWindowStat(t *testing.T) {
 }
 
 func Test_mdbm_unexport_checkAvailable(t *testing.T) {
-
 	dbm := NewMDBM()
 	err := dbm.EasyOpen(pathTestDBMUnexport, 0644)
 	assert.AssertNil(t, err, "failured, can't open the mdbm, path=%s, err=%v", dbm.GetDBMFile(), err)

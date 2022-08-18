@@ -15,7 +15,6 @@ import (
 var assert = strutils.NewAssert()
 
 func getRandomNumber(limit int) int {
-
 	var key int
 
 	r := rand.New(rand.NewSource(time.Now().UnixNano()))
@@ -31,7 +30,6 @@ func getRandomNumber(limit int) int {
 }
 
 func TestMain(t *testing.T) {
-
 	dbm := mdbm.NewMDBM()
 
 	for _, path := range gPathList {
@@ -52,7 +50,6 @@ func TestMain(t *testing.T) {
 }
 
 func Test_mdbm_EasyOpen_EasyClose(t *testing.T) {
-
 	var rv int
 	var err error
 
@@ -69,7 +66,6 @@ func Test_mdbm_EasyOpen_EasyClose(t *testing.T) {
 }
 
 func Test_mdbm_EasyOpen_EasyClose_CheckDMBPath(t *testing.T) {
-
 	var err error
 
 	dbm := mdbm.NewMDBM()
@@ -82,7 +78,6 @@ func Test_mdbm_EasyOpen_EasyClose_CheckDMBPath(t *testing.T) {
 }
 
 func Test_mdbm_SetAlignment_GetAlignment(t *testing.T) {
-
 	var rv int
 	var err error
 
@@ -124,7 +119,6 @@ func Test_mdbm_SetAlignment_GetAlignment(t *testing.T) {
 }
 
 func Test_mdbm_LimitDirSize(t *testing.T) {
-
 	var rv int
 	var err error
 
@@ -144,11 +138,9 @@ func Test_mdbm_LimitDirSize(t *testing.T) {
 
 	rv, err = dbm.LimitDirSize(81920)
 	assert.AssertNil(t, err, "failured, can't set the limit of size of dir, path=%s, rv=%d, err=%v", dbm.GetDBMFile(), rv, err)
-
 }
 
 func Test_mdbm_SetWindowSize(t *testing.T) {
-
 	var rv int
 	var err error
 
@@ -165,11 +157,9 @@ func Test_mdbm_SetWindowSize(t *testing.T) {
 
 	rv, err = dbm.SetWindowSize(7)
 	assert.AssertNotNil(t, err, "failured, can't check the wrong option, path=%s, rv=%d, err=%v", dbm.GetDBMFile(), rv, err)
-
 }
 
 func Test_mdbm_SetCacheMode(t *testing.T) {
-
 	var rv int
 	var err error
 
@@ -204,7 +194,6 @@ func Test_mdbm_SetCacheMode(t *testing.T) {
 }
 
 func Test_mdbm_GetCacheModeName(t *testing.T) {
-
 	var rv string
 	var err error
 
@@ -235,7 +224,6 @@ func Test_mdbm_GetCacheModeName(t *testing.T) {
 }
 
 func Test_mdbm_Open_Close(t *testing.T) {
-
 	dbm := mdbm.NewMDBM()
 	err := dbm.Open(pathTestDBM2, mdbm.Create|mdbm.Rdrw, 0644, 0, 0)
 	defer dbm.Close()
@@ -244,7 +232,6 @@ func Test_mdbm_Open_Close(t *testing.T) {
 }
 
 func Test_mdbm_OrdinaryInsertData_Store1(t *testing.T) {
-
 	var rv int
 	var err error
 
@@ -264,7 +251,6 @@ func Test_mdbm_OrdinaryInsertData_Store1(t *testing.T) {
 }
 
 func Test_mdbm_OrdinaryInsertData_Store2(t *testing.T) {
-
 	dbm := mdbm.NewMDBM()
 	err := dbm.EasyOpen(pathTestDBM2, 0644)
 	defer dbm.EasyClose()
@@ -278,7 +264,6 @@ func Test_mdbm_OrdinaryInsertData_Store2(t *testing.T) {
 }
 
 func Test_mdbm_OrdinaryInsertData_StoreWithLock(t *testing.T) {
-
 	var rv int
 	dbm := mdbm.NewMDBM()
 	err := dbm.EasyOpen(pathTestDBM3, 0644)
@@ -296,11 +281,9 @@ func Test_mdbm_OrdinaryInsertData_StoreWithLock(t *testing.T) {
 
 	rv, err = dbm.StoreWithLock(0, 0, mdbm.Insert)
 	assert.AssertNotNil(t, err, "failured, can't check the wrong data type into convertToArByte. value=%d, err=%v\n", rv, err)
-
 }
 
 func Test_mdbm_OrdinaryReaplceData_StoreWithLockSmart(t *testing.T) {
-
 	dbm := mdbm.NewMDBM()
 	err := dbm.EasyOpen(pathTestDBM1, 0644)
 	defer dbm.EasyClose()
@@ -314,7 +297,6 @@ func Test_mdbm_OrdinaryReaplceData_StoreWithLockSmart(t *testing.T) {
 }
 
 func Test_mdbm_OrdinaryReaplceData_StoreWithLockShared(t *testing.T) {
-
 	dbm := mdbm.NewMDBM()
 	err := dbm.EasyOpen(pathTestDBM1, 0644)
 	defer dbm.EasyClose()
@@ -328,7 +310,6 @@ func Test_mdbm_OrdinaryReaplceData_StoreWithLockShared(t *testing.T) {
 }
 
 func Test_mdbm_OrdinaryReaplceData_StoreWithPlock(t *testing.T) {
-
 	dbm := mdbm.NewMDBM()
 	err := dbm.EasyOpen(pathTestDBM1, 0644)
 	defer dbm.EasyClose()
@@ -339,11 +320,9 @@ func Test_mdbm_OrdinaryReaplceData_StoreWithPlock(t *testing.T) {
 		rv, err := dbm.StoreWithPlock(i, i, mdbm.Replace, mdbm.Rdrw)
 		assert.AssertNil(t, err, "failured, return Value mismatch. value=%d, err=%v\n", rv, err)
 	}
-
 }
 
 func Test_mdbm_OrdinaryReaplceData_StoreWithTryLock(t *testing.T) {
-
 	dbm := mdbm.NewMDBM()
 	err := dbm.EasyOpen(pathTestDBM1, 0644)
 	defer dbm.EasyClose()
@@ -357,7 +336,6 @@ func Test_mdbm_OrdinaryReaplceData_StoreWithTryLock(t *testing.T) {
 }
 
 func Test_mdbm_OrdinaryReaplceData_StoreWithTryLockSmart(t *testing.T) {
-
 	dbm := mdbm.NewMDBM()
 	err := dbm.EasyOpen(pathTestDBM1, 0644)
 	defer dbm.EasyClose()
@@ -371,7 +349,6 @@ func Test_mdbm_OrdinaryReaplceData_StoreWithTryLockSmart(t *testing.T) {
 }
 
 func Test_mdbm_OrdinaryReaplceData_StoreWithTryLockShared(t *testing.T) {
-
 	dbm := mdbm.NewMDBM()
 	err := dbm.EasyOpen(pathTestDBM1, 0644)
 	defer dbm.EasyClose()
@@ -385,7 +362,6 @@ func Test_mdbm_OrdinaryReaplceData_StoreWithTryLockShared(t *testing.T) {
 }
 
 func Test_mdbm_OrdinaryReaplceData_StoreWithTryPlock(t *testing.T) {
-
 	dbm := mdbm.NewMDBM()
 	err := dbm.EasyOpen(pathTestDBM1, 0644)
 	defer dbm.EasyClose()
@@ -399,7 +375,6 @@ func Test_mdbm_OrdinaryReaplceData_StoreWithTryPlock(t *testing.T) {
 }
 
 func Test_mdbm_OrdinaryFetchData_Fetch(t *testing.T) {
-
 	var val string
 	var err error
 
@@ -420,7 +395,6 @@ func Test_mdbm_OrdinaryFetchData_Fetch(t *testing.T) {
 }
 
 func Test_mdbm_OrdinaryFetchData_RandomFetch(t *testing.T) {
-
 	dbm := mdbm.NewMDBM()
 	err := dbm.EasyOpen(pathTestDBM1, 0644)
 	defer dbm.EasyClose()
@@ -437,7 +411,6 @@ func Test_mdbm_OrdinaryFetchData_RandomFetch(t *testing.T) {
 }
 
 func Test_mdbm_OrdinaryFetchData_FetchWithLock(t *testing.T) {
-
 	dbm := mdbm.NewMDBM()
 	err := dbm.EasyOpen(pathTestDBM1, 0644)
 	defer dbm.EasyClose()
@@ -452,7 +425,6 @@ func Test_mdbm_OrdinaryFetchData_FetchWithLock(t *testing.T) {
 }
 
 func Test_mdbm_OrdinaryFetchData_FetchWithLockSmart(t *testing.T) {
-
 	dbm := mdbm.NewMDBM()
 	err := dbm.EasyOpen(pathTestDBM1, 0644)
 	defer dbm.EasyClose()
@@ -467,7 +439,6 @@ func Test_mdbm_OrdinaryFetchData_FetchWithLockSmart(t *testing.T) {
 }
 
 func Test_mdbm_OrdinaryFetchData_FetchWithLockShared(t *testing.T) {
-
 	dbm := mdbm.NewMDBM()
 	err := dbm.EasyOpen(pathTestDBM1, 0644)
 	defer dbm.EasyClose()
@@ -482,7 +453,6 @@ func Test_mdbm_OrdinaryFetchData_FetchWithLockShared(t *testing.T) {
 }
 
 func Test_mdbm_OrdinaryFetchData_FetchWithPlock(t *testing.T) {
-
 	dbm := mdbm.NewMDBM()
 	err := dbm.EasyOpen(pathTestDBM1, 0644)
 	defer dbm.EasyClose()
@@ -497,7 +467,6 @@ func Test_mdbm_OrdinaryFetchData_FetchWithPlock(t *testing.T) {
 }
 
 func Test_mdbm_OrdinaryFetchData_Random_NonePreLoad_Fetch(t *testing.T) {
-
 	dbm := mdbm.NewMDBM()
 	err := dbm.EasyOpen(pathTestDBM1, 0644)
 	defer dbm.EasyClose()
@@ -514,7 +483,6 @@ func Test_mdbm_OrdinaryFetchData_Random_NonePreLoad_Fetch(t *testing.T) {
 }
 
 func Test_mdbm_OrdinaryFetchData_Random_PreLoad_Fetch(t *testing.T) {
-
 	dbm := mdbm.NewMDBM()
 	err := dbm.EasyOpen(pathTestDBM1, 0644)
 	defer dbm.EasyClose()
@@ -535,7 +503,6 @@ func Test_mdbm_OrdinaryFetchData_Random_PreLoad_Fetch(t *testing.T) {
 }
 
 func Test_mdbm_OrdinaryFetchData_Random_NonePreLoad_FetchWithLock(t *testing.T) {
-
 	dbm := mdbm.NewMDBM()
 	err := dbm.EasyOpen(pathTestDBM1, 0644)
 	defer dbm.EasyClose()
@@ -553,7 +520,6 @@ func Test_mdbm_OrdinaryFetchData_Random_NonePreLoad_FetchWithLock(t *testing.T) 
 }
 
 func Test_mdbm_OrdinaryFetchData_Random_PreLoad_FetchWithLock(t *testing.T) {
-
 	dbm := mdbm.NewMDBM()
 	err := dbm.EasyOpen(pathTestDBM1, 0644)
 	defer dbm.EasyClose()
@@ -572,7 +538,6 @@ func Test_mdbm_OrdinaryFetchData_Random_PreLoad_FetchWithLock(t *testing.T) {
 }
 
 func Test_mdbm_OrdinaryFetchData_Random_NonePreLoad_FetchWithLockSmart(t *testing.T) {
-
 	dbm := mdbm.NewMDBM()
 	err := dbm.EasyOpen(pathTestDBM1, 0644)
 	defer dbm.EasyClose()
@@ -589,7 +554,6 @@ func Test_mdbm_OrdinaryFetchData_Random_NonePreLoad_FetchWithLockSmart(t *testin
 }
 
 func Test_mdbm_OrdinaryFetchData_Random_PreLoad_FetchWithLockSmart(t *testing.T) {
-
 	dbm := mdbm.NewMDBM()
 	err := dbm.EasyOpen(pathTestDBM1, 0644)
 	defer dbm.EasyClose()
@@ -608,7 +572,6 @@ func Test_mdbm_OrdinaryFetchData_Random_PreLoad_FetchWithLockSmart(t *testing.T)
 }
 
 func Test_mdbm_LockShared(t *testing.T) {
-
 	dbm := mdbm.NewMDBM()
 	err := dbm.EasyOpen(pathTestDBM1, 0644)
 	defer dbm.EasyClose()
@@ -620,7 +583,6 @@ func Test_mdbm_LockShared(t *testing.T) {
 }
 
 func Test_mdbm_TryLockShared(t *testing.T) {
-
 	dbm := mdbm.NewMDBM()
 	err := dbm.EasyOpen(pathTestDBM1, 0644)
 	defer dbm.EasyClose()
@@ -632,7 +594,6 @@ func Test_mdbm_TryLockShared(t *testing.T) {
 }
 
 func Test_mdbm_GetLockMode(t *testing.T) {
-
 	dbm := mdbm.NewMDBM()
 	err := dbm.EasyOpen(pathTestDBM1, 0644)
 	defer dbm.EasyClose()
@@ -642,11 +603,9 @@ func Test_mdbm_GetLockMode(t *testing.T) {
 	// 0 - Exclusive locking
 	assert.AssertEquals(t, 0, rv, "failured, gets the mdbm's lock mode, path=%s, err=%v", dbm.GetDBMFile(), err)
 	assert.AssertNil(t, err, "failured, gets the mdbm's lock mode, path=%s, err=%v", dbm.GetDBMFile(), err)
-
 }
 
 func Test_mdbm_LargeObject(t *testing.T) {
-
 	var rv int
 	var err error
 
@@ -666,11 +625,9 @@ func Test_mdbm_LargeObject(t *testing.T) {
 
 	err = dbm.SetSpillSize(8192)
 	assert.AssertNotNil(t, err, "failured, can't check the error, path=%s, err=%v", dbm.GetDBMFile(), rv, err)
-
 }
 
 func Test_mdbm_MutipleDataType_Store(t *testing.T) {
-
 	var rv int
 	var err error
 
@@ -743,7 +700,6 @@ func Test_mdbm_MutipleDataType_Store(t *testing.T) {
 }
 
 func Test_mdbm_DupHandle_AfterClose(t *testing.T) {
-
 	dbm := mdbm.NewMDBM()
 	err := dbm.Open(pathTestDBMLarge, mdbm.Create|mdbm.Rdrw|mdbm.LargeObjects, 0644, 0, 0)
 	assert.AssertNil(t, err, "failured, can't open the mdbm, path=%s, err=%v", dbm.GetDBMFile(), err)
@@ -755,11 +711,9 @@ func Test_mdbm_DupHandle_AfterClose(t *testing.T) {
 
 	_, err = dbm.DupHandle()
 	assert.AssertNotNil(t, err, "failured, return of closed db handler, err=%v", err)
-
 }
 
 func Test_mdbm_LogMinLevel_WrongOption(t *testing.T) {
-
 	dbm := mdbm.NewMDBM()
 	err := dbm.EasyOpen(pathTestDBM1, 0644)
 	defer dbm.EasyClose()
@@ -770,7 +724,6 @@ func Test_mdbm_LogMinLevel_WrongOption(t *testing.T) {
 }
 
 func Test_mdbm_LogPlugin(t *testing.T) {
-
 	dbm := mdbm.NewMDBM()
 	err := dbm.EasyOpen(pathTestDBM1, 0644)
 	defer dbm.EasyClose()
@@ -790,11 +743,9 @@ func Test_mdbm_LogPlugin(t *testing.T) {
 
 	err = dbm.LogPlugin(mdbm.LargeObjects)
 	assert.AssertNotNil(t, err, "oops!. mdbm.LogPlugin can't check the a argument=%d", int(mdbm.LargeObjects))
-
 }
 
 func Test_mdbm_LogToAutoFile(t *testing.T) {
-
 	dbm := mdbm.NewMDBM()
 	err := dbm.EasyOpen(pathTestDBM1, 0644)
 	defer dbm.EasyClose()
@@ -808,7 +759,6 @@ func Test_mdbm_LogToAutoFile(t *testing.T) {
 }
 
 func Test_mdbm_AnyDataType_Store(t *testing.T) {
-
 	var rv int
 	var err error
 
@@ -822,13 +772,13 @@ func Test_mdbm_AnyDataType_Store(t *testing.T) {
 	vstring := "hello_world"
 
 	vint := int(1)
-	//vint8 := int8(12) //not support. because int8 and byte are same data type
+	// vint8 := int8(12) //not support. because int8 and byte are same data type
 	vint16 := int16(3)
 	vint32 := int32(4)
 	vint64 := int64(5)
 
 	vuint := uint(11)
-	//vuint8 := uint8(12) //not support. because uint8 and byte are same data type
+	// vuint8 := uint8(12) //not support. because uint8 and byte are same data type
 	vuint16 := uint16(13)
 	vuint32 := uint32(14)
 	vuint64 := uint64(15)
@@ -893,7 +843,7 @@ func Test_mdbm_AnyDataType_Store(t *testing.T) {
 	rv, err = dbm.Sync()
 	assert.AssertNil(t, err, "failured, can't sync database, path=%s, rv=%d, err=%v", dbm.GetDBMFile(), rv, err)
 
-	//validation
+	// validation
 	cnt := 1
 	key, val, err := dbm.First()
 	assert.AssertNil(t, err, "failured, can't get a first records, path=%s, err=%v", dbm.GetDBMFile(), err)
@@ -914,7 +864,6 @@ func Test_mdbm_AnyDataType_Store(t *testing.T) {
 }
 
 func Test_mdbm_AnyDataType_StoreStr(t *testing.T) {
-
 	var rv int
 	var err error
 
@@ -928,13 +877,13 @@ func Test_mdbm_AnyDataType_StoreStr(t *testing.T) {
 	vstring := "hello_world"
 
 	vint := int(1)
-	vint8 := int8(12) //not support. because int8 and byte are same data type
+	vint8 := int8(12) // not support. because int8 and byte are same data type
 	vint16 := int16(3)
 	vint32 := int32(4)
 	vint64 := int64(5)
 
 	vuint := uint(11)
-	//vuint8 := uint8(12) //not support. because uint8 and byte are same data type
+	// vuint8 := uint8(12) //not support. because uint8 and byte are same data type
 	vuint16 := uint16(13)
 	vuint32 := uint32(14)
 	vuint64 := uint64(15)
@@ -1006,7 +955,7 @@ func Test_mdbm_AnyDataType_StoreStr(t *testing.T) {
 	rv, err = dbm.Sync()
 	assert.AssertNil(t, err, "failured, can't sync database, path=%s, rv=%d, err=%v", dbm.GetDBMFile(), rv, err)
 
-	//validation
+	// validation
 	cnt := 1
 	key, val, err := dbm.First()
 	assert.AssertNil(t, err, "failured, can't get a first records, path=%s, err=%v", dbm.GetDBMFile(), err)
@@ -1024,11 +973,9 @@ func Test_mdbm_AnyDataType_StoreStr(t *testing.T) {
 	}
 
 	assert.AssertEquals(t, cnt, 18, "count of records value mismatch.\ngot=%d, want=%d", cnt, 18)
-
 }
 
 func Test_mdbm_AnyDataType_StoreR(t *testing.T) {
-
 	var rv int
 	var err error
 	var goiter mdbm.Iter
@@ -1045,13 +992,13 @@ func Test_mdbm_AnyDataType_StoreR(t *testing.T) {
 	vstring := "hello_world"
 
 	vint := int(1)
-	vint8 := int8(12) //not support. because int8 and byte are same data type
+	vint8 := int8(12) // not support. because int8 and byte are same data type
 	vint16 := int16(3)
 	vint32 := int32(4)
 	vint64 := int64(5)
 
 	vuint := uint(11)
-	//vuint8 := uint8(12) //not support. because uint8 and byte are same data type
+	// vuint8 := uint8(12) //not support. because uint8 and byte are same data type
 	vuint16 := uint16(13)
 	vuint32 := uint32(14)
 	vuint64 := uint64(15)
@@ -1169,7 +1116,7 @@ func Test_mdbm_AnyDataType_StoreR(t *testing.T) {
 	rv, err = dbm.Sync()
 	assert.AssertNil(t, err, "failured, can't sync database, path=%s, rv=%d, err=%v", dbm.GetDBMFile(), rv, err)
 
-	//validation
+	// validation
 	cnt := 1
 	key, val, err := dbm.First()
 	assert.AssertNil(t, err, "failured, can't get a first records, path=%s, err=%v", dbm.GetDBMFile(), err)
@@ -1187,11 +1134,9 @@ func Test_mdbm_AnyDataType_StoreR(t *testing.T) {
 	}
 
 	assert.AssertEquals(t, cnt, 18, "count of records value mismatch.\ngot=%d, want=%d", cnt, 18)
-
 }
 
 func Test_mdbm_FetchWithAnyLock(t *testing.T) {
-
 	var val string
 	var err error
 
@@ -1242,7 +1187,6 @@ func Test_mdbm_FetchWithAnyLock(t *testing.T) {
 }
 
 func Test_mdbm_FetchRWithAnyLock(t *testing.T) {
-
 	var rv int
 	var val string
 	var err error
@@ -1318,7 +1262,6 @@ func Test_mdbm_FetchRWithAnyLock(t *testing.T) {
 }
 
 func Test_mdbm_TryLock_UnLock(t *testing.T) {
-
 	dbm := mdbm.NewMDBM()
 	err := dbm.EasyOpen(pathTestDBM1, 0644)
 	defer dbm.EasyClose()
@@ -1332,7 +1275,6 @@ func Test_mdbm_TryLock_UnLock(t *testing.T) {
 }
 
 func Test_mdbm_FetchInfo(t *testing.T) {
-
 	var rv int
 	var copiedval string
 	var info mdbm.FetchInfo
@@ -1353,7 +1295,7 @@ func Test_mdbm_FetchInfo(t *testing.T) {
 
 	var retval string
 
-	//for i := 0; i <= loopLimit; i++ {
+	// for i := 0; i <= loopLimit; i++ {
 	for i := 0; i <= 3; i++ {
 
 		rv, copiedval, info, goiter, err = dbm.FetchInfo(i, &retval, &iter)
@@ -1379,7 +1321,6 @@ func Test_mdbm_FetchInfo(t *testing.T) {
 }
 
 func Test_mdbm_DeleteWithLock(t *testing.T) {
-
 	var rv int
 	var val string
 	var err error
@@ -1416,7 +1357,6 @@ func Test_mdbm_DeleteWithLock(t *testing.T) {
 }
 
 func Test_mdbm_EasyGetNumOfRows(t *testing.T) {
-
 	dbm := mdbm.NewMDBM()
 	err := dbm.EasyOpen(pathTestDBMLarge, 0644)
 	defer dbm.EasyClose()
@@ -1430,7 +1370,6 @@ func Test_mdbm_EasyGetNumOfRows(t *testing.T) {
 	dbm.EasyClose()
 	_, err = dbm.EasyGetNumOfRows()
 	assert.AssertNotNil(t, err, "failured, can't check the the mdbm closed, err=%v\n", err)
-
 }
 
 func Test_mdbm_EasyGetKeyList(t *testing.T) {
@@ -1450,7 +1389,6 @@ func Test_mdbm_EasyGetKeyList(t *testing.T) {
 }
 
 func Test_mdbm_LockSmart_UnLockSmart(t *testing.T) {
-
 	var rv int
 	var err error
 
@@ -1478,7 +1416,6 @@ func Test_mdbm_LockSmart_UnLockSmart(t *testing.T) {
 }
 
 func Test_mdbm_TryLockSmart_UnLockSmart(t *testing.T) {
-
 	var rv int
 	var err error
 
@@ -1506,7 +1443,6 @@ func Test_mdbm_TryLockSmart_UnLockSmart(t *testing.T) {
 }
 
 func Test_mdbm_Truncate(t *testing.T) {
-
 	var rv int
 	var val string
 	var err error
@@ -1538,7 +1474,6 @@ func Test_mdbm_Truncate(t *testing.T) {
 }
 
 func Test_mdbm_GetHashValue(t *testing.T) {
-
 	var rv uint32
 	var err error
 
@@ -1598,11 +1533,9 @@ func Test_mdbm_GetHashValue(t *testing.T) {
 
 	_, err = dbm.GetHashValue(nil, mdbm.MaxHash)
 	assert.AssertNotNil(t, err, "failured, can't check the hash type err=%v", err)
-
 }
 
 func Test_mdbm_StoreStr(t *testing.T) {
-
 	var rv int
 	var err error
 
@@ -1638,7 +1571,6 @@ func Test_mdbm_StoreStr(t *testing.T) {
 }
 
 func Test_mdbm_StoreStrAnyLock(t *testing.T) {
-
 	var rv int
 	var err error
 
@@ -1737,7 +1669,6 @@ func Test_mdbm_StoreStrAnyLock(t *testing.T) {
 }
 
 func Test_mdbm_FetchStr(t *testing.T) {
-
 	var err error
 	var val string
 
@@ -1754,7 +1685,6 @@ func Test_mdbm_FetchStr(t *testing.T) {
 }
 
 func Test_mdbm_FetchStrAnyLock(t *testing.T) {
-
 	var err error
 	var val string
 
@@ -1807,7 +1737,6 @@ func Test_mdbm_FetchStrAnyLock(t *testing.T) {
 }
 
 func Test_mdbm_GetPage(t *testing.T) {
-
 	var rv uint32
 	var err error
 
@@ -1821,11 +1750,9 @@ func Test_mdbm_GetPage(t *testing.T) {
 
 	rv, err = dbm.GetPage([]int{1, 2, 3})
 	assert.AssertNotNil(t, err, "failured, can't check the wrong data-type, path=%s, rv=%d, err=%v", dbm.GetDBMFile(), rv, err)
-
 }
 
 func Test_mdbm_FirstNext(t *testing.T) {
-
 	var err error
 
 	dbm := mdbm.NewMDBM()
@@ -1850,7 +1777,6 @@ func Test_mdbm_FirstNext(t *testing.T) {
 }
 
 func Test_mdbm_AnyFirst_EmptyDB(t *testing.T) {
-
 	var err error
 
 	dbm := mdbm.NewMDBM()
@@ -1876,11 +1802,9 @@ func Test_mdbm_AnyFirst_EmptyDB(t *testing.T) {
 
 	_, err = dbm.EasyGetNumOfRows()
 	assert.AssertNotNil(t, err, "failured, can't check the obtain first record from empty db, path=%s, err=%v", dbm.GetDBMFile(), err)
-
 }
 
 func Test_mdbm_FirstRNextR(t *testing.T) {
-
 	var err error
 
 	dbm := mdbm.NewMDBM()
@@ -1910,7 +1834,6 @@ func Test_mdbm_FirstRNextR(t *testing.T) {
 }
 
 func Test_mdbm_FirstKeyNextKey(t *testing.T) {
-
 	var err error
 
 	dbm := mdbm.NewMDBM()
@@ -1934,7 +1857,6 @@ func Test_mdbm_FirstKeyNextKey(t *testing.T) {
 }
 
 func Test_mdbm_FirstKeyRNextKeyR(t *testing.T) {
-
 	var err error
 
 	dbm := mdbm.NewMDBM()
@@ -1965,14 +1887,12 @@ func Test_mdbm_FirstKeyRNextKeyR(t *testing.T) {
 }
 
 func Test_mdbm_StoreDup(t *testing.T) {
-
 	dbm := mdbm.NewMDBM()
 	err := dbm.Open(pathTestDBMDup, mdbm.Create|mdbm.Rdrw|mdbm.LargeObjects|mdbm.InsertDup, 0644, 0, 0)
 	defer dbm.EasyClose()
 	assert.AssertNil(t, err, "failured, can't open the mdbm, path=%s, err=%v", dbm.GetDBMFile(), err)
 
 	for i := 0; i <= loopLimit; i++ {
-
 		for r := 0; r <= 10; r++ {
 			rv, err := dbm.Store(i, time.Now().UnixNano(), mdbm.InsertDup)
 			assert.AssertNil(t, err, "failed, can't data(=%d) add to the mdbm file(=%s), rv=%d, err=%v", i, dbm.GetDBMFile(), rv, err)
@@ -1981,7 +1901,6 @@ func Test_mdbm_StoreDup(t *testing.T) {
 }
 
 func Test_mdbm_FetchDupRWithAnyLock(t *testing.T) {
-
 	var rv int
 	var val string
 	var err error
@@ -1999,7 +1918,7 @@ func Test_mdbm_FetchDupRWithAnyLock(t *testing.T) {
 
 		rv, val, goiter, err = dbm.FetchDupR(key, &iter)
 		if rv == -1 {
-			//end of records
+			// end of records
 			break
 		}
 
@@ -2015,7 +1934,7 @@ func Test_mdbm_FetchDupRWithAnyLock(t *testing.T) {
 
 		rv, val, goiter, err = dbm.FetchDupRWithLock(key, &iter)
 		if rv == -1 {
-			//end of records
+			// end of records
 			break
 		}
 
@@ -2031,7 +1950,7 @@ func Test_mdbm_FetchDupRWithAnyLock(t *testing.T) {
 
 		rv, val, goiter, err = dbm.FetchDupRWithLockSmart(key, &iter, mdbm.Rdrw)
 		if rv == -1 {
-			//end of records
+			// end of records
 			break
 		}
 
@@ -2047,7 +1966,7 @@ func Test_mdbm_FetchDupRWithAnyLock(t *testing.T) {
 
 		rv, val, goiter, err = dbm.FetchDupRWithLockShared(key, &iter)
 		if rv == -1 {
-			//end of records
+			// end of records
 			break
 		}
 
@@ -2063,7 +1982,7 @@ func Test_mdbm_FetchDupRWithAnyLock(t *testing.T) {
 
 		rv, val, goiter, err = dbm.FetchDupRWithPlock(key, &iter, mdbm.Rdrw)
 		if rv == -1 {
-			//end of records
+			// end of records
 			break
 		}
 
@@ -2079,7 +1998,7 @@ func Test_mdbm_FetchDupRWithAnyLock(t *testing.T) {
 
 		rv, val, goiter, err = dbm.FetchDupRWithTryLock(key, &iter)
 		if rv == -1 {
-			//end of records
+			// end of records
 			break
 		}
 
@@ -2095,7 +2014,7 @@ func Test_mdbm_FetchDupRWithAnyLock(t *testing.T) {
 
 		rv, val, goiter, err = dbm.FetchDupRWithTryLockSmart(key, &iter, mdbm.Rdrw)
 		if rv == -1 {
-			//end of records
+			// end of records
 			break
 		}
 
@@ -2111,7 +2030,7 @@ func Test_mdbm_FetchDupRWithAnyLock(t *testing.T) {
 
 		rv, val, goiter, err = dbm.FetchDupRWithTryLockShared(key, &iter)
 		if rv == -1 {
-			//end of records
+			// end of records
 			break
 		}
 
@@ -2127,7 +2046,7 @@ func Test_mdbm_FetchDupRWithAnyLock(t *testing.T) {
 
 		rv, val, goiter, err = dbm.FetchDupRWithTryPlock(key, &iter, mdbm.Rdrw)
 		if rv == -1 {
-			//end of records
+			// end of records
 			break
 		}
 
@@ -2141,7 +2060,6 @@ func Test_mdbm_FetchDupRWithAnyLock(t *testing.T) {
 }
 
 func Test_mdbm_Clean(t *testing.T) {
-
 	var rv int
 	var err error
 
@@ -2152,13 +2070,12 @@ func Test_mdbm_Clean(t *testing.T) {
 	defer dbm.EasyClose()
 	assert.AssertNil(t, err, "failured, can't open the mdbm, path=%s, err=%v", dbm.GetDBMFile(), err)
 
-	//clean all pages
+	// clean all pages
 	rv, err = dbm.Clean(0)
 	assert.AssertNil(t, err, "failured, can't clean-up, path=%s, rv=%d, err=%v", dbm.GetDBMFile(), rv, err)
 }
 
 func Test_mdbm_Double_Close(t *testing.T) {
-
 	dbm := mdbm.NewMDBM()
 	err := dbm.EasyOpen(pathTestDBM1, 0644)
 	assert.AssertNil(t, err, "failured, can't open the mdbm, path=%s, err=%v", dbm.GetDBMFile(), err)
@@ -2167,7 +2084,6 @@ func Test_mdbm_Double_Close(t *testing.T) {
 }
 
 func Test_mdbm_SetHash(t *testing.T) {
-
 	var rv int
 	var err error
 
@@ -2207,7 +2123,6 @@ func Test_mdbm_SetHash(t *testing.T) {
 }
 
 func Test_mdbm_ReplaceDB(t *testing.T) {
-
 	dbm := mdbm.NewMDBM()
 	err := dbm.EasyOpen(pathTestDBMReplace3, 0644)
 	assert.AssertNil(t, err, "failured, can't open the mdbm, path=%s, err=%v", dbm.GetDBMFile(), err)
@@ -2243,7 +2158,6 @@ func Test_mdbm_ReplaceBackingStore(t *testing.T) {
 */
 
 func Test_mdbm_GetDBStats(t *testing.T) {
-
 	var rv int
 	var err error
 
@@ -2260,11 +2174,9 @@ func Test_mdbm_GetDBStats(t *testing.T) {
 
 	rv, _, _, err = dbm.GetDBStats(mdbm.LargeObjects)
 	assert.AssertNotNil(t, err, "failured, can't check the wrong option, path=%s, rv=%d, err=%v", dbm.GetDBMFile(), rv, err)
-
 }
 
 func Test_mdbm_SetStatTimeFunc(t *testing.T) {
-
 	var rv int
 	var err error
 
@@ -2284,7 +2196,6 @@ func Test_mdbm_SetStatTimeFunc(t *testing.T) {
 }
 
 func Test_mdbm_GetStatTime(t *testing.T) {
-
 	var rv int
 	var err error
 
@@ -2310,7 +2221,6 @@ func Test_mdbm_GetStatTime(t *testing.T) {
 }
 
 func Test_mdbm_GetStatCounter(t *testing.T) {
-
 	var rv int
 	var err error
 
@@ -2333,11 +2243,9 @@ func Test_mdbm_GetStatCounter(t *testing.T) {
 
 	rv, _, err = dbm.GetStatCounter(mdbm.LargeObjects)
 	assert.AssertNotNil(t, err, "failured, can't check the wrong option, path=%s, rv=%d, err=%v", dbm.GetDBMFile(), rv, err)
-
 }
 
 func Test_mdbm_EnableStatOperations(t *testing.T) {
-
 	var rv int
 	var err error
 
@@ -2357,11 +2265,9 @@ func Test_mdbm_EnableStatOperations(t *testing.T) {
 
 	rv, err = dbm.EnableStatOperations(mdbm.LargeObjects)
 	assert.AssertNotNil(t, err, "failured, can't check the wrong option, path=%s, rv=%d, err=%v", dbm.GetDBMFile(), rv, err)
-
 }
 
 func Test_mdbm_Check(t *testing.T) {
-
 	var rv int
 	var err error
 
@@ -2385,7 +2291,6 @@ func Test_mdbm_Check(t *testing.T) {
 }
 
 func Test_mdbm_Protect(t *testing.T) {
-
 	var rv int
 	var err error
 
@@ -2418,7 +2323,6 @@ func Test_mdbm_Protect(t *testing.T) {
 }
 
 func Test_mdbm_DeleteStrAnyLock(t *testing.T) {
-
 	var rv int
 	var err error
 
@@ -2499,11 +2403,9 @@ func Test_mdbm_DeleteStrAnyLock(t *testing.T) {
 
 	rv, err = dbm.DeleteStrWithTryPlock([]string{"1", "2"}, mdbm.Rdrw)
 	assert.AssertNotNil(t, err, "failed, can't check the wrong data-type in the mdbm file(=%s), rv=%d, err=%v", dbm.GetDBMFile(), rv, err)
-
 }
 
 func Test_mdbm_DeleteRWithAnyLock(t *testing.T) {
-
 	var rv int
 	var goiter mdbm.Iter
 	var key string
@@ -2712,18 +2614,15 @@ func Test_mdbm_DeleteRWithAnyLock(t *testing.T) {
 		assert.AssertNotNil(t, err, "failured, can't delete record, value=%s, err=%v\n", val, err)
 	}
 	*/
-
 }
 
 func Test_mdbm_ReplaceFile(t *testing.T) {
-
 	dbm := mdbm.NewMDBM()
 	err := dbm.ReplaceFile(pathTestDBMDelete, pathTestDBMReplace3)
 	assert.AssertNil(t, err, "failured, can't replace %s to %s, path=%s, err=%v", pathTestDBMDelete, pathTestDBMReplace3, err)
 }
 
 func Test_mdbm_EasyClose(t *testing.T) {
-
 	dbm := mdbm.NewMDBM()
 	err := dbm.EasyOpen(pathTestDBMRemove, 0644)
 	assert.AssertNil(t, err, "failured, can't open the mdbm, path=%s, err=%v", dbm.GetDBMFile(), err)
@@ -2734,7 +2633,6 @@ func Test_mdbm_EasyClose(t *testing.T) {
 }
 
 func Test_mdbm_GetMagicNumber(t *testing.T) {
-
 	var rv uint32
 
 	dbm := mdbm.NewMDBM()
@@ -2747,7 +2645,6 @@ func Test_mdbm_GetMagicNumber(t *testing.T) {
 }
 
 func Test_mdbm_PreSplit(t *testing.T) {
-
 	var rv int
 
 	dbm := mdbm.NewMDBM()
@@ -2763,7 +2660,6 @@ func Test_mdbm_PreSplit(t *testing.T) {
 }
 
 func Test_mdbm_Fcopy(t *testing.T) {
-
 	var rv int
 
 	dbm := mdbm.NewMDBM()
@@ -2776,7 +2672,6 @@ func Test_mdbm_Fcopy(t *testing.T) {
 }
 
 func Test_mdbm_SparsifyFile(t *testing.T) {
-
 	var rv int
 
 	dbm := mdbm.NewMDBM()
@@ -2784,17 +2679,15 @@ func Test_mdbm_SparsifyFile(t *testing.T) {
 	defer dbm.EasyClose()
 	assert.AssertNil(t, err, "failured, can't open the mdbm, path=%s, err=%v", dbm.GetDBMFile(), err)
 
-	//use the system block-size
+	// use the system block-size
 	rv, err = dbm.SparsifyFile(pathTestDBMFcopy, -1)
 	assert.AssertNil(t, err, "failured, can't copy `%s` to `%s`, path=%s, rv=%d, err=%v", dbm.GetDBMFile(), pathTestDBMFcopy, rv, err)
 
 	rv, err = dbm.SparsifyFile(pathTestDBMFcopy, 8196)
 	assert.AssertNil(t, err, "failured, can't copy `%s` to `%s`, path=%s, rv=%d, err=%v", dbm.GetDBMFile(), pathTestDBMFcopy, rv, err)
-
 }
 
 func Test_mdbm_ChkPage(t *testing.T) {
-
 	var rv int
 	var err error
 	var out string
@@ -2812,7 +2705,6 @@ func Test_mdbm_ChkPage(t *testing.T) {
 }
 
 func Test_mdbm_ChkError(t *testing.T) {
-
 	var err error
 
 	dbm := mdbm.NewMDBM()
@@ -2828,7 +2720,6 @@ func Test_mdbm_ChkError(t *testing.T) {
 }
 
 func Test_mdbm_EasyOpen_After_NotClose(t *testing.T) {
-
 	var err error
 
 	dbm := mdbm.NewMDBM()
@@ -2841,7 +2732,6 @@ func Test_mdbm_EasyOpen_After_NotClose(t *testing.T) {
 }
 
 func Test_mdbm_EasyOpen_MutipleSyncFlags(t *testing.T) {
-
 	var err error
 
 	dbm := mdbm.NewMDBM()
@@ -2851,7 +2741,6 @@ func Test_mdbm_EasyOpen_MutipleSyncFlags(t *testing.T) {
 }
 
 func Test_mdbm_Open_Wrong_Flags(t *testing.T) {
-
 	var err error
 
 	dbm := mdbm.NewMDBM()
@@ -2869,7 +2758,6 @@ func Test_mdbm_Open_Wrong_Flags(t *testing.T) {
 }
 
 func Test_mdbm_checkAvailable(t *testing.T) {
-
 	var err error
 	var strtest string
 
