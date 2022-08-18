@@ -10,7 +10,6 @@ import (
 const dbPath = "/tmp/test_benchmark_large.boltdb"
 
 func main() {
-
 	db, err := bolt.Open(dbPath, 0644, nil)
 	if err != nil {
 		log.Fatalf("failured, can't open the boltdb, path=%s, err=%v", dbPath, err)
