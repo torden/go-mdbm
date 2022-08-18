@@ -1,4 +1,4 @@
-name: go-strutil
+name: go-mdbm
 on: ["push", "pull_request"]
 jobs:
   build_and_test:
