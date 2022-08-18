@@ -1,0 +1,55 @@
+name: go-strutil
+on: ["push", "pull_request"]
+jobs:
+  build_and_test:
+    strategy:
+      matrix:
+       go: ['1.19', '1.18', '1.17', '1.16', '1.15', '1.14']
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v2
+    
+    # Setup Go
+    - name: Go v${{ matrix.go }} 
+      uses: actions/setup-go@v2
+      with:
+        go-version: ${{ matrix.go }} 
+    
+    # Install all the dependencies
+    - name: Install dependencies
+      run: |
+        go version
+        sudo apt-get update -y
+        sudo apt-get install -y openssl libcppunit-dev libreadline6 libreadline6-dev valgrind realpath libmodule-install-perl
+        sudo dpkg -i pkg/ubuntu/mdbm-4.13.0-Disco_Dingo.deb
+        
+    # Run build of the application
+    - name: Run build
+      run: go build . 
+      
+    # Run vet
+    - name: Run vet
+      run: |
+        find . -type f \( -iname "*.go" ! -iname "*test.go" \) | xargs go vet
+
+  test:
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        go: ['1.19', '1.18', '1.17', '1.16', '1.15', '1.14']
+    steps:
+      - uses: actions/setup-go@v3
+        with:
+          go-version: ${{ matrix.go }}
+      - uses: actions/checkout@v3
+      - run: |
+          go test -v -test.parallel 4 -race -coverprofile=coverage.txt  -covermode=atomic
+
+      - name: Upload coverage report
+        uses: codecov/codecov-action@v1.0.2
+        with:
+          token: f4874627-203c-4986-8629-4b024d7eb51b
+          file: ./coverage.txt
+          flags: unittests
+          name: go-strutil
