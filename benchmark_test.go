@@ -15,7 +15,6 @@ import (
 var gRandomNo = rand.New(rand.NewSource(time.Now().UnixNano()))
 
 func getBenchMarkRandom() int {
-
 	var key int
 
 	for {
@@ -29,7 +28,6 @@ func getBenchMarkRandom() int {
 }
 
 func Benchmark_boltdb_Store(b *testing.B) {
-
 	os.Remove(pathTestBoltDBBenchmark1)
 
 	db, err := bolt.Open(pathTestBoltDBBenchmark1, 0644, nil)
@@ -68,7 +66,6 @@ func Benchmark_boltdb_Store(b *testing.B) {
 }
 
 func Benchmark_mdbm_Store(b *testing.B) {
-
 	dbm := mdbm.NewMDBM()
 	err := dbm.Open(pathTestDBMBenchmark1, mdbm.Create|mdbm.Rdrw|mdbm.LargeObjects|mdbm.Trunc|mdbm.AnyLocks, 0644, 0, 0)
 	defer dbm.EasyClose()
@@ -85,7 +82,6 @@ func Benchmark_mdbm_Store(b *testing.B) {
 }
 
 func Benchmark_mdbm_StoreWithLock(b *testing.B) {
-
 	dbm := mdbm.NewMDBM()
 	err := dbm.Open(pathTestDBMBenchmark2, mdbm.Create|mdbm.Rdrw|mdbm.LargeObjects|mdbm.Trunc|mdbm.AnyLocks, 0644, 0, 0)
 	defer dbm.EasyClose()
@@ -102,7 +98,6 @@ func Benchmark_mdbm_StoreWithLock(b *testing.B) {
 }
 
 func Benchmark_boltdb_Fetch(b *testing.B) {
-
 	db, err := bolt.Open(pathTestBoltDBBenchmark1, 0644, nil)
 	if err != nil {
 		b.Fatalf("failured, can't open the boltdb, path=%s, err=%v", pathTestBoltDBBenchmark1, err)
@@ -131,7 +126,6 @@ func Benchmark_boltdb_Fetch(b *testing.B) {
 }
 
 func Benchmark_mdbm_Fetch(b *testing.B) {
-
 	var err error
 	var val string
 
@@ -152,7 +146,6 @@ func Benchmark_mdbm_Fetch(b *testing.B) {
 }
 
 func Benchmark_mdbm_FetchWithLock(b *testing.B) {
-
 	var err error
 	var val string
 
@@ -172,7 +165,6 @@ func Benchmark_mdbm_FetchWithLock(b *testing.B) {
 }
 
 func Benchmark_mdbm_PreLoad_Fetch(b *testing.B) {
-
 	var err error
 	var val string
 
@@ -197,7 +189,6 @@ func Benchmark_mdbm_PreLoad_Fetch(b *testing.B) {
 }
 
 func Benchmark_mdbm_PreLoad_FetchWithLock(b *testing.B) {
-
 	var err error
 	var val string
 
