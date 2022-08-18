@@ -19,7 +19,7 @@ jobs:
     - name: Install dependencies
       run: |
         sudo apt-get update -y
-        sudo apt-get install -y openssl libcppunit-dev libreadline6 libreadline6-dev valgrind  libmodule-install-perl
+        sudo apt-get install -y openssl libcppunit-dev libreadline libreadline-dev valgrind  libmodule-install-perl
 
     # Run build of the application
     - name: Run build
