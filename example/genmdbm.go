@@ -9,7 +9,6 @@ import (
 const dbPath = "/tmp/test_benchmark_large.mdbm"
 
 func main() {
-
 	dbm := mdbm.NewMDBM()
 	err := dbm.Open("/tmp/test_benchmark_large.mdbm", mdbm.Create|mdbm.Rdrw|mdbm.LargeObjects|mdbm.Trunc, 0644, 0, 0)
 	defer dbm.EasyClose()
