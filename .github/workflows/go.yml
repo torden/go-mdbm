@@ -1,20 +1,58 @@
-name: php-mdbm
+name: go-mdbm
 on: ["push", "pull_request"]
 jobs:
   build_and_test:
+    strategy:
+      matrix:
+       go: ['1.19', '1.18', '1.17', '1.16', '1.15', '1.14']
     runs-on: ubuntu-18.04
     steps:
-    - uses: actions/checkout@v3
+    - uses: actions/checkout@v2
     
+    # Setup Go
+    - name: Go v${{ matrix.go }} 
+      uses: actions/setup-go@v2
+      with:
+        go-version: ${{ matrix.go }} 
+    
+    # Install all the dependencies
+    - name: Install dependencies
+      run: |
+        sudo apt-get update -y
+        sudo apt-get install -y libreadline-dev libreadline7 openssl libcppunit-dev valgrind  libmodule-install-perl
+
     # Run build of the application
     - name: Run build
       run: |
-        sudo apt update -qq -y
-        DEBIAN_FRONTEND=noninteractive sudo apt-get install -y --no-install-recommends tzdata
-        sudo apt install -qq -y openssl libcppunit-dev libreadline7 libreadline-dev valgrind libmodule-install-perl gdb php-dev
-        curl -ss -L -O https://github.com/torden/go-mdbm/raw/master/pkg/ubuntu/mdbm-4.13.0-Bionic_Beaver.deb
-        sudo dpkg -i mdbm-4.13.0-Bionic_Beaver.deb
-        phpize
-        ./configure --with-php-config=`which php-config` --with-mdbm=/usr/local/mdbm/
-        make -j2
-        make test TESTS="-q -v -m"
+        sudo dpkg -i pkg/ubuntu/mdbm-4.13.0-Bionic_Beaver.deb
+        go build . 
+      
+    # Run vet
+    - name: Run vet
+      run: |
+        go vet .
+
+  test:
+    runs-on: ubuntu-18.04
+    strategy:
+      fail-fast: false
+      matrix:
+        go: ['1.19', '1.18', '1.17', '1.16', '1.15', '1.14']
+    steps:
+      - uses: actions/setup-go@v3
+        with:
+          go-version: ${{ matrix.go }}
+      - uses: actions/checkout@v3
+      - run: |
+          sudo apt-get update -y
+          sudo apt-get install -y libreadline-dev libreadline7 openssl libcppunit-dev valgrind  libmodule-install-perl
+          sudo dpkg -i pkg/ubuntu/mdbm-4.13.0-Bionic_Beaver.deb
+          go test -v -test.parallel 4 -race -coverprofile=coverage.txt  -covermode=atomic
+
+      - name: Upload coverage report
+        uses: codecov/codecov-action@v1.0.2
+        with:
+          token: f4874627-203c-4986-8629-4b024d7eb51b
+          file: ./coverage.txt
+          flags: unittests
+          name: go-strutil
