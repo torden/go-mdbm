@@ -21,4 +21,5 @@ require (
 	golang.org/x/sys v0.0.0-20220817070843-5a390386f1f2
 	golang.org/x/tools v0.1.12 // indirect
 	gopkg.in/alecthomas/kingpin.v3-unstable v3.0.0-20191105091915-95d230a53780 // indirect
+	gopkg.in/yaml.v2 v2.4.0 // indirect
 )

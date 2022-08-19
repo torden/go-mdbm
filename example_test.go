@@ -482,8 +482,6 @@ func Example_mdbm_GetLockMode() {
 	}
 
 	fmt.Println(rv, err)
-	// Output:
-	// 0 <nil>
 
 	switch rv {
 	case 0:
@@ -495,7 +493,8 @@ func Example_mdbm_GetLockMode() {
 	case mdbm.RwLocks:
 		fmt.Println("MDBM_RW_LOCKS          - Shared (read-write) locking")
 	}
-
+	// Output:
+	// 0 <nil>
 	// Exclusize Locking
 }
 
