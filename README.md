@@ -7,10 +7,10 @@
 - MDBM is a high-performance, memory-mapped hash database similar to the homegrown libhash.
 - The records stored in a mdbm database may have keys and values of arbitrary and variable lengths.
 
-[![Build Status](https://travis-ci.org/torden/go-mdbm.svg?branch=master)](https://travis-ci.org/torden/go-mdbm)
+[![Build Status](https://github.com/torden/go-mdbm/actions/workflows/go.yml/badge.svg)](https://github.com/torden/go-mdbm/actions)
 [![Go Report Card](https://goreportcard.com/badge/github.com/torden/go-mdbm)](https://goreportcard.com/report/github.com/torden/go-mdbm)
 [![GoDoc](https://godoc.org/github.com/torden/go-mdbm?status.svg)](https://godoc.org/github.com/torden/go-mdbm)
-[![codecov](https://codecov.io/gh/torden/go-mdbm/branch/master/graph/badge.svg)](https://codecov.io/gh/torden/go-mdbm)
+[![codecov](https://codecov.io/gh/torden/go-mdbm/branch/master/graph/badge.svg?token=Cb94xJMoYW)](https://codecov.io/gh/torden/go-mdbm)
 [![Coverage Status](https://coveralls.io/repos/github/torden/go-mdbm/badge.svg?branch=master)](https://coveralls.io/github/torden/go-mdbm?branch=master)
 [![GitHub version](https://badge.fury.io/gh/torden%2Fgo-mdbm.svg)](https://badge.fury.io/gh/torden%2Fgo-mdbm)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
