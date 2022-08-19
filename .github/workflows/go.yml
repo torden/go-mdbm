@@ -19,12 +19,12 @@ jobs:
     - name: Install dependencies
       run: |
         sudo apt-get update -y
-        sudo apt-get install -y openssl libcppunit-dev libreadline* valgrind  libmodule-install-perl
+        sudo apt-get install -y libreadline-dev libreadline7 openssl libcppunit-dev valgrind  libmodule-install-perl
 
     # Run build of the application
     - name: Run build
       run: |
-        sudo dpkg -i pkg/ubuntu/mdbm-4.13.0-Disco_Dingo.deb
+        sudo dpkg -i pkg/ubuntu/mdbm-4.13.0-Bionic_Beaver.deb
         go build . 
       
     # Run vet
@@ -45,8 +45,8 @@ jobs:
       - uses: actions/checkout@v3
       - run: |
           sudo apt-get update -y
-          sudo apt-get install -y openssl libcppunit-dev libreadline* valgrind  libmodule-install-perl
-          sudo dpkg -i pkg/ubuntu/mdbm-4.13.0-Disco_Dingo.deb
+          sudo apt-get install -y libreadline-dev libreadline7 openssl libcppunit-dev valgrind  libmodule-install-perl
+          sudo dpkg -i pkg/ubuntu/mdbm-4.13.0-Bionic_Beaver.deb
           go test -v -test.parallel 4 -race -coverprofile=coverage.txt  -covermode=atomic
 
       - name: Upload coverage report
