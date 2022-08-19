@@ -495,7 +495,7 @@ func Example_mdbm_GetLockMode() {
 	}
 	// Output:
 	// 0 <nil>
-	// Exclusize Locking
+	// Exclusive locking
 }
 
 func Example_mdbm_CompressTree() {
