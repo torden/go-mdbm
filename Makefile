@@ -99,16 +99,6 @@ fmt: setup
 	@$(shell which gofumpt) -l -w .
 	@$(CMD_ECHO) -e "\033[1;40;36mDone\033[01;m\x1b[0m"
 
-## Install GoMetaLinter  (deprecated : https://github.com/alecthomas/gometalinter)
-# metalinter::
-#	@$(CMD_ECHO)  -e "\033[1;40;32mInstall Go-metalineter.\033[01;m\x1b[0m"
-#ifeq ($(GOLANGV19_OVER),1)
-#	@$(shell which gometalinter) --install
-#else
-#	@$(CMD_ECHO) -e "\033[1;40;36mSKIP: your golang is older version $(shell go version)\033[01;m\x1b[0m"
-#endif
-#	@$(CMD_ECHO) -e "\033[1;40;36mDone\033[01;m\x1b[0m"
-
 ## Run a LintChecker (golangci-lint)
 strictlint::
 	@$(CMD_ECHO)  -e "\033[1;40;32mRun the Golangci-Lint.\033[01;m\x1b[0m"
