@@ -1,3 +1,8 @@
+---
+- Archived on 2022-08-31
+- Moved to https://github.com/torden/mdbm/
+---
+
 # Go-mdbm
 
 The following is pre-build packages for easy install to your machine.
