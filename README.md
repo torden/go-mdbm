@@ -98,9 +98,9 @@ PREFIX=/usr/local/mdbm make install
 
 ## Install from Pre-build Packages
 
-- [Ubuntu Package](https://github.com/torden/go-mdbm/tree/master/pkg)
-- [RedHat(CentOS) Package](https://github.com/torden/go-mdbm/tree/master/pkg)
-- OSX Package (as soon)
+- [Ubuntu Package](https://github.com/torden/mdbm/tree/main/ubuntu)
+- [RedHat(CentOS) Package](https://github.com/torden/mdbm/tree/main/ubuntu)
+- [OSX Package](https://github.com/torden/mdbm/tree/main/osx)
 - BSD Port (as soon)
 
 ### Ubuntu
