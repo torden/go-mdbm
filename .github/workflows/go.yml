@@ -18,13 +18,14 @@ jobs:
     # Install all the dependencies
     - name: Install dependencies
       run: |
-        sudo apt-get update -y
-        sudo apt-get install -y libreadline-dev libreadline7 openssl libcppunit-dev valgrind  libmodule-install-perl
+        sudo apt-get update -y -qq
+        sudo apt-get install -y -qq libreadline-dev libreadline7 openssl libcppunit-dev valgrind  libmodule-install-perl
 
     # Run build of the application
     - name: Run build
       run: |
-        sudo dpkg -i pkg/ubuntu/mdbm-4.13.0-Bionic_Beaver.deb
+        curl -ss -L -O https://github.com/torden/go-mdbm/raw/master/pkg/ubuntu/mdbm-4.13.0-Bionic_Beaver.deb
+        sudo dpkg -i mdbm-4.13.0-Bionic_Beaver.deb
         go build . 
       
     # Run vet
@@ -46,7 +47,8 @@ jobs:
       - run: |
           sudo apt-get update -y
           sudo apt-get install -y libreadline-dev libreadline7 openssl libcppunit-dev valgrind  libmodule-install-perl
-          sudo dpkg -i pkg/ubuntu/mdbm-4.13.0-Bionic_Beaver.deb
+          curl -ss -L -O https://github.com/torden/go-mdbm/raw/master/pkg/ubuntu/mdbm-4.13.0-Bionic_Beaver.deb
+          sudo dpkg -i mdbm-4.13.0-Bionic_Beaver.deb
           go test -v -test.parallel 4 -race -coverprofile=coverage.txt  -covermode=atomic
 
       - name: Upload coverage report
@@ -55,4 +57,4 @@ jobs:
           token: f4874627-203c-4986-8629-4b024d7eb51b
           file: ./coverage.txt
           flags: unittests
-          name: go-strutil
+          name: go-mdbm
