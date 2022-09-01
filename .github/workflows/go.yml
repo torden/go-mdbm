@@ -1,7 +1,7 @@
 name: go-mdbm
 on: ["push", "pull_request"]
 jobs:
-  build_and_test:
+  build_and_test_ubuntu18:
     strategy:
       matrix:
        go: ['1.19', '1.18', '1.17', '1.16', '1.15', '1.14']
@@ -20,8 +20,98 @@ jobs:
       run: |
         sudo apt-get update -y -qq
         sudo apt-get install -y -qq libreadline-dev libreadline7 openssl libcppunit-dev valgrind  libmodule-install-perl
-        curl -ss -L -O https://github.com/torden/go-mdbm/raw/master/pkg/ubuntu/mdbm-4.13.0-Bionic_Beaver.deb
+        curl -ss -L -O https://github.com/torden/mdbm/raw/main/ubuntu/mdbm-4.13.0-Bionic_Beaver.deb
         sudo dpkg -i mdbm-4.13.0-Bionic_Beaver.deb
+
+    # Run build of the application
+    - name: Run build
+      run: |
+        go build . 
+      
+    # Run vet
+    - name: Run vet
+      run: |
+        go vet .
+
+    # Run unittest
+    - name: Run vet
+      run: |
+        go test -v -test.parallel 4 -race -coverprofile=coverage.txt  -covermode=atomic
+
+    - name: Upload coverage report
+      uses: codecov/codecov-action@v1.0.2
+      with:
+        token: f4874627-203c-4986-8629-4b024d7eb51b
+        file: ./coverage.txt
+        flags: unittests
+        name: go-mdbm
+
+build_and_test_ubuntu20:
+    strategy:
+      matrix:
+       go: ['1.19', '1.18', '1.17', '1.16', '1.15', '1.14']
+    runs-on: ubuntu-18.04
+    steps:
+    - uses: actions/checkout@v2
+    
+    # Setup Go
+    - name: Go v${{ matrix.go }} 
+      uses: actions/setup-go@v2
+      with:
+        go-version: ${{ matrix.go }} 
+    
+    # Install all the dependencies
+    - name: Install dependencies
+      run: |
+        sudo apt-get update -y -qq
+        sudo apt-get install -y -qq zlib1g libssl1.1 libreadline8 libtinfo5 libstdc++6 libc6 valgrind  libmodule-install-perl
+        curl -ss -L -O https://github.com/torden/mdbm/raw/main/ubuntu/mdbm-4.13.0-Focal_Fossa.deb
+        sudo dpkg -i mdbm-4.13.0-Focal_Fossa.deb
+
+    # Run build of the application
+    - name: Run build
+      run: |
+        go build . 
+      
+    # Run vet
+    - name: Run vet
+      run: |
+        go vet .
+
+    # Run unittest
+    - name: Run vet
+      run: |
+        go test -v -test.parallel 4 -race -coverprofile=coverage.txt  -covermode=atomic
+
+    - name: Upload coverage report
+      uses: codecov/codecov-action@v1.0.2
+      with:
+        token: f4874627-203c-4986-8629-4b024d7eb51b
+        file: ./coverage.txt
+        flags: unittests
+        name: go-mdbm
+
+build_and_test_ubuntu22:
+    strategy:
+      matrix:
+       go: ['1.19', '1.18', '1.17', '1.16', '1.15', '1.14']
+    runs-on: ubuntu-22.04
+    steps:
+    - uses: actions/checkout@v2
+    
+    # Setup Go
+    - name: Go v${{ matrix.go }} 
+      uses: actions/setup-go@v2
+      with:
+        go-version: ${{ matrix.go }} 
+    
+    # Install all the dependencies
+    - name: Install dependencies
+      run: |
+        sudo apt-get update -y -qq
+        sudo apt-get install -y -qq zlib1g libreadline8 libtinfo6 libstdc++6 libc6 valgrind  libmodule-install-perl
+        curl -ss -L -O https://github.com/torden/mdbm/raw/main/ubuntu/mdbm-4.13.0-Jammy_Jellyfish.deb
+        sudo dpkg -i mdbm-4.13.0-Jammy_Jellyfish.deb
 
     # Run build of the application
     - name: Run build
