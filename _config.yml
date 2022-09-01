@@ -1,3 +1,8 @@
 theme: jekyll-theme-cayman
 title: Just! Go interface for Y! MDBM Edit
 description: Go-mdbm is a Go bind to Yahoo! MDBM C API.
+exclude:
+  - pkg/README.md
+
+plugins:
+  - jekyll-sitemap
