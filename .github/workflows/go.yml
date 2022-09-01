@@ -1,7 +1,7 @@
 name: go-mdbm
 on: ["push", "pull_request"]
 jobs:
-  build_and_test_ubuntu18:
+  build_and_test_on_ubuntu18:
     strategy:
       matrix:
        go: ['1.19', '1.18', '1.17', '1.16', '1.15', '1.14']
@@ -46,7 +46,7 @@ jobs:
         flags: unittests
         name: go-mdbm
 
-build_and_test_ubuntu20:
+  build_and_test_on_ubuntu20:
     strategy:
       matrix:
        go: ['1.19', '1.18', '1.17', '1.16', '1.15', '1.14']
@@ -91,7 +91,7 @@ build_and_test_ubuntu20:
         flags: unittests
         name: go-mdbm
 
-build_and_test_ubuntu22:
+  build_and_test_on_ubuntu22:
     strategy:
       matrix:
        go: ['1.19', '1.18', '1.17', '1.16', '1.15', '1.14']
