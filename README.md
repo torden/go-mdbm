@@ -12,6 +12,7 @@
 [![GoDoc](https://godoc.org/github.com/torden/go-mdbm?status.svg)](https://godoc.org/github.com/torden/go-mdbm)
 [![codecov](https://codecov.io/gh/torden/go-mdbm/branch/master/graph/badge.svg?token=Cb94xJMoYW)](https://codecov.io/gh/torden/go-mdbm)
 [![Coverage Status](https://coveralls.io/repos/github/torden/go-mdbm/badge.svg?branch=master)](https://coveralls.io/github/torden/go-mdbm?branch=master)
+[![CodeQL](https://github.com/torden/go-mdbm/workflows/CodeQL/badge.svg)](https://github.com/torden/go-mdbm/actions/workflows/codeql-analysis.yml)
 [![GitHub version](https://img.shields.io/github/v/release/torden/go-mdbm)](https://github.com/torden/go-mdbm)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 
